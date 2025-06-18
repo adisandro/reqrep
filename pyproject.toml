@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "repair"
+version = "1.0"
+authors = [
+    { name="Alessio Di Sandro", email="alessio.disandro@gmail.com" },
+]
+description = "Repairs test requirements"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
