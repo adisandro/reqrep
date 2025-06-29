@@ -1,26 +1,23 @@
 #!/usr/bin/env python3
 import os
 from argparse import ArgumentParser
-from operator import eq
 
 from repair.check import Requirement, Transformation
-from repair.trace import Trace
+from repair.trace import Trace, TraceSuite
 
 if __name__ == "__main__":
     parser = ArgumentParser(description='Repairs test requirements')
-    parser.add_argument('traces', help='Path to the directory containing test traces')
+    parser.add_argument('tracesuite', help='Path to the directory containing the trace suite')
     args = parser.parse_args()
-    # TODO: Metrics: correctness (% of time, distance from desired value) + desirableness?
-    # TODO: Loop to find the right repair (e.g. passing threshold % of rows)
-    r1 = Requirement('Req 1', 'BL <= ic <= TL and reset == 0', 'yout == ic')
-    r2 = Requirement('Req 2', 'True', 'TL >= yout >= BL')
-    # TODO: Are pre/post transformations bundled together, or are they independent?
+    # TODO: Define a fitness functions: desirebleness (e.g. # of trans, semantic from the language as black box)
+    # TODO: Support concatenation of transformations
+    # TODO: Pre/post transformations are independent
+    # TODO: Create a framework with the budget loop and optimization algorithm, vs a random baseline
+    # TODO: Add to Github
+    r1 = Requirement('BL <= ic <= TL and reset == 0', 'yout == ic')
+    r2 = Requirement('True', 'TL >= yout >= BL')
     t1 = Transformation('Add true', lambda pre: f'True or ({pre})', lambda post: f'True or ({post})')
-    with os.scandir(args.traces) as it:
-        for entry in it:
-            if entry.is_dir() or not entry.name.endswith('.csv'):
-                continue
-            trace = Trace(entry.path)
-            trace.parse()
-            trace.evaluate([r1, r2], [t1])
-            print(trace)
+    ts = TraceSuite(args.tracesuite)
+    r1.repair(ts, [t1])
+    r2.repair(ts, [t1])
+
