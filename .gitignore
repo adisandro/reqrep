@@ -2,3 +2,7 @@
 .idea/
 __pycache__/
 *.egg-info
+*.log
+
+case_studies/
+output/
