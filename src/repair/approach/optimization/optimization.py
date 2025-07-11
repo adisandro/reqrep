@@ -1,9 +1,10 @@
 from repair.approach.approach import Approach
-import operator
+from tqdm import tqdm
 import random
 import logging
 from deap import base, creator, gp, tools
 from repair.approach import utils
+from repair.approach.optimization.gplanguage import GP_FUNCTIONS
 
 logger = logging.getLogger("gp_logger")
 
@@ -24,7 +25,7 @@ class OptimizationApproach(Approach):
     def getGPLanguage(self):
         # # STEP 1: Define the set of operations and terminals
 
-        # Boolean primitives # TODO maybe remove?
+        # Types for the DEAP PrimitiveSetTyped
         Float = float
         Bool = bool
 
@@ -32,24 +33,9 @@ class OptimizationApproach(Approach):
         pset = gp.PrimitiveSetTyped("MAIN", [Float] * len(self.variable_names), Bool)
 
         ## OPERATORS
+        for gpfunc in GP_FUNCTIONS:
+            pset.addPrimitive(gpfunc.impl, gpfunc.input_types, gpfunc.return_type)
 
-        # Arithmetic ops
-        pset.addPrimitive(operator.add, [Float, Float], Float)
-        pset.addPrimitive(operator.sub, [Float, Float], Float)
-
-        # Comparison ops
-        pset.addPrimitive(operator.lt, [Float, Float], Bool)
-        pset.addPrimitive(operator.gt, [Float, Float], Bool)
-        pset.addPrimitive(operator.eq, [Float, Float], Bool)
-
-        # Logic ops
-        pset.addPrimitive(operator.and_, [Bool, Bool], Bool)
-        pset.addPrimitive(operator.or_, [Bool, Bool], Bool)
-        pset.addPrimitive(operator.not_, [Bool], Bool)
-
-        # TEMPORAL OPERATORS
-        # TODO add some custom temporal operators
-        
         # TERMINALS
         
         # Variables
@@ -91,27 +77,11 @@ class OptimizationApproach(Approach):
         toolbox.register("expr", gp.genHalfAndHalf, pset=self.pset, min_=1, max_=3)
         toolbox.register("compile", gp.compile, pset=self.pset)
 
-        # # TODO this is temp, we need to ensure that the generated individuals contain the variable 'x'
-        # def contains_variable_x(ind):
-        #     return "x" in str(ind)  # Fast check that 'x' appears in the string representation
-
-        # def generate_valid_individual():
-        #     while True:
-        #         ind = tools.initIterate(creator.Individual, toolbox.expr)
-        #         if contains_variable_x(ind):
-        #             logger.info("VALID:", ind)
-        #             return ind
-        #         else:
-        #             logger.info("INVALID:", ind)
-
-        # toolbox.register("individual", generate_valid_individual)
-        # TODO create a custom individual initializer. Taking into consideration the initial expression
         toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
         toolbox.register("evaluate", utils.eval_requirement,
                          traces=self.traces, # this is fixed throughout execution
-                         compile_func=toolbox.compile, # this is fixed throughout execution
                          variable_names=self.variable_names, # this is fixed throughout execution
         )
         toolbox.register("select", tools.selTournament, tournsize=3)
@@ -135,7 +105,7 @@ class OptimizationApproach(Approach):
 
         # Evolutionary loop: run for a fixed number of generations
         # TODO review this loop entirely
-        for gen in range(2):
+        for gen in tqdm(range(5)):
             # Select individuals for the next generation using tournament selection
             offspring = self.toolbox.select(pop, len(pop))
             offspring = list(map(self.toolbox.clone, offspring))  # Deep copy the individuals
