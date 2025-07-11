@@ -1,26 +1,29 @@
 # TODO Fix this.some theoretical stuff to do here
 # TODO how about multiple fitness values?
 # Fitness function: count how many time steps FAIL the requirement
-def eval_requirement(individual, traces, compile_func):
+def eval_requirement(individual, traces, compile_func, variable_names):
 
     # TODO Improve this sanity check
-    # Ensure the individual contains the variable 'x'
-    if "x" not in str(individual):
+    if not any(var in str(individual) for var in variable_names):
         return (float("inf"),)
 
     func = compile_func(expr=individual)
-    fitness = 0
+    violations = 0
+
     try:
-        # add support for arbitrary variables
         for trace in traces:
             for item in trace.items:
-                # TODO need to expand this with temporal operators
-                x = float(item.values['x'])
 
-                if not func(x):
-                    # If the function fails for this trace item, increment the fitness
-                    fitness += 1
-    except Exception as e:
+                # TODO need to expand this with temporal operators
+                inputs = [float(item.values[var]) for var in variable_names]
+                outcome = func(*inputs)
+                if not outcome:
+                    violations += 1
+    except Exception:
         raise ValueError(f"Error evaluating individual: {individual}.")
+
+    return (violations,)
     
+    # print(fitness)
+    # print()
     return (fitness,)

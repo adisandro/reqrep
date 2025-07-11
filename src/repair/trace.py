@@ -25,8 +25,15 @@ class Trace:
 class TraceSuite:
     def __init__(self, path):
         self.traces = []
+        self.variables = {}
         with os.scandir(path) as it:
             for entry in it:
                 if entry.is_dir() or not entry.name.endswith('.csv'):
                     continue
-                self.traces.append(Trace(entry.path))
+                entry_trace = Trace(entry.path)
+                self.traces.append(entry_trace)
+                if not self.variables:
+                    self.variables = entry_trace.variables.copy()
+                else:
+                    if self.variables != entry_trace.variables:
+                        raise ValueError("Trace variables do not match across traces.")

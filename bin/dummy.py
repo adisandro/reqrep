@@ -8,6 +8,7 @@ from repair.approach.optimization.optimization import OptimizationApproach
 from repair.check import Requirement, Transformation
 from repair.trace import Trace, TraceSuite
 from repair.approach.optimization import utils as optimization_utils
+import time
 
 
 if __name__ == "__main__":
@@ -40,8 +41,11 @@ if __name__ == "__main__":
 
     # Perform Repair
     print(f"Initial Requirement: {r1}")
+    start_time = time.time()
     repaired_req = a1.repair(r1) # TODO r1 is not supported yet
-    print(f"Repaired Requirement: {optimization_utils.to_infix(repaired_req)}")
+    elapsed = time.time() - start_time
+    print(f"Repaired Requirement: {optimization_utils.to_infix(repaired_req, a1)}")
+    print(f"Repair time: {elapsed:.2f} seconds")
 
 # run on the dummy data as follows:
 # `python bin/dummy.py data/dummy`

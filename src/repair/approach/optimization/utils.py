@@ -1,4 +1,4 @@
-def to_infix(expr):
+def to_infix(expr, approach):
     """
     Convert a GP expression to an infix string representation.
     """
@@ -16,10 +16,9 @@ def to_infix(expr):
         "not_": "not",
     }
 
-    ARG_NAMES = {
-        "ARG0": "x",
-        # TODO Add ARG1: 'y', etc. if needed. Do this dynamically.
-    }
+    ARG_NAMES = {}
+    for i, var_name in enumerate(approach.variable_names):
+            ARG_NAMES[f"ARG{i}"] = var_name
 
     def recurse(index):
         node = expr[index]

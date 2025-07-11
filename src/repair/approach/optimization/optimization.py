@@ -11,6 +11,7 @@ class OptimizationApproach(Approach):
 
     def __init__(self, tracesuite=None, transformation=None, desirability=None):
         self.traces = tracesuite.traces
+        self.variable_names = sorted([v for v in tracesuite.variables if v != "Time"])
         self.transformation = transformation # TODO
         self.desirability = desirability # TODO
         # super().__init__()
@@ -23,29 +24,41 @@ class OptimizationApproach(Approach):
     def getGPLanguage(self):
         # # STEP 1: Define the set of operations and terminals
 
-        # Define types
+        # Boolean primitives # TODO maybe remove?
         Float = float
         Bool = bool
 
         # Define the typed primitive set
-        pset = gp.PrimitiveSetTyped("MAIN", [Float], Bool)  # input: x: float → returns: Bool
+        pset = gp.PrimitiveSetTyped("MAIN", [Float] * len(self.variable_names), Bool)
 
-        # Add arithmetic ops: only for Float inputs → Float output
+        ## OPERATORS
+
+        # Arithmetic ops
         pset.addPrimitive(operator.add, [Float, Float], Float)
         pset.addPrimitive(operator.sub, [Float, Float], Float)
 
-        # Add comparisons: Float inputs → Bool output
+        # Comparison ops
         pset.addPrimitive(operator.lt, [Float, Float], Bool)
         pset.addPrimitive(operator.gt, [Float, Float], Bool)
         pset.addPrimitive(operator.eq, [Float, Float], Bool)
 
-        # Add logic ops: Bool inputs → Bool output
+        # Logic ops
         pset.addPrimitive(operator.and_, [Bool, Bool], Bool)
         pset.addPrimitive(operator.or_, [Bool, Bool], Bool)
         pset.addPrimitive(operator.not_, [Bool], Bool)
 
-        # Terminals: input variable x, floats, numeric constants and bools
-        pset.renameArguments(ARG0='x')
+        # TEMPORAL OPERATORS
+        # TODO add some custom temporal operators
+        
+        # TERMINALS
+        
+        # Variables
+        for i, var_name in enumerate(self.variable_names):
+            pset.renameArguments(**{f"ARG{i}": var_name})
+
+        # Constants
+        # input variable x, floats, numeric constants and bools
+        # pset.renameArguments(ARG0='x')
         for const in [-10.0, -5.0, 0.0, 5.0, 10.0]:
             pset.addTerminal(const, Float)
         pset.addEphemeralConstant("rand100", lambda: random.uniform(0, 10), Float)
@@ -63,7 +76,6 @@ class OptimizationApproach(Approach):
 
         # pset.addPrimitive(logical_and, [bool, bool], bool)
 
-        # TODO add some custom temporal operators
 
         return pset
 
@@ -98,8 +110,9 @@ class OptimizationApproach(Approach):
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
         toolbox.register("evaluate", utils.eval_requirement,
-                         traces=self.traces, # because is fixed
-                         compile_func=toolbox.compile, # because is fixed
+                         traces=self.traces, # this is fixed throughout execution
+                         compile_func=toolbox.compile, # this is fixed throughout execution
+                         variable_names=self.variable_names, # this is fixed throughout execution
         )
         toolbox.register("select", tools.selTournament, tournsize=3)
         toolbox.register("mate", gp.cxOnePoint)
@@ -110,7 +123,9 @@ class OptimizationApproach(Approach):
         return toolbox
 
     def repair(self, requirement):
-        # TODO add support for the requirement parameter, (1) for the initialization, also (2) for the fitness
+        # TODO add support for the requirement parameter,
+        # (1) for the initialization, also
+        # (2) for the fitness
 
         # Create an initial population of random individuals (formulas)
         pop = self.toolbox.population(n=10)
