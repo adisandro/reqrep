@@ -53,15 +53,6 @@ class OptimizationApproach(Approach):
         # FIXES TO `IndexError: The gp.generate function tried to add a terminal of type '<class 'bool'>', but there is none available.`
         pset.addTerminal(True, bool)
         pset.addTerminal(False, bool)
-        # # limit depth
-        # toolbox.register("expr", gp.genFull, pset=pset, min_=1, max_=3)
-
-        # lambda wrapper for typesetting
-        # def logical_and(a: bool, b: bool) -> bool:
-        #     return a and b
-
-        # pset.addPrimitive(logical_and, [bool, bool], bool)
-
 
         return pset
 
@@ -74,11 +65,18 @@ class OptimizationApproach(Approach):
         # STEP 3: Define the toolbox with genetic programming operations
 
         toolbox = base.Toolbox()
-        toolbox.register("expr", gp.genHalfAndHalf, pset=self.pset, min_=1, max_=3)
+        toolbox.register("expr", gp.genHalfAndHalf, pset=self.pset, min_=2, max_=4)
         toolbox.register("compile", gp.compile, pset=self.pset)
 
         toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+
+        # TODO IMPO: Currently we are doing a sanity check based on random sampleing.
+        # tbh it's decent, but its not fully sound.
+        # Replace this with a better "expr" entry in toolbox.register. see expressiongenerator.py
+        toolbox.register("sanitycheck", utils.is_non_trivial_candidate,
+                        variable_names=self.variable_names, # this is fixed throughout execution
+        )
 
         toolbox.register("evaluate", utils.eval_requirement,
                          traces=self.traces, # this is fixed throughout execution
@@ -126,7 +124,15 @@ class OptimizationApproach(Approach):
             # Re-evaluate individuals whose fitness has changed
             invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
             for ind in invalid_ind:
-                ind.fitness.values = self.toolbox.evaluate(ind)
+                # STEP 1: Perform Sanity Check
+                is_non_trivial = self.toolbox.sanitycheck(ind)
+                if not is_non_trivial:
+                    ind.fitness.values = (float("inf"),)
+                else:
+                    # If sanity check passes, evaluate the individual
+                    # This is where the requirement would be used to evaluate fitness
+                    ind.fitness.values = self.toolbox.evaluate(ind)
+                # ind.fitness.values = self.toolbox.evaluate(ind)
 
             # Replace the old population with the new one
             pop[:] = offspring

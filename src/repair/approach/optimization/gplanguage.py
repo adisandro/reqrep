@@ -24,8 +24,8 @@ def sub_robustness(a, b): return a - b
 def lt_robustness(a, b): return a - b
 def gt_robustness(a, b): return b - a
 def eq_robustness(a, b): return abs(a - b)
-def and_robustness(a, b): return max(a, b)
-def or_robustness(a, b): return min(a, b)
+def and_robustness(a, b): return min(a, b)
+def or_robustness(a, b): return max(a, b)
 def not_robustness(a): return -a
 
 GP_FUNCTIONS = [
