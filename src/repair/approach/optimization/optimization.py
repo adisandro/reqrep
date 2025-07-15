@@ -4,6 +4,7 @@ import random
 import logging
 from deap import base, creator, gp, tools
 from repair.approach import utils
+from repair.approach.optimization import expressiongenerator
 from repair.approach.optimization.gplanguage import GP_FUNCTIONS
 
 logger = logging.getLogger("gp_logger")
@@ -49,11 +50,6 @@ class OptimizationApproach(Approach):
             pset.addTerminal(const, Float)
         pset.addEphemeralConstant("rand100", lambda: random.uniform(0, 10), Float)
 
-        # TODO, select best option for us
-        # FIXES TO `IndexError: The gp.generate function tried to add a terminal of type '<class 'bool'>', but there is none available.`
-        pset.addTerminal(True, bool)
-        pset.addTerminal(False, bool)
-
         return pset
 
     def set_creator(self):
@@ -65,7 +61,8 @@ class OptimizationApproach(Approach):
         # STEP 3: Define the toolbox with genetic programming operations
 
         toolbox = base.Toolbox()
-        toolbox.register("expr", gp.genHalfAndHalf, pset=self.pset, min_=2, max_=4)
+        # if min_=0, then this requires a False or true terminal. Not supported.
+        toolbox.register("expr", expressiongenerator.generate_expr, pset=self.pset, min_=2, max_=2)
         toolbox.register("compile", gp.compile, pset=self.pset)
 
         toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
@@ -84,7 +81,9 @@ class OptimizationApproach(Approach):
         )
         toolbox.register("select", tools.selTournament, tournsize=3)
         toolbox.register("mate", gp.cxOnePoint)
-        toolbox.register("expr_mut", gp.genFull, min_=0, max_=2)
+        # if min_=0, then this requires a False or true terminal. Not supported.
+        toolbox.register("expr_mut", expressiongenerator.generate_expr, 
+                         min_=1, max_=2, condition_str="full")
         toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=self.pset)
         toolbox.decorate("mate", gp.staticLimit(key=len, max_value=10))
         toolbox.decorate("mutate", gp.staticLimit(key=len, max_value=10))
