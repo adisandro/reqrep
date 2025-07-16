@@ -1,5 +1,8 @@
 import logging
 
+Float = float
+Bool = bool
+
 def setup_logger(logfile="repair.log"):
     logger = logging.getLogger("gp_logger")
     logger.setLevel(logging.INFO)

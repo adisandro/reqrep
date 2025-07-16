@@ -5,7 +5,7 @@ import logging
 from deap import base, creator, gp, tools
 from repair.approach import utils
 from repair.approach.optimization import expressiongenerator
-from repair.approach.optimization.gplanguage import GP_FUNCTIONS
+from repair.grammar import grammar
 
 logger = logging.getLogger("gp_logger")
 
@@ -18,39 +18,9 @@ class OptimizationApproach(Approach):
         self.desirability = desirability # TODO
         # super().__init__()
 
-        self.pset = self.getGPLanguage()
+        self.pset = grammar.getGPPrimitiveSet(self.variable_names)
         self.set_creator()
         self.toolbox = self.getToolbox()
-
-
-    def getGPLanguage(self):
-        # # STEP 1: Define the set of operations and terminals
-
-        # Types for the DEAP PrimitiveSetTyped
-        Float = float
-        Bool = bool
-
-        # Define the typed primitive set
-        pset = gp.PrimitiveSetTyped("MAIN", [Float] * len(self.variable_names), Bool)
-
-        ## OPERATORS
-        for gpfunc in GP_FUNCTIONS:
-            pset.addPrimitive(gpfunc.impl, gpfunc.input_types, gpfunc.return_type)
-
-        # TERMINALS
-        
-        # Variables
-        for i, var_name in enumerate(self.variable_names):
-            pset.renameArguments(**{f"ARG{i}": var_name})
-
-        # Constants
-        # input variable x, floats, numeric constants and bools
-        # pset.renameArguments(ARG0='x')
-        for const in [-10.0, -5.0, 0.0, 5.0, 10.0]:
-            pset.addTerminal(const, Float)
-        pset.addEphemeralConstant("rand100", lambda: random.uniform(0, 10), Float)
-
-        return pset
 
     def set_creator(self):
         # STEP 2: Define the creator for individuals and fitness

@@ -1,9 +1,9 @@
 
 import random
 from deap import gp
-from repair.approach.optimization.gplanguage import GP_FUNCTIONS
+from repair.grammar.functions import GRAMMAR_FUNCTIONS
 
-ROBUSTNESS_FN_MAP = {f.name: f.robustness_fn for f in GP_FUNCTIONS if f.robustness_fn is not None}
+ROBUSTNESS_FN_MAP = {f.name: f.robustness_fn for f in GRAMMAR_FUNCTIONS if f.robustness_fn is not None}
 
 # Sampling-based sanity check
 def is_non_trivial_candidate(individual, variable_names: list[str], n_samples: int = 10,) -> bool:

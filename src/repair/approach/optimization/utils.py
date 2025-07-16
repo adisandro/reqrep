@@ -1,7 +1,9 @@
-from repair.approach.optimization.gplanguage import GP_FUNCTIONS
+from repair.grammar.functions import GRAMMAR_FUNCTIONS
+from repair.grammar.terminals import GRAMMAR_STATIC_TERMINALS, GRAMMAR_EPHEMERAL_TERMINALS
 from deap import gp
 
-DISPLAY_MAP = {f.name: f.display_name for f in GP_FUNCTIONS}
+DISPLAY_MAP = {f.name: f.display_name for f in GRAMMAR_FUNCTIONS}
+TERMINAL_NAMES = {f.name for f in {*GRAMMAR_STATIC_TERMINALS, *GRAMMAR_EPHEMERAL_TERMINALS}}
 
 def to_infix(individual, approach):
 
@@ -13,16 +15,12 @@ def to_infix(individual, approach):
         if isinstance(node, gp.Terminal):
             name = getattr(node, "name", None)
 
-            # TODO very hacky way to handle ARG0, ARG1, ... as well as "rand100"
-            if name is None:
-                # Terminal: ephemeral constant or variable name (string)
-                name = str(node)
-            else:
+            # TODO very hacky way to handle ARG0, ARG1, ...             
+            if name in ARG_NAMES:
                 # Replace ARG0 with 'x'
-                if name in ARG_NAMES:
-                    name = ARG_NAMES[name]
-                if name == "rand100":
-                    name = str(node.value)
+                name = ARG_NAMES[name]
+            if name in TERMINAL_NAMES:
+                name = str(node.value)
             return name
         elif isinstance(node, gp.Primitive):
             args = [recurse(next(iterator), iterator) for _ in range(node.arity)]
