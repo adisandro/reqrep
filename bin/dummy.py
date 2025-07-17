@@ -4,10 +4,10 @@ from argparse import ArgumentParser
 
 # from repair.approach.approach import OptimizationApproach
 import repair.utils as utils
+import repair.grammar.utils as grammar_utils
 from repair.approach.optimization.optimization import OptimizationApproach
 from repair.check import Requirement
 from repair.trace import TraceSuite
-from repair.approach.optimization import utils as optimization_utils
 import time
 
 
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     start_time = time.time()
     repaired_req = a1.repair(r1) # TODO r1 is not supported yet
     elapsed = time.time() - start_time
-    print(f"Repaired Requirement: {optimization_utils.to_infix(repaired_req, a1)}")
+    print(f"Repaired Requirement: {grammar_utils.to_infix(repaired_req, a1)}")
     print(f"Repaired Requirement: {repaired_req}")
     print(f"Robustness: {a1.toolbox.evaluate(repaired_req)}")
     print(f"Repair time: {elapsed:.2f} seconds")
