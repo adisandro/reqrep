@@ -2,7 +2,7 @@
 
 1. Add temporal operators (+ any missing operators) in the grammar
     - Add in `src\repair\grammar\functions.py`, alongwith corresponding robubstness measurment
-    - Possibly, add support for visulaisatino in `src\repair\approach\optimization\utils.py`
+    - Possibly, add support for visulaisation in `src\repair\grammar\utils.py:to_infix`
 2. add support for pre- and post-conditions
     - redefine the requirement representation to, for instance, have a implication at the top level
     - implement the rules that define a valid requirement at the representaiton level (e.g. pre-condition only on inputs, post-condition only on outputs)
