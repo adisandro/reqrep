@@ -5,38 +5,10 @@ from repair.grammar.functions import GRAMMAR_FUNCTIONS
 
 ROBUSTNESS_FN_MAP = {f.name: f.robustness_fn for f in GRAMMAR_FUNCTIONS if f.robustness_fn is not None}
 
-# Sampling-based sanity check
-def is_non_trivial_candidate(individual, variable_names: list[str], n_samples: int = 10,) -> bool:
-    """
-    Returns:
-        True → candidate has variable robustness across inputs (not tautology/contradiction)
-        False → candidate is tautology or contradiction (robustness constant)
-    """
-    rob_values = []
-
-    for _ in range(n_samples):
-        sample = {var: random.uniform(0, 10) for var in variable_names}
-        rob = evaluate_with_robustness(individual, sample)
-        if not isinstance(rob, (float, int)):
-            if isinstance(rob, bool):
-                # if robustness is boolean, it is trivial
-                return False
-            raise TypeError(f"Robustness value must be a float or int, got {type(rob)}")
-        rob_values.append(rob)
-
-    first_rob = rob_values[0]
-    all_same = all(rob == first_rob for rob in rob_values)
-
-    # If all robustness values are the same,
-    # it's (likely) trivial, i.e. a constant function (tautology/contradiction)
-    # is_trivial = all_same
-    return not all_same
-
-
 # TODO Fix this.some theoretical stuff to do here
 # TODO how about multiple fitness values?
 # Fitness function: count how many time steps FAIL the requirement
-def eval_requirement(individual, traces, variable_names):
+def get_fitness_correctness(individual, traces, variable_names):
     """
     Evaluates the robustness of a requirement represented by a GP individual.
 
@@ -51,7 +23,7 @@ def eval_requirement(individual, traces, variable_names):
                     var: float(item.values[var]) for var in variable_names
                 }
 
-                rob = evaluate_with_robustness(individual, variable_values)
+                rob = get_robustness_at_time_i(individual, variable_values)
                 total_rob += max(0.0, rob)  # Only penalize violations
     except Exception as e:
         raise ValueError(f"Error evaluating individual: {individual} | {e}")
@@ -59,7 +31,7 @@ def eval_requirement(individual, traces, variable_names):
     return (total_rob,)
 
 
-def evaluate_with_robustness(individual, variable_values: dict[str, float]) -> float:
+def get_robustness_at_time_i(individual, variable_values: dict[str, float]) -> float:
     """
     Evaluates a DEAP PrimitiveTree individual using robustness semantics.
 

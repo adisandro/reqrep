@@ -3,7 +3,7 @@ from tqdm import tqdm
 import random
 import logging
 from deap import base, creator, gp, tools
-from repair.approach import utils
+from repair.fitness import correctness, sanitycheck
 from repair.approach.optimization import expressiongenerator
 from repair.grammar import grammar
 
@@ -41,11 +41,11 @@ class OptimizationApproach(Approach):
         # TODO IMPO: Currently we are doing a sanity check based on random sampleing.
         # tbh it's decent, but its not fully sound.
         # Replace this with a better "expr" entry in toolbox.register. see expressiongenerator.py
-        toolbox.register("sanitycheck", utils.is_non_trivial_candidate,
+        toolbox.register("sanitycheck", sanitycheck.is_non_trivial_candidate,
                         variable_names=self.variable_names, # this is fixed throughout execution
         )
 
-        toolbox.register("evaluate", utils.eval_requirement,
+        toolbox.register("evaluate", correctness.get_fitness_correctness,
                          traces=self.traces, # this is fixed throughout execution
                          variable_names=self.variable_names, # this is fixed throughout execution
         )
