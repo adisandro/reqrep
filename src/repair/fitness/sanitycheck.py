@@ -13,6 +13,7 @@ def is_non_trivial_candidate(individual, variable_names: list[str], n_samples: i
     rob_values = []
 
     for _ in range(n_samples):
+        # TODO: Change sample to be a TraceItem, with a random i, and what about traces?
         sample = {var: random.uniform(0, 10) for var in variable_names}
         rob = get_robustness_at_time_i(individual, sample)
         if not isinstance(rob, (float, int)):

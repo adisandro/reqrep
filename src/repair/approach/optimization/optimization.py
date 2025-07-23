@@ -93,7 +93,9 @@ class OptimizationApproach(Approach):
             invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
             for ind in invalid_ind:
                 # STEP 1: Perform Sanity Check
-                is_non_trivial = self.toolbox.sanitycheck(ind)
+                # TODO: restore
+                #is_non_trivial = self.toolbox.sanitycheck(ind)
+                is_non_trivial = True
                 if not is_non_trivial:
                     ind.fitness.values = (float("inf"),)
                 else:

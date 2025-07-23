@@ -16,8 +16,8 @@ def get_fitness_correctness(individual, traces):
     total_rob = 0.0
     try:
         for trace in traces:
-            for item in trace.items:
-                rob = get_robustness_at_time_i(individual, item.values)
+            for i, item in enumerate(trace.items):
+                rob = get_robustness_at_time_i(individual, i, item, trace)
                 total_rob += max(0.0, rob)  # Only penalize violations
     except Exception as e:
         raise ValueError(f"Error evaluating individual: {individual} | {e}")
@@ -25,13 +25,15 @@ def get_fitness_correctness(individual, traces):
     return (total_rob,)
 
 
-def get_robustness_at_time_i(individual, variable_values: dict[str, float]) -> float:
+def get_robustness_at_time_i(individual, i, item, trace) -> float:
     """
     Evaluates a DEAP PrimitiveTree individual using robustness semantics.
 
     Parameters:
         individual: gp.PrimitiveTree — the GP expression to evaluate
-        variable_values: dict — mapping from variable names (str) to float values
+        i: int - the current trace item index
+        item: TraceItem - the current trace item
+        trace: Trace - the current trace
 
     Returns:
         float — robustness value (negative = valid, positive = invalid)
@@ -39,26 +41,30 @@ def get_robustness_at_time_i(individual, variable_values: dict[str, float]) -> f
 
     iterator = iter(individual)
     root = next(iterator)
-    return eval_node(root, iterator, variable_values)
+    return eval_node(root, iterator, i, item, trace)
 
 
-def eval_node(node, iterator, variable_values: dict[str, float]) -> float:
+def eval_node(node, iterator, i, item, trace) -> float:
     if isinstance(node, gp.Terminal):
         # Variable (named terminal)
-        if node.value in variable_values:
-            
-            return variable_values[node.value]
+        if node.value in item.values:
+            return item.values[node.value]
 
-        # Ephemeral constant (e.g., random constant)
+        # Constant (e.g., fixed or random constant)
         if isinstance(node.value, (float, int)):
             return node.value
+
+        # prev(var_name)
+        if isinstance(node.value, str):
+            var_name = node.value[5:-1]
+            return 0 if i == 0 else trace.items[i-1].values[var_name] # TODO: what is prev(x) at time 0?
 
         # Something went wrong
         raise ValueError(f"Unrecognized terminal: {node}, name={node.name}, value={node.value}")
 
     elif isinstance(node, gp.Primitive):
         # Recursively evaluate all children
-        children = [eval_node(next(iterator), iterator, variable_values) for _ in range(node.arity)]
+        children = [eval_node(next(iterator), iterator, i, item, trace) for _ in range(node.arity)]
 
         # Use robustness function for this primitive
         rob_fn = ROBUSTNESS_FN_MAP.get(node.name)

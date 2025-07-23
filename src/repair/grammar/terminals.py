@@ -1,5 +1,8 @@
-from typing import Callable, Type
+from typing import Callable, Type, List
 import random
+
+from repair.trace import Trace
+
 
 class GrammarTerminal:
     def __init__(self, name: str,
@@ -10,10 +13,6 @@ class GrammarTerminal:
         self.value_fn = value_fn  # Callable producing terminal value
         self.return_type = return_type
         self.display_name = display_name or name
-
-    def generate_value(self):
-        return self.value_fn()
-
 
 # Static numeric terminals (fixed values)
 GRAMMAR_STATIC_TERMINALS = [
