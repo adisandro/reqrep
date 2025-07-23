@@ -3,20 +3,21 @@ from tqdm import tqdm
 import random
 import logging
 from deap import base, creator, gp, tools
-from repair.fitness import correctness, sanitycheck
+from repair.fitness import correctness
 from repair.approach.optimization import expressiongenerator
+from repair.fitness.desirability.desirability import Desirability
 from repair.grammar import grammar
 
 logger = logging.getLogger("gp_logger")
 
 class OptimizationApproach(Approach):
 
-    def __init__(self, tracesuite=None, transformation=None, desirability=None):
+    def __init__(self, traceSuite=None, desirability: Desirability=None, transformation=None):
         super().__init__()
-        self.traces = tracesuite.traces
-        self.variable_names = sorted([v for v in tracesuite.variables if v != "Time"])
+        self.traces = traceSuite.traces
+        self.variable_names = sorted([v for v in traceSuite.variables if v != "Time"])
+        self.desirability = desirability
         self.transformation = transformation # TODO
-        self.desirability = desirability # TODO
 
         self.pset = grammar.getGPPrimitiveSet(self.variable_names)
         self.set_creator()
@@ -38,14 +39,11 @@ class OptimizationApproach(Approach):
         toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
-        # TODO IMPO: Currently we are doing a sanity check based on random sampleing.
-        # tbh it's decent, but its not fully sound.
-        # Replace this with a better "expr" entry in toolbox.register. see expressiongenerator.py
-        toolbox.register("sanitycheck", sanitycheck.is_non_trivial_candidate,
-                         variable_names=self.variable_names, # this is fixed throughout execution
+        toolbox.register("evaluate_cor", correctness.get_fitness_correctness,
+                         traces=self.traces, # this is fixed throughout execution
         )
-
-        toolbox.register("evaluate", correctness.get_fitness_correctness,
+        toolbox.register("evaluate_des", self.desirability.evaluate,
+                         original=None,  # TODO: add original requirement
                          traces=self.traces, # this is fixed throughout execution
         )
         toolbox.register("select", tools.selTournament, tournsize=3)
@@ -92,16 +90,18 @@ class OptimizationApproach(Approach):
             # Re-evaluate individuals whose fitness has changed
             invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
             for ind in invalid_ind:
-                # STEP 1: Perform Sanity Check
-                # TODO: restore
-                #is_non_trivial = self.toolbox.sanitycheck(ind)
-                is_non_trivial = True
+
+                # TODO integrate the desirability as a fitness function
+                # Currently, it is only a guard
+                f_des = self.toolbox.evaluate_des(ind)
+
+                is_non_trivial = f_des == 0.0
                 if not is_non_trivial:
                     ind.fitness.values = (float("inf"),)
                 else:
                     # If sanity check passes, evaluate the individual
                     # This is where the requirement would be used to evaluate fitness
-                    ind.fitness.values = self.toolbox.evaluate(ind)
+                    ind.fitness.values = self.toolbox.evaluate_cor(ind)
 
             # Replace the old population with the new one
             pop[:] = offspring

@@ -2,6 +2,10 @@
 from argparse import ArgumentParser
 
 # from repair.approach.approach import OptimizationApproach
+from repair.fitness.desirability.applicabilitypreservation import AggregatedRobustnessDifference
+from repair.fitness.desirability.desirability import Desirability
+from repair.fitness.desirability.semanticsanity import SamplingBasedSanity
+from repair.fitness.desirability.syntacticsimilarity import TreeEditDistance
 import repair.utils as utils
 import repair.grammar.utils as grammar_utils
 from repair.approach.optimization.optimization import OptimizationApproach
@@ -13,20 +17,26 @@ import time
 # `bin/dummy.py data/dummy`
 if __name__ == "__main__":
     parser = ArgumentParser(description='Repairs test requirements')
-    parser.add_argument('tracesuite', help='Path to the directory containing the trace suite')
+    parser.add_argument('traceSuite', help='Path to the directory containing the trace suite')
     args = parser.parse_args()
     utils.setup_logger("repair.log")
 
     # Get Trace Suite
-    ts = TraceSuite(args.tracesuite)
+    ts = TraceSuite(args.traceSuite)
     # Define requirement
     r1 = Requirement('True', 'x < 1')
     # Define transformations # TODO not used for now
     # t1 = Transformation('Add true', lambda pre: f'True or ({pre})', lambda post: f'True or ({post})')
     # Define Desirability
-    # TODO: Define a fitness functions: desirebleness (e.g. # of trans, semantic from the language as black box)
+    # TODO For now, only semantic is implemented, so syntactic and applicability are set to 0.0
+    d1 = Desirability(
+        semantic=SamplingBasedSanity(traces=ts.traces, n_samples=10),
+        syntactic=TreeEditDistance(), # TODO
+        applicability=AggregatedRobustnessDifference(), # TODO
+        weights=[1.0, 0.0, 0.0]
+    )
     # Define Approach
-    a1 = OptimizationApproach(ts, None, None) # TODO add transformations? add desirability?
+    a1 = OptimizationApproach(ts, d1, None) # TODO add transformations?
 
     # Perform Repair
     print(f"Initial Requirement:\n{r1}")
@@ -35,5 +45,6 @@ if __name__ == "__main__":
     elapsed = time.time() - start_time
     print(f"Repaired Requirement: {grammar_utils.to_infix(repaired_req, a1)}")
     print(f"Repaired Requirement: {repaired_req}")
-    print(f"Robustness: {a1.toolbox.evaluate(repaired_req)}")
+    print(f"Correctness-Robustness: {a1.toolbox.evaluate_cor(repaired_req)}")
+    print(f"Desirability: {a1.toolbox.evaluate_des(repaired_req)}")
     print(f"Repair time: {elapsed:.2f} seconds")
