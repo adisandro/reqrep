@@ -12,11 +12,11 @@ logger = logging.getLogger("gp_logger")
 class OptimizationApproach(Approach):
 
     def __init__(self, tracesuite=None, transformation=None, desirability=None):
+        super().__init__()
         self.traces = tracesuite.traces
         self.variable_names = sorted([v for v in tracesuite.variables if v != "Time"])
         self.transformation = transformation # TODO
         self.desirability = desirability # TODO
-        # super().__init__()
 
         self.pset = grammar.getGPPrimitiveSet(self.variable_names)
         self.set_creator()
@@ -42,12 +42,11 @@ class OptimizationApproach(Approach):
         # tbh it's decent, but its not fully sound.
         # Replace this with a better "expr" entry in toolbox.register. see expressiongenerator.py
         toolbox.register("sanitycheck", sanitycheck.is_non_trivial_candidate,
-                        variable_names=self.variable_names, # this is fixed throughout execution
+                         variable_names=self.variable_names, # this is fixed throughout execution
         )
 
         toolbox.register("evaluate", correctness.get_fitness_correctness,
                          traces=self.traces, # this is fixed throughout execution
-                         variable_names=self.variable_names, # this is fixed throughout execution
         )
         toolbox.register("select", tools.selTournament, tournsize=3)
         toolbox.register("mate", gp.cxOnePoint)
@@ -101,7 +100,6 @@ class OptimizationApproach(Approach):
                     # If sanity check passes, evaluate the individual
                     # This is where the requirement would be used to evaluate fitness
                     ind.fitness.values = self.toolbox.evaluate(ind)
-                # ind.fitness.values = self.toolbox.evaluate(ind)
 
             # Replace the old population with the new one
             pop[:] = offspring

@@ -1,5 +1,3 @@
-
-import random
 from deap import gp
 from repair.grammar.functions import GRAMMAR_FUNCTIONS
 
@@ -8,7 +6,7 @@ ROBUSTNESS_FN_MAP = {f.name: f.robustness_fn for f in GRAMMAR_FUNCTIONS if f.rob
 # TODO Fix this.some theoretical stuff to do here
 # TODO how about multiple fitness values?
 # Fitness function: count how many time steps FAIL the requirement
-def get_fitness_correctness(individual, traces, variable_names):
+def get_fitness_correctness(individual, traces):
     """
     Evaluates the robustness of a requirement represented by a GP individual.
 
@@ -19,11 +17,7 @@ def get_fitness_correctness(individual, traces, variable_names):
     try:
         for trace in traces:
             for item in trace.items:
-                variable_values = {
-                    var: float(item.values[var]) for var in variable_names
-                }
-
-                rob = get_robustness_at_time_i(individual, variable_values)
+                rob = get_robustness_at_time_i(individual, item.values)
                 total_rob += max(0.0, rob)  # Only penalize violations
     except Exception as e:
         raise ValueError(f"Error evaluating individual: {individual} | {e}")

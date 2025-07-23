@@ -2,11 +2,9 @@ from repair.grammar.functions import GRAMMAR_FUNCTIONS
 from repair.grammar.terminals import GRAMMAR_EPHEMERAL_TERMINALS, GRAMMAR_STATIC_TERMINALS
 from deap import gp
 
-from repair.utils import Bool, Float
-
 def getGPPrimitiveSet(variable_names):
 
-    pset = gp.PrimitiveSetTyped("MAIN", [Float] * len(variable_names), Bool)
+    pset = gp.PrimitiveSetTyped("MAIN", [float] * len(variable_names), bool)
 
     # VARIABLES
     for i, var_name in enumerate(variable_names):

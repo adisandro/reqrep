@@ -4,7 +4,7 @@ import os
 
 class TraceItem:
     def __init__(self, row, trace):
-        self.values = {k: row[i] for k, i in trace.variables.items()}
+        self.values = {k: float(row[i]) for k, i in trace.variables.items()}
 
 
 class Trace:
