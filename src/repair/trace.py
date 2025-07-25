@@ -3,37 +3,40 @@ import os
 
 
 class TraceItem:
-    def __init__(self, row, trace):
-        self.values = {k: float(row[i]) for k, i in trace.variables.items()}
+    def __init__(self, trace, row):
+        self.trace = trace
+        self.values = {k: float(row[i]) for k, i in trace.suite.variables.items()}
 
 
 class Trace:
-    def __init__(self, path):
+    def __init__(self, suite, path):
+        self.suite = suite
         self.path = path
-        self.variables = {}
         self.items = []
         with open(self.path) as csvfile:
             reader = csv.reader(csvfile)
             for i, row in enumerate(reader):
                 if i == 0:
+                    variables = {}
                     for j, var in enumerate(row):
-                        self.variables[var] = j
+                        variables[var] = j
+                    if not suite.variables:
+                        suite.variables = variables
+                    else:
+                        if suite.variables != variables:
+                            raise ValueError("Trace variables do not match across traces.")
                     continue
-                self.items.append(TraceItem(row, self))
+                self.items.append(TraceItem(self, row))
 
 
 class TraceSuite:
-    def __init__(self, path):
+    def __init__(self, path, prev0):
+        self.prev0 = prev0
         self.traces = []
         self.variables = {}
         with os.scandir(path) as it:
             for entry in it:
                 if entry.is_dir() or not entry.name.endswith('.csv'):
                     continue
-                entry_trace = Trace(entry.path)
+                entry_trace = Trace(self, entry.path)
                 self.traces.append(entry_trace)
-                if not self.variables:
-                    self.variables = entry_trace.variables.copy()
-                else:
-                    if self.variables != entry_trace.variables:
-                        raise ValueError("Trace variables do not match across traces.")

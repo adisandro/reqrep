@@ -47,7 +47,6 @@ GRAMMAR_FUNCTIONS = [
     GrammarFunction("not", operator.not_, [bool], bool, robustness_fn=not_robustness, display_name="not"),
 
     # TEMPORAL OPERATORS
-    # GrammarFunction("prev", prev, [float], float, robustness_fn=prev_robustness, display_name="prev")
     # GrammarFunction("dur", dur, [float], float, robustness_fn=dur_robustness, display_name="dur")
     # TODO: the temporal grammar functions and terminals must have the callable as a class with __call__ method
     # TODO: the class can be instantiated with the list of traces, which __call__ can access (so it must be created at evaluation time?)

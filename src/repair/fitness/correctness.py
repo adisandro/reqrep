@@ -6,7 +6,7 @@ ROBUSTNESS_FN_MAP = {f.name: f.robustness_fn for f in GRAMMAR_FUNCTIONS if f.rob
 # TODO Fix this.some theoretical stuff to do here
 # TODO how about multiple fitness values?
 # Fitness function: count how many time steps FAIL the requirement
-def get_fitness_correctness(individual, traces):
+def get_fitness_correctness(individual, trace_suite):
     """
     Evaluates the robustness of a requirement represented by a GP individual.
 
@@ -15,9 +15,9 @@ def get_fitness_correctness(individual, traces):
     """
     total_rob = 0.0
     try:
-        for trace in traces:
+        for trace in trace_suite.traces:
             for i, item in enumerate(trace.items):
-                rob = get_robustness_at_time_i(individual, i, item, trace)
+                rob = get_robustness_at_time_i(individual, i, item)
                 total_rob += max(0.0, rob)  # Only penalize violations
     except Exception as e:
         raise ValueError(f"Error evaluating individual: {individual} | {e}")
@@ -25,7 +25,7 @@ def get_fitness_correctness(individual, traces):
     return (total_rob,)
 
 
-def get_robustness_at_time_i(individual, i, item, trace) -> float:
+def get_robustness_at_time_i(individual, i, item) -> float:
     """
     Evaluates a DEAP PrimitiveTree individual using robustness semantics.
 
@@ -33,7 +33,6 @@ def get_robustness_at_time_i(individual, i, item, trace) -> float:
         individual: gp.PrimitiveTree — the GP expression to evaluate
         i: int - the current trace item index
         item: TraceItem - the current trace item
-        trace: Trace - the current trace
 
     Returns:
         float — robustness value (negative = valid, positive = invalid)
@@ -41,10 +40,10 @@ def get_robustness_at_time_i(individual, i, item, trace) -> float:
 
     iterator = iter(individual)
     root = next(iterator)
-    return eval_node(root, iterator, i, item, trace)
+    return eval_node(root, iterator, i, item)
 
 
-def eval_node(node, iterator, i, item, trace) -> float:
+def eval_node(node, iterator, i, item) -> float:
     if isinstance(node, gp.Terminal):
         # Variable (named terminal)
         if node.value in item.values:
@@ -57,14 +56,14 @@ def eval_node(node, iterator, i, item, trace) -> float:
         # prev(var_name)
         if isinstance(node.value, str):
             var_name = node.value[5:-1]
-            return 0 if i == 0 else trace.items[i-1].values[var_name] # TODO: what is prev(x) at time 0?
+            return item.trace.suite.prev0 if i == 0 else item.trace.items[i-1].values[var_name]
 
         # Something went wrong
         raise ValueError(f"Unrecognized terminal: {node}, name={node.name}, value={node.value}")
 
     elif isinstance(node, gp.Primitive):
         # Recursively evaluate all children
-        children = [eval_node(next(iterator), iterator, i, item, trace) for _ in range(node.arity)]
+        children = [eval_node(next(iterator), iterator, i, item) for _ in range(node.arity)]
 
         # Use robustness function for this primitive
         rob_fn = ROBUSTNESS_FN_MAP.get(node.name)

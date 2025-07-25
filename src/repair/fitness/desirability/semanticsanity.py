@@ -7,12 +7,11 @@ from repair.fitness.correctness import get_robustness_at_time_i
 
 class SamplingBasedSanity(SemanticSanity):
 
-    def __init__(self, traces, n_samples: int = 10):
+    def __init__(self, n_samples: int = 10):
         super().__init__()
-        self.traces = traces
         self.n_samples = n_samples
 
-    def evaluate(self, individual) -> float:
+    def evaluate(self, trace_suite, individual) -> float:
         """
         Returns:
             0.0 → candidate has variable robustness across inputs (not tautology/contradiction)
@@ -22,13 +21,13 @@ class SamplingBasedSanity(SemanticSanity):
 
         for _ in range(self.n_samples):
 
-            trace = random.choice(self.traces)
+            trace = random.choice(trace_suite.traces)
             if len(trace.items) < 2:
                 continue  # skip traces that are too short
             i = random.randint(1, len(trace.items) - 1)
             item = trace.items[i]
 
-            rob = get_robustness_at_time_i(individual, i, item, trace)
+            rob = get_robustness_at_time_i(individual, i, item)
             # sample_item = {var: random.uniform(*sample_range) for var in variable_names}
 
             # sample = {var: random.uniform(*sample_range) for var in variable_names}
@@ -49,6 +48,6 @@ class SamplingBasedSanity(SemanticSanity):
 
 
 class SymbolicSanity(SemanticSanity):
-    def evaluate(self, individual) -> float:
+    def evaluate(self, trace_suite, individual) -> float:
         pass  # to be implemented
 

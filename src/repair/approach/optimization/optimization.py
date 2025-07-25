@@ -12,10 +12,10 @@ logger = logging.getLogger("gp_logger")
 
 class OptimizationApproach(Approach):
 
-    def __init__(self, traceSuite=None, desirability: Desirability=None, transformation=None):
+    def __init__(self, trace_suite, desirability: Desirability=None, transformation=None):
         super().__init__()
-        self.traces = traceSuite.traces
-        self.variable_names = sorted([v for v in traceSuite.variables if v != "Time"])
+        self.trace_suite = trace_suite
+        self.variable_names = sorted([v for v in trace_suite.variables if v != "Time"])
         self.desirability = desirability
         self.transformation = transformation # TODO
 
@@ -40,11 +40,10 @@ class OptimizationApproach(Approach):
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
         toolbox.register("evaluate_cor", correctness.get_fitness_correctness,
-                         traces=self.traces, # this is fixed throughout execution
+                         trace_suite=self.trace_suite, # this is fixed throughout execution
         )
         toolbox.register("evaluate_des", self.desirability.evaluate,
                          original=None,  # TODO: add original requirement
-                         traces=self.traces, # this is fixed throughout execution
         )
         toolbox.register("select", tools.selTournament, tournsize=3)
         toolbox.register("mate", gp.cxOnePoint)
@@ -115,4 +114,3 @@ class OptimizationApproach(Approach):
 
         # Return the best individual (expression) found as a string
         return hof[0]
-
