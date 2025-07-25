@@ -18,7 +18,7 @@ import time
 if __name__ == "__main__":
     parser = ArgumentParser(description='Repairs test requirements')
     parser.add_argument('trace_suite', help='Path to the directory containing the trace suite')
-    parser.add_argument('-p', '--prev0', default=0.0,
+    parser.add_argument('-p', '--prev0', type=float, default=0.0,
                         help='Initial value for the prev() operator at time 0 (defaults to 0.0)')
     args = parser.parse_args()
     utils.setup_logger("repair.log")

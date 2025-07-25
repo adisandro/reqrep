@@ -45,21 +45,19 @@ def get_robustness_at_time_i(individual, i, item) -> float:
 
 def eval_node(node, iterator, i, item) -> float:
     if isinstance(node, gp.Terminal):
+        value = node.value
         # Variable (named terminal)
-        if node.value in item.values:
-            return item.values[node.value]
-
+        if value in item.values:
+            return item.values[value]
         # Constant (e.g., fixed or random constant)
-        if isinstance(node.value, (float, int)):
-            return node.value
-
+        if isinstance(value, (float, int)):
+            return value
         # prev(var_name)
-        if isinstance(node.value, str):
-            var_name = node.value[5:-1]
+        if isinstance(value, str):
+            var_name = value[5:-1]
             return item.trace.suite.prev0 if i == 0 else item.trace.items[i-1].values[var_name]
-
         # Something went wrong
-        raise ValueError(f"Unrecognized terminal: {node}, name={node.name}, value={node.value}")
+        raise ValueError(f"Unrecognized terminal: {node}, name={node.name}, value={value}")
 
     elif isinstance(node, gp.Primitive):
         # Recursively evaluate all children
