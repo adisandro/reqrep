@@ -1,4 +1,4 @@
-from typing import Callable, Type, List
+from typing import Callable, Type
 import random
 
 class GrammarTerminal:
@@ -29,6 +29,7 @@ class GrammarTerminal:
         return [
             # Ephemeral numeric terminals (randomly sampled each individual)
             GrammarTerminal("rand_float", lambda: random.uniform(-10, 10), float, display_name="rand(-10, 10)"),
-            GrammarTerminal("rand_dur", lambda: random.uniform(1, min([len(trace) for trace in trace_suite.traces])),
-                            int, display_name="rand(1, min_trace_len)"),
+            GrammarTerminal("rand_dur",
+                            lambda: random.randint(1, int(min([len(trace) for trace in trace_suite.traces])/2)),
+                            int, display_name="rand(1, min_trace_len/2)"),
         ]

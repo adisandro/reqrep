@@ -3,7 +3,6 @@ import operator
 
 def logical_and(a, b): return a and b
 def logical_or(a, b): return a or b
-def dur(a): return 0
 
 def add_robustness(a, b): return a + b
 def sub_robustness(a, b): return a - b
@@ -13,7 +12,6 @@ def eq_robustness(a, b): return abs(a - b)
 def and_robustness(a, b): return max(a, b)
 def or_robustness(a, b): return min(a, b)
 def not_robustness(a): return -a
-def dur_robustness(a): return 0
 
 # this is needed to differentiate bool and int types, since in Python bool is a subclass of int
 class Bool: pass

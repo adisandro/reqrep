@@ -20,22 +20,13 @@ class SamplingBasedSanity(SemanticSanity):
         rob_values = []
 
         for _ in range(self.n_samples):
-
             trace = random.choice(trace_suite.traces)
             if len(trace.items) < 2:
                 continue  # skip traces that are too short
             i = random.randint(1, len(trace.items) - 1)
             item = trace.items[i]
-
             rob = get_robustness_at_time_i(individual, i, item)
-            # sample_item = {var: random.uniform(*sample_range) for var in variable_names}
-
-            # sample = {var: random.uniform(*sample_range) for var in variable_names}
-            # rob = get_robustness_at_time_i(individual, sample)
             if not isinstance(rob, (float, int)):
-                if isinstance(rob, bool):
-                    # if robustness is boolean, it is trivial
-                    return 1.0
                 raise TypeError(f"Robustness value must be a float or int, got {type(rob)}")
             rob_values.append(rob)
 
