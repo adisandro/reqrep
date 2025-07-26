@@ -15,18 +15,17 @@ class OptimizationApproach(Approach):
     def __init__(self, trace_suite, desirability: Desirability=None, transformation=None):
         super().__init__()
         self.trace_suite = trace_suite
-        self.variable_names = sorted([v for v in trace_suite.variables if v != "Time"])
         self.desirability = desirability
         self.transformation = transformation # TODO
 
-        self.pset = grammar.getGPPrimitiveSet(self.variable_names)
+        self.pset = grammar.getGPPrimitiveSet(self.trace_suite)
         self.set_creator()
         self.toolbox = self.getToolbox()
 
     def set_creator(self):
         # STEP 2: Define the creator for individuals and fitness
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,)) # TODO: multiple fitness values?
-        creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
+        creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin, pset=self.pset)
         
     def getToolbox(self):
         # STEP 3: Define the toolbox with genetic programming operations
@@ -48,8 +47,7 @@ class OptimizationApproach(Approach):
         toolbox.register("select", tools.selTournament, tournsize=3)
         toolbox.register("mate", gp.cxOnePoint)
         # if min_=0, then this requires a False or true terminal. Not supported.
-        toolbox.register("expr_mut", expressiongenerator.generate_expr, 
-                         min_=1, max_=2, condition_str="full")
+        toolbox.register("expr_mut", expressiongenerator.generate_expr, min_=1, max_=2, condition_str="full")
         toolbox.register("mutate", gp.mutUniform, expr=toolbox.expr_mut, pset=self.pset)
         toolbox.decorate("mate", gp.staticLimit(key=len, max_value=10))
         toolbox.decorate("mutate", gp.staticLimit(key=len, max_value=10))
@@ -95,12 +93,12 @@ class OptimizationApproach(Approach):
                 f_des = self.toolbox.evaluate_des(ind)
 
                 is_non_trivial = f_des == 0.0
-                if not is_non_trivial:
-                    ind.fitness.values = (float("inf"),)
-                else:
+                if is_non_trivial:
                     # If sanity check passes, evaluate the individual
                     # This is where the requirement would be used to evaluate fitness
                     ind.fitness.values = self.toolbox.evaluate_cor(ind)
+                else:
+                    ind.fitness.values = (float("inf"),)
 
             # Replace the old population with the new one
             pop[:] = offspring

@@ -1,15 +1,11 @@
-from repair.grammar.functions import GRAMMAR_FUNCTIONS
-from repair.grammar.terminals import GRAMMAR_STATIC_TERMINALS, GRAMMAR_EPHEMERAL_TERMINALS
+from repair.grammar.grammar import TERMINAL_NAMES, DISPLAY_MAP
 from deap import gp
-
-DISPLAY_MAP = {f.name: f.display_name for f in GRAMMAR_FUNCTIONS}
-TERMINAL_NAMES = {f.name for f in {*GRAMMAR_STATIC_TERMINALS, *GRAMMAR_EPHEMERAL_TERMINALS}}
 
 def to_infix(individual, approach):
 
     ARG_NAMES = {}
-    for i, var_name in enumerate(approach.variable_names):
-            ARG_NAMES[f"ARG{i}"] = var_name
+    for i, var_name in enumerate(approach.trace_suite.variable_names):
+        ARG_NAMES[f"ARG{i}"] = var_name
 
     def recurse(node, iterator):
         if isinstance(node, gp.Terminal):

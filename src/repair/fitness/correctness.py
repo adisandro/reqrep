@@ -1,7 +1,5 @@
 from deap import gp
-from repair.grammar.functions import GRAMMAR_FUNCTIONS
-
-ROBUSTNESS_FN_MAP = {f.name: f.robustness_fn for f in GRAMMAR_FUNCTIONS if f.robustness_fn is not None}
+from repair.grammar.grammar import ROBUSTNESS_FN_MAP
 
 # TODO Fix this.some theoretical stuff to do here
 # TODO how about multiple fitness values?
@@ -60,14 +58,27 @@ def eval_node(node, iterator, i, item) -> float:
         raise ValueError(f"Unrecognized terminal: {node}, name={node.name}, value={value}")
 
     elif isinstance(node, gp.Primitive):
-        # Recursively evaluate all children
-        children = [eval_node(next(iterator), iterator, i, item) for _ in range(node.arity)]
-
-        # Use robustness function for this primitive
-        rob_fn = ROBUSTNESS_FN_MAP.get(node.name)
-        if rob_fn is None:
-            raise NotImplementedError(f"No robustness function defined for {node.name}")
-        return rob_fn(*children)
+        if node.name == "dur":
+            # dur(time, Bool)
+            time = eval_node(next(iterator), iterator, i, item)
+            if time > i+1: # not enough trace items to cover duration time
+                return float("inf") # TODO: How much should the penalty be?
+            else:
+                node_dur = next(iterator) # the Bool component of dur
+                rob_dur = eval_node(node_dur, iterator, i, item) # advance as normal for t == i
+                for t in range(i-time, i): # time <= t < i
+                    iter_dur = iter(node_dur) # use separate iterator
+                    item_dur = item.trace.items[t] # use previous item
+                    rob_dur += eval_node(node_dur, iter_dur, t, item_dur) # eval Bool component with previous item
+                return rob_dur
+        else:
+            # Recursively evaluate all children
+            children = [eval_node(next(iterator), iterator, i, item) for _ in range(node.arity)]
+            # Use robustness function for this primitive
+            rob_fn = ROBUSTNESS_FN_MAP.get(node.name)
+            if rob_fn is None:
+                raise NotImplementedError(f"No robustness function defined for {node.name}")
+            return rob_fn(*children)
 
     else:
         raise TypeError(f"Unexpected node type: {node}")

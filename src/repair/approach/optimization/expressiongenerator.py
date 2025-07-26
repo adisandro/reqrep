@@ -2,6 +2,9 @@ import random
 import sys
 from deap import gp
 
+from repair.grammar.functions import Bool
+
+
 def get_condition_from_string(condition: str):
     """
     Converts a string condition to a callable function.
@@ -45,10 +48,11 @@ def generate_expr(pset, min_, max_, type_=None, condition_str:str=None):
             # If thereare 2 depth levels levels remaining,
             # we can only use primitives that do not take bool arguments
             # to avoid False or True terminals, which mess everything up
+            # TODO: There is something wrong here, and/or/not/dur are never selected because of this filtering
             remaining_layers = height - depth
             primitives = [
                 prim for prim in pset.primitives[type_]
-                if not (remaining_layers <= 2 and any(arg == bool for arg in prim.args))
+                if not (remaining_layers <= 2 and any(arg == Bool for arg in prim.args))
             ]
             try:
                 prim = random.choice(primitives)

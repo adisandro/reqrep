@@ -1,5 +1,6 @@
 import csv
 import os
+from functools import cached_property
 
 
 class TraceItem:
@@ -40,3 +41,7 @@ class TraceSuite:
                     continue
                 entry_trace = Trace(self, entry.path)
                 self.traces.append(entry_trace)
+
+    @cached_property
+    def variable_names(self):
+        return sorted([v for v in self.variables if v != "Time"])

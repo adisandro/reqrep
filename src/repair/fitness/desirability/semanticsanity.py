@@ -35,7 +35,7 @@ class SamplingBasedSanity(SemanticSanity):
             if not isinstance(rob, (float, int)):
                 if isinstance(rob, bool):
                     # if robustness is boolean, it is trivial
-                    return False
+                    return 1.0
                 raise TypeError(f"Robustness value must be a float or int, got {type(rob)}")
             rob_values.append(rob)
 
