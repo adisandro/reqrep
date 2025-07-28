@@ -1,4 +1,5 @@
 
+import math
 import random
 from repair.fitness.desirability.desirability import SemanticSanity
 
@@ -30,8 +31,9 @@ class SamplingBasedSanity(SemanticSanity):
                 raise TypeError(f"Robustness value must be a float or int, got {type(rob)}")
             rob_values.append(rob)
 
-        first_rob = rob_values[0]
-        all_same = all(rob == first_rob for rob in rob_values)
+        def all_close(arr, tol=1e-6):
+            return all(math.isclose(x, arr[0], abs_tol=tol) for x in arr)
+        all_same = all_close(rob_values)
 
         # If all robustness values are the same,
         # it's (likely) trivial, i.e. a constant function (tautology/contradiction)
