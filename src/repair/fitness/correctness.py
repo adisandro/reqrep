@@ -1,3 +1,5 @@
+from itertools import tee
+
 from deap import gp
 from repair.grammar.grammar import ROBUSTNESS_FN_MAP
 
@@ -41,7 +43,7 @@ def get_robustness_at_time_i(individual, i, item) -> float:
     return eval_node(root, iterator, i, item)
 
 
-def eval_node(node, iterator, i, item) -> float:
+def eval_node(node, iterator, i, item) -> (float, int):
     if isinstance(node, gp.Terminal):
         value = node.value
         # Variable (named terminal)
@@ -58,18 +60,21 @@ def eval_node(node, iterator, i, item) -> float:
         raise ValueError(f"Unrecognized terminal: {node}, name={node.name}, value={value}")
 
     elif isinstance(node, gp.Primitive):
-        if node.name == "dur":
-            # dur(time, Bool)
+        if node.name == "dur": # dur(time, Bool)
             time = eval_node(next(iterator), iterator, i, item)
             if time > i+1: # not enough trace items to cover duration time
-                return float("inf") # TODO: How much should the penalty be?
+                # dur will always fail on the initial items of trace, do not penalize it
+                return float(0.0)
             else:
-                node_dur = next(iterator) # the Bool component of dur
-                rob_dur = eval_node(node_dur, iterator, i, item) # advance as normal for t == i
-                for t in range(i-time, i): # time <= t < i
-                    iter_dur = iter(node_dur) # use separate iterator
-                    item_dur = item.trace.items[t] # use previous item
-                    rob_dur += eval_node(node_dur, iter_dur, t, item_dur) # eval Bool component with previous item
+                # TODO: this works only because dur happens as root
+                iterators_dur = tee(iterator, time) # create iterator copies
+                rob_dur = float("-inf")
+                i_dur = i+1-time
+                for t in range(i_dur, i+1): # i_dur <= t <= i
+                    iter_dur = iterators_dur[t-i_dur]
+                    item_dur = item.trace.items[t]
+                    rob = eval_node(next(iter_dur), iter_dur, t, item_dur) # eval Bool component at each t
+                    rob_dur = max(rob_dur, rob) # keep max (worst)
                 return rob_dur
         else:
             # Recursively evaluate all children

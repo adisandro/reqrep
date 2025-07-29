@@ -33,36 +33,23 @@ def generate_expr(pset, min_, max_, type_=None, condition_str:str=None):
     stack = [(0, type_)]
     while len(stack) != 0:
         depth, type_ = stack.pop()
-        if condition(height, depth):
-            try:
-                term = random.choice(pset.terminals[type_])
-            except IndexError:
-                _, _, traceback = sys.exc_info()
-                raise IndexError("The gp.generate function tried to add "
-                                 "a terminal of type '%s', but there is "
-                                 "none available." % (type_,)).with_traceback(traceback)
-            if type(term) is gp.MetaEphemeral:
-                term = term()
-            expr.append(term)
-        else:
+        expr_candidates = [ter for ter in pset.terminals[type_]] # always add terminals
+        if not condition(height, depth): # add primitives too
             # If thereare 2 depth levels levels remaining,
             # we can only use primitives that do not take bool arguments
             # to avoid False or True terminals, which mess everything up
-            # TODO: There is something wrong here, and/or/not/dur are never selected because of this filtering
             remaining_layers = height - depth
-            primitives = [
+            expr_candidates.extend([
                 prim for prim in pset.primitives[type_]
-                if not (remaining_layers <= 2 and any(arg == Bool for arg in prim.args))
-            ]
-            try:
-                prim = random.choice(primitives)
-            except IndexError:
-                _, _, traceback = sys.exc_info()
-                raise IndexError("The gp.generate function tried to add "
-                                 "a primitive of type '%s', but there is "
-                                 "none available." % (type_,)).with_traceback(traceback)
-            expr.append(prim)
-            for arg in reversed(prim.args):
+                if not (remaining_layers <= 2 and any(arg == Bool for arg in prim.args))])
+        if len(expr_candidates) == 0:
+            raise LookupError(f"Could not find any {type_} terminal or primitive to create expression")
+        expr_choice = random.choice(expr_candidates)
+        if type(expr_choice) is gp.MetaEphemeral:
+            expr_choice = expr_choice()
+        elif type(expr_choice) is gp.Primitive:
+            for arg in reversed(expr_choice.args):
                 stack.append((depth + 1, arg))
+        expr.append(expr_choice)
     return expr
 

@@ -32,7 +32,7 @@ class OptimizationApproach(Approach):
 
         toolbox = base.Toolbox()
         # if min_=0, then this requires a False or true terminal. Not supported.
-        toolbox.register("expr", expressiongenerator.generate_expr, pset=self.pset, min_=2, max_=2)
+        toolbox.register("expr", expressiongenerator.generate_expr, pset=self.pset, min_=2, max_=3)
         toolbox.register("compile", gp.compile, pset=self.pset)
 
         toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.expr)
