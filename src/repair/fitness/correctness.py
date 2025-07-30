@@ -1,4 +1,4 @@
-from itertools import tee
+from collections import deque
 
 from deap import gp
 from repair.grammar.grammar import ROBUSTNESS_FN_MAP
@@ -17,7 +17,7 @@ def get_fitness_correctness(individual, trace_suite):
     try:
         for trace in trace_suite.traces:
             for i, item in enumerate(trace.items):
-                rob = get_robustness_at_time_i(individual, i, item)
+                rob = eval_tree(individual, i, item)
                 total_rob += max(0.0, rob)  # Only penalize violations
     except Exception as e:
         raise ValueError(f"Error evaluating individual: {individual} | {e}")
@@ -25,7 +25,7 @@ def get_fitness_correctness(individual, trace_suite):
     return (total_rob,)
 
 
-def get_robustness_at_time_i(individual, i, item) -> float:
+def eval_tree(individual, i, item) -> float:
     """
     Evaluates a DEAP PrimitiveTree individual using robustness semantics.
 
@@ -38,12 +38,12 @@ def get_robustness_at_time_i(individual, i, item) -> float:
         float — robustness value (negative = valid, positive = invalid)
     """
 
-    iterator = iter(individual)
-    root = next(iterator)
-    return eval_node(root, iterator, i, item)
+    remaining_nodes = deque(iter(individual))
+    return eval_node(remaining_nodes, i, item)
 
 
-def eval_node(node, iterator, i, item) -> (float, int):
+def eval_node(remaining_nodes, i, item) -> (float, int):
+    node = remaining_nodes.popleft()
     if isinstance(node, gp.Terminal):
         value = node.value
         # Variable (named terminal)
@@ -61,24 +61,23 @@ def eval_node(node, iterator, i, item) -> (float, int):
 
     elif isinstance(node, gp.Primitive):
         if node.name == "dur": # dur(time, Bool)
-            time = eval_node(next(iterator), iterator, i, item)
+            time = eval_node(remaining_nodes, i, item)
             if time > i+1: # not enough trace items to cover duration time
                 # dur will always fail on the initial items of trace, do not penalize it
                 return float(0.0)
             else:
-                # TODO: this works only because dur happens as root
-                iterators_dur = tee(iterator, time) # create iterator copies
                 rob_dur = float("-inf")
                 i_dur = i+1-time
                 for t in range(i_dur, i+1): # i_dur <= t <= i
-                    iter_dur = iterators_dur[t-i_dur]
-                    item_dur = item.trace.items[t]
-                    rob = eval_node(next(iter_dur), iter_dur, t, item_dur) # eval Bool component at each t
+                    # copy nodes for past iterations, advance as normal for current iteration
+                    nodes_dur = deque(remaining_nodes) if t != i else remaining_nodes
+                    item_dur = item.trace.items[t] if t != i else item
+                    rob = eval_node(nodes_dur, t, item_dur) # eval Bool component at each t
                     rob_dur = max(rob_dur, rob) # keep max (worst)
                 return rob_dur
         else:
             # Recursively evaluate all children
-            children = [eval_node(next(iterator), iterator, i, item) for _ in range(node.arity)]
+            children = [eval_node(remaining_nodes, i, item) for _ in range(node.arity)]
             # Use robustness function for this primitive
             rob_fn = ROBUSTNESS_FN_MAP.get(node.name)
             if rob_fn is None:

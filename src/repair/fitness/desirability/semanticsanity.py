@@ -3,7 +3,7 @@ import math
 import random
 from repair.fitness.desirability.desirability import SemanticSanity
 
-from repair.fitness.correctness import get_robustness_at_time_i
+from repair.fitness.correctness import eval_tree
 
 
 class SamplingBasedSanity(SemanticSanity):
@@ -26,7 +26,7 @@ class SamplingBasedSanity(SemanticSanity):
                 continue  # skip traces that are too short
             i = random.randint(1, len(trace.items) - 1)
             item = trace.items[i]
-            rob = get_robustness_at_time_i(individual, i, item)
+            rob = eval_tree(individual, i, item)
             if not isinstance(rob, (float, int)):
                 raise TypeError(f"Robustness value must be a float or int, got {type(rob)}")
             rob_values.append(rob)

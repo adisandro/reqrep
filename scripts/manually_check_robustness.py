@@ -40,7 +40,7 @@ elif case == "rob":
     try:
         for trace in ts.traces:
             for i, item in enumerate(trace.items):
-                rob = correctness.get_robustness_at_time_i(expr, i, item)
+                rob = correctness.eval_tree(expr, i, item)
                 total_rob += max(0.0, rob)  # Only penalize violations
     except Exception as e:
         raise ValueError(f"Error evaluating individual: {expr} | {e}")
