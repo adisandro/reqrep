@@ -1,3 +1,4 @@
+from functools import partial
 from typing import Callable, Type
 import random
 
@@ -28,6 +29,6 @@ class GrammarTerminal:
     def create_ephemerals(trace_suite):
         return [
             # Ephemeral numeric terminals (randomly sampled each individual)
-            GrammarTerminal("rand_float", lambda: random.uniform(-10, 10), float, display_name="rand(-10, 10)"),
-            GrammarTerminal("rand_dur", lambda: random.randint(2, 5), int, display_name="rand(2, 5)"),
+            GrammarTerminal("rand_float", partial(random.uniform, -10, 10), float, display_name="rand(-10, 10)"),
+            GrammarTerminal("rand_dur", partial(random.randint, 2, 5), int, display_name="rand(2, 5)"),
         ]
