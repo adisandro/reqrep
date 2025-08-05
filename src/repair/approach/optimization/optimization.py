@@ -5,31 +5,46 @@ import logging
 from deap import base, creator, gp, tools
 from repair.fitness import correctness
 from repair.approach.optimization import expressiongenerator
-from repair.fitness.desirability.desirability import Desirability
 from repair.grammar import grammar
+import repair.grammar.utils as grammar_utils
 
 logger = logging.getLogger("gp_logger")
 
+# TODO: Find better name
+class Requirement:
+    def __init__(self, name, approach, p):
+        self.name = name
+        self.approach = approach
+        self.p = p
+        self.correctness = self.approach.toolbox.evaluate_cor(self.p)[0]
+        self.desirability = self.approach.toolbox.evaluate_des(self.p)
+
+    def __repr__(self):
+        return (
+            f"{self.name}:\n"
+            f"\t{grammar_utils.to_infix(self.p, self.approach)}\n"
+            f"\t{self.p}\n"
+            f"\tCorrectness: {self.correctness}\n"
+            f"\tDesirability: {self.desirability}\n")
+
+
 class OptimizationApproach(Approach):
 
-    def __init__(self, trace_suite, desirability: Desirability=None, transformation=None):
-        super().__init__()
-        self.trace_suite = trace_suite
-        self.desirability = desirability
-        self.transformation = transformation # TODO
-
+    def __init__(self, trace_suite, requirement, desirability):
+        super().__init__(trace_suite, requirement, desirability)
         self.pset = grammar.getGPPrimitiveSet(self.trace_suite)
         self.set_creator()
-        self.toolbox = self.getToolbox()
+        self.toolbox = self.get_toolbox()
+        self.pre_cond = Requirement("Initial Requirement PRE", self, gp.PrimitiveTree.from_string(requirement[0], self.pset))
+        self.post_cond = Requirement("Initial Requirement POST", self, gp.PrimitiveTree.from_string(requirement[1], self.pset))
 
     def set_creator(self):
         # STEP 2: Define the creator for individuals and fitness
         creator.create("FitnessMin", base.Fitness, weights=(-1.0,)) # TODO: multiple fitness values?
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin, pset=self.pset)
         
-    def getToolbox(self):
+    def get_toolbox(self):
         # STEP 3: Define the toolbox with genetic programming operations
-
         toolbox = base.Toolbox()
         # if min_=0, then this requires a False or true terminal. Not supported.
         toolbox.register("expr", expressiongenerator.generate_expr, pset=self.pset, min_=2, max_=3)
@@ -53,8 +68,8 @@ class OptimizationApproach(Approach):
         toolbox.decorate("mutate", gp.staticLimit(key=len, max_value=10))
         return toolbox
 
-    def repair(self, requirement):
-        # TODO add support for the requirement parameter,
+    def repair(self):
+        # TODO add support for the requirement,
         # (1) for the initialization, also
         # (2) for the fitness
 
@@ -110,5 +125,5 @@ class OptimizationApproach(Approach):
             if hof[0].fitness.values[0] == 0:
                 break
 
-        # Return the best individual (expression) found as a string
-        return hof[0]
+        # Return the best individual (expression) found
+        return Requirement("Repaired Requirement", self, hof[0])
