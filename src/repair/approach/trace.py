@@ -22,16 +22,19 @@ class Trace:
                     for j, var in enumerate(row):
                         variables[var] = j
                     if not suite.variables:
+                        if not suite.input_variables.issubset(variables.keys()):
+                            raise ValueError("Input variables not found")
                         suite.variables = variables
                     else:
                         if suite.variables != variables:
-                            raise ValueError("Trace variables do not match across traces.")
+                            raise ValueError("Trace variables do not match across traces")
                     continue
                 self.items.append(TraceItem(self, row))
 
 
 class TraceSuite:
-    def __init__(self, path, prev0):
+    def __init__(self, path, input_variables, prev0):
+        self.input_variables = input_variables
         self.prev0 = prev0
         self.traces = []
         self.variables = {}

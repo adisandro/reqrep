@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from repair.trace import TraceSuite
+from repair.approach.trace import TraceSuite
 
 
 class SemanticSanity(ABC):

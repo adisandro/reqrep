@@ -10,7 +10,8 @@ import repair.grammar.utils as grammar_utils
 
 logger = logging.getLogger("gp_logger")
 
-# TODO: Find better name
+# TODO: Find better location when introducing other approaches
+# TODO Make requirement have pre and post, instead of the approach
 class Requirement:
     def __init__(self, name, approach, p):
         self.name = name
@@ -24,7 +25,7 @@ class Requirement:
             f"{self.name}:\n"
             f"\t{grammar_utils.to_infix(self.p, self.approach)}\n"
             f"\t{self.p}\n"
-            f"\tCorrectness: delta {self.correctness[0]}, perc {self.correctness[1]*100}\n"
+            f"\tCorrectness: Δ = {self.correctness[0]}, % = {self.correctness[1]*100}\n"
             f"\tDesirability: {self.desirability}\n")
 
 

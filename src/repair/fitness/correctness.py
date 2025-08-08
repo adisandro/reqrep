@@ -56,14 +56,17 @@ def eval_nodes(remaining_nodes, i, item) -> float | int:
     node = remaining_nodes.popleft()
     if isinstance(node, gp.Terminal):
         value = node.value
-        # Variable (named terminal)
-        if value in item.values:
-            return item.values[value]
+        # True/False booleans (we never generate them when repairing, but could be in the input requirement)
+        if isinstance(value, bool):
+            return 0.0 if value else float("inf")
         # Constant (e.g., fixed or random constant)
         if isinstance(value, (float, int)):
             return value
-        # prev(var_name)
         if isinstance(value, str):
+            # Variable (named terminal)
+            if value in item.values:
+                return item.values[value]
+            # prev(var_name)
             var_name = value[5:-1]
             return item.trace.suite.prev0 if i == 0 else item.trace.items[i-1].values[var_name]
         # Something went wrong

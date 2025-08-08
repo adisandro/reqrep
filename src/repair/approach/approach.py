@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 from repair.fitness.desirability.desirability import Desirability
-from repair.trace import TraceSuite
+from repair.approach.trace import TraceSuite
 
 
 # TODO complete below, once we have multiple approaches

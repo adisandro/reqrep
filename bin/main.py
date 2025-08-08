@@ -2,7 +2,7 @@
 from argparse import ArgumentParser
 
 from repair.check import Requirement, Transformation
-from repair.trace import TraceSuite
+from repair.approach.trace import TraceSuite
 
 if __name__ == "__main__":
     parser = ArgumentParser(description='Repairs test requirements')

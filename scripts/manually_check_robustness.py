@@ -2,12 +2,12 @@ from repair.approach.optimization.optimization import OptimizationApproach
 from repair.fitness.desirability.desirability import Desirability
 from repair.fitness.desirability.semanticsanity import SamplingBasedSanity
 from repair.grammar import utils
-from repair.trace import TraceSuite
+from repair.approach.trace import TraceSuite
 import repair.fitness.correctness as correctness
 from deap import gp
 
 # Set up
-ts = TraceSuite("data/dummy", 0)
+ts = TraceSuite("data/dummy", {"x"}, 0)
 d1 = Desirability(
     trace_suite=ts,
     semantic=None,
@@ -29,23 +29,23 @@ print(f"Repaired Requirement: {expr}")
 
 # Compute Robustness
 
-case = "des" # "des" | "rob"
+case = "des" # "des" | "cor"
 if case == "des":
     sem = SamplingBasedSanity(n_samples=10)
     taut = sem.evaluate(ts, expr)
     print(f"Desirability (semantic): {taut}")
     exit()
-elif case == "rob":
-    total_rob = 0.0
+elif case == "cor":
+    total_cor = 0.0
     try:
         for trace in ts.traces:
             for i, item in enumerate(trace.items):
-                rob = correctness.eval_tree(expr, i, item)
-                total_rob += max(0.0, rob)  # Only penalize violations
+                cor = correctness.eval_tree(expr, i, item)
+                total_cor += max(0.0, cor)  # Only penalize violations
     except Exception as e:
         raise ValueError(f"Error evaluating individual: {expr} | {e}")
 
-    print("Robustness:", total_rob)
+    print("Robustness:", total_cor)
 
 # print(f"Requirement: {s}")
 # print(f"Robustness: {robustness}")
