@@ -38,7 +38,9 @@ class GrammarFunction:
             GrammarFunction("sub", operator.sub, [float, float], float, robustness_fn=sub_robustness, display_name="-"),
             # Comparison ops
             GrammarFunction("lt", operator.lt, [float, float], Bool, robustness_fn=lt_robustness, display_name="<"),
+            GrammarFunction("le", operator.le, [float, float], Bool, robustness_fn=lt_robustness, display_name="<="),
             GrammarFunction("gt", operator.gt, [float, float], Bool, robustness_fn=gt_robustness, display_name=">"),
+            GrammarFunction("ge", operator.ge, [float, float], Bool, robustness_fn=gt_robustness, display_name=">="),
             GrammarFunction("eq", operator.eq, [float, float], Bool, robustness_fn=eq_robustness, display_name="=="),
             # Logic ops
             GrammarFunction("and", logical_and, [Bool, Bool], Bool, robustness_fn=and_robustness, display_name="and"),

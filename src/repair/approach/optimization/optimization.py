@@ -47,6 +47,7 @@ class OptimizationApproach(Approach):
     def __init__(self, trace_suite, requirement_text, desirability):
         super().__init__(trace_suite, requirement_text, desirability)
         # TODO: there should be two separate sets, one with the input vars only, and one with all vars
+        # TODO: check lt and gt robustness, a value of zero should be wrong there
         self.pset = grammar.get_gp_primitive_sets(self.trace_suite)[0]
         self.set_creator()
         self.toolbox = self.get_toolbox()

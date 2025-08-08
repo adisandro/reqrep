@@ -23,8 +23,8 @@ def get_gp_primitive_sets(trace_suite):
     # VARIABLES
     for i, in_var_name in enumerate(trace_suite.in_variable_names):
         pset_pre.renameArguments(**{f"ARG{i}": in_var_name})
-    for i, in_var_name in enumerate(trace_suite.variable_names):
-        pset_post.renameArguments(**{f"ARG{i}": in_var_name})
+    for i, var_name in enumerate(trace_suite.variable_names):
+        pset_post.renameArguments(**{f"ARG{i}": var_name})
 
     ## OPERATORS
     for func in GRAMMAR_FUNCTIONS:
