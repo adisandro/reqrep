@@ -20,13 +20,13 @@ class GrammarTerminal:
             GrammarTerminal("const_0", lambda: 0.0, float, display_name="0"),
             GrammarTerminal("const_10", lambda: 10.0, float, display_name="10"),
         ]
-        # TODO: having a prev for each variable increases the chance that prev is picked while constructing the expression
         for var_name in trace_suite.variable_names:
-            terminals.append(GrammarTerminal(f"prev_{var_name}", lambda: None, float, display_name=f"prev({var_name})"))
+            # use the underscore to avoid clashing with proper var names (float type)
+            terminals.append(GrammarTerminal(var_name, lambda: f"_{var_name}", str, display_name=var_name))
         return terminals
 
     @staticmethod
-    def create_ephemerals(trace_suite):
+    def create_ephemerals():
         return [
             # Ephemeral numeric terminals (randomly sampled each individual)
             GrammarTerminal("rand_float", partial(random.uniform, -10, 10), float, display_name="rand(-10, 10)"),

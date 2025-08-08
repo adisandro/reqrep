@@ -9,34 +9,41 @@ ROBUSTNESS_FN_MAP = {}
 DISPLAY_MAP = {}
 TERMINAL_NAMES = set()
 
-def getGPPrimitiveSet(trace_suite):
+def get_gp_primitive_sets(trace_suite):
     global GRAMMAR_FUNCTIONS, GRAMMAR_STATIC_TERMINALS, GRAMMAR_EPHEMERAL_TERMINALS, ROBUSTNESS_FN_MAP, DISPLAY_MAP,\
            TERMINAL_NAMES
 
-    pset = gp.PrimitiveSetTyped("MAIN", [float] * len(trace_suite.variable_names), Bool)
+    GRAMMAR_FUNCTIONS = GrammarFunction.create_functions()
+    GRAMMAR_STATIC_TERMINALS = GrammarTerminal.create_terminals(trace_suite)
+    GRAMMAR_EPHEMERAL_TERMINALS = GrammarTerminal.create_ephemerals()
+
+    pset_pre = gp.PrimitiveSetTyped("PRE", [float] * len(trace_suite.in_variable_names), Bool)
+    pset_post = gp.PrimitiveSetTyped("POST", [float] * len(trace_suite.variable_names), Bool)
 
     # VARIABLES
-    for i, var_name in enumerate(trace_suite.variable_names):
-        pset.renameArguments(**{f"ARG{i}": var_name})
+    for i, in_var_name in enumerate(trace_suite.in_variable_names):
+        pset_pre.renameArguments(**{f"ARG{i}": in_var_name})
+    for i, in_var_name in enumerate(trace_suite.variable_names):
+        pset_post.renameArguments(**{f"ARG{i}": in_var_name})
 
     ## OPERATORS
-    GRAMMAR_FUNCTIONS = GrammarFunction.create_functions()
     for func in GRAMMAR_FUNCTIONS:
-        pset.addPrimitive(func.impl, func.input_types, func.return_type, name=func.name)
         ROBUSTNESS_FN_MAP[func.name] = func.robustness_fn
         DISPLAY_MAP[func.name] = func.display_name
+        pset_pre.addPrimitive(func.impl, func.input_types, func.return_type, name=func.name)
+        pset_post.addPrimitive(func.impl, func.input_types, func.return_type, name=func.name)
 
     # TERMINALS
-    GRAMMAR_STATIC_TERMINALS = GrammarTerminal.create_terminals(trace_suite)
     for ter in GRAMMAR_STATIC_TERMINALS:
-        name = ter.display_name if ter.name.startswith("prev") else None
-        pset.addTerminal(ter.value_fn(), ter.return_type, name=name)
         TERMINAL_NAMES.add(ter.name)
+        if ter.name in trace_suite.in_variable_names:
+            pset_pre.addTerminal(ter.value_fn(), ter.return_type)
+        pset_post.addTerminal(ter.value_fn(), ter.return_type)
 
     # EPHEMERAL CONSTANTS
-    GRAMMAR_EPHEMERAL_TERMINALS = GrammarTerminal.create_ephemerals(trace_suite)
     for eph in GRAMMAR_EPHEMERAL_TERMINALS:
-        pset.addEphemeralConstant(eph.name, eph.value_fn, eph.return_type)
         TERMINAL_NAMES.add(eph.name)
+        pset_pre.addEphemeralConstant(eph.name, eph.value_fn, eph.return_type)
+        pset_post.addEphemeralConstant(eph.name, eph.value_fn, eph.return_type)
 
-    return pset
+    return pset_pre, pset_post

@@ -62,21 +62,27 @@ def eval_nodes(remaining_nodes, i, item) -> float | int:
         # Constant (e.g., fixed or random constant)
         if isinstance(value, (float, int)):
             return value
-        if isinstance(value, str):
-            # Variable (named terminal)
-            if value in item.values:
-                return item.values[value]
-            # prev(var_name)
-            var_name = value[5:-1]
-            return item.trace.suite.prev0 if i == 0 else item.trace.items[i-1].values[var_name]
+        # Variable (named terminal)
+        if value.startswith("_"): # Variable from the prev primitive (starts with underscore)
+            value = value[1:]
+        if value in item.values:
+            return item.values[value]
         # Something went wrong
         raise ValueError(f"Unrecognized terminal: {node}, name={node.name}, value={value}")
 
     elif isinstance(node, gp.Primitive):
-        if node.name == "dur": # dur(time, Bool)
+        if node.name == "prev": # prev(_var)
+            if i == 0: # no previous trace item
+                # pop and assign default
+                remaining_nodes.popleft()
+                return item.trace.suite.prev0
+            else:
+                return eval_nodes(remaining_nodes, i-1, item.trace.items[i-1])
+        elif node.name == "dur": # dur(time, Bool)
             time = eval_nodes(remaining_nodes, i, item)
             if time > i+1: # not enough trace items to cover duration time
                 # dur will always fail on the initial items of trace, do not penalize it
+                # TODO We should popleft the whole Bool component
                 return 0.0
             else:
                 rob_dur = float("-inf")

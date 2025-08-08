@@ -10,34 +10,47 @@ import repair.grammar.utils as grammar_utils
 
 logger = logging.getLogger("gp_logger")
 
-# TODO: Find better location when introducing other approaches
-# TODO Make requirement have pre and post, instead of the approach
-class Requirement:
-    def __init__(self, name, approach, p):
-        self.name = name
+# TODO: Find better location for these two when introducing other approaches
+class RequirementCondition:
+    def __init__(self, condition, approach):
+        self.condition = gp.PrimitiveTree.from_string(condition, approach.pset) if isinstance(condition, str)\
+            else condition
+        self.correctness = approach.toolbox.evaluate_cor(self.condition)
+        self.desirability = approach.toolbox.evaluate_des(self.condition)
         self.approach = approach
-        self.p = p
-        self.correctness = self.approach.toolbox.evaluate_cor(self.p)
-        self.desirability = self.approach.toolbox.evaluate_des(self.p)
+
+    def __repr__(self):
+        return (
+            f"\t\t{grammar_utils.to_infix(self.condition, self.approach)}\n"
+            f"\t\t{self.condition}\n"
+            f"\t\tCorrectness: Δ = {self.correctness[0]}, % = {self.correctness[1] * 100}\n"
+            f"\t\tDesirability: {self.desirability}\n")
+
+
+class Requirement:
+    def __init__(self, name, requirement, approach):
+        self.name = name
+        self.pre = RequirementCondition(requirement[0], approach)
+        self.post = RequirementCondition(requirement[1], approach)
 
     def __repr__(self):
         return (
             f"{self.name}:\n"
-            f"\t{grammar_utils.to_infix(self.p, self.approach)}\n"
-            f"\t{self.p}\n"
-            f"\tCorrectness: Δ = {self.correctness[0]}, % = {self.correctness[1]*100}\n"
-            f"\tDesirability: {self.desirability}\n")
+            f"\tPRE\n"
+            f"{self.pre}"
+            f"\tPOST\n"
+            f"{self.post}")
 
 
 class OptimizationApproach(Approach):
 
-    def __init__(self, trace_suite, requirement, desirability):
-        super().__init__(trace_suite, requirement, desirability)
-        self.pset = grammar.getGPPrimitiveSet(self.trace_suite)
+    def __init__(self, trace_suite, requirement_text, desirability):
+        super().__init__(trace_suite, requirement_text, desirability)
+        # TODO: there should be two separate sets, one with the input vars only, and one with all vars
+        self.pset = grammar.get_gp_primitive_sets(self.trace_suite)[0]
         self.set_creator()
         self.toolbox = self.get_toolbox()
-        self.pre_cond = Requirement("Initial Requirement PRE", self, gp.PrimitiveTree.from_string(requirement[0], self.pset))
-        self.post_cond = Requirement("Initial Requirement POST", self, gp.PrimitiveTree.from_string(requirement[1], self.pset))
+        self.requirement = Requirement("Initial Requirement", requirement_text, self)
 
     def set_creator(self):
         # STEP 2: Define the creator for individuals and fitness
@@ -127,4 +140,4 @@ class OptimizationApproach(Approach):
                 break
 
         # Return the best individual (expression) found
-        return Requirement("Repaired Requirement", self, hof[0])
+        return Requirement("Repaired Requirement", (hof[0], "True"), self)

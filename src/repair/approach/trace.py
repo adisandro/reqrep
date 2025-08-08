@@ -22,7 +22,7 @@ class Trace:
                     for j, var in enumerate(row):
                         variables[var] = j
                     if not suite.variables:
-                        if not suite.input_variables.issubset(variables.keys()):
+                        if not suite.in_variable_names.issubset(variables.keys()):
                             raise ValueError("Input variables not found")
                         suite.variables = variables
                     else:
@@ -33,8 +33,8 @@ class Trace:
 
 
 class TraceSuite:
-    def __init__(self, path, input_variables, prev0):
-        self.input_variables = input_variables
+    def __init__(self, path, in_variable_names, prev0):
+        self.in_variable_names = in_variable_names
         self.prev0 = prev0
         self.traces = []
         self.variables = {}

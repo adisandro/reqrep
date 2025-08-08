@@ -44,5 +44,6 @@ class GrammarFunction:
             GrammarFunction("and", logical_and, [Bool, Bool], Bool, robustness_fn=and_robustness, display_name="and"),
             GrammarFunction("or", logical_or, [Bool, Bool], Bool, robustness_fn=or_robustness, display_name="or"),
             GrammarFunction("not", operator.not_, [Bool], Bool, robustness_fn=not_robustness, display_name="not"),
+            GrammarFunction("prev", lambda: None, [str], float, robustness_fn=lambda: None, display_name="prev"),
             GrammarFunction("dur", lambda: None, [int, Bool], Bool, robustness_fn=lambda: None, display_name="dur"),
         ]

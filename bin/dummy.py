@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser
 
-# from repair.approach.approach import OptimizationApproach
 from repair.fitness.desirability.applicabilitypreservation import AggregatedRobustnessDifference
 from repair.fitness.desirability.desirability import Desirability
 from repair.fitness.desirability.semanticsanity import SamplingBasedSanity
@@ -41,7 +40,6 @@ if __name__ == "__main__":
     start_time = time.time()
     repaired_req = a1.repair()
     elapsed = time.time() - start_time
-    print(a1.pre_cond)
-    print(a1.post_cond)
+    print(a1.requirement)
     print(repaired_req)
     print(f"Repair time: {elapsed:.2f} seconds")
