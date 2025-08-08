@@ -14,7 +14,7 @@ d1 = Desirability(
     syntactic=None,
     applicability=None
 )
-a1 = OptimizationApproach(ts, d1, None) # TODO add transformations?
+a1 = OptimizationApproach(ts, ("True", "True"), d1)
 
 # define requirement
 s = "and_(False, lt(0.0, x))"

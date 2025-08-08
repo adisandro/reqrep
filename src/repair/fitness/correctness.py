@@ -1,31 +1,43 @@
+import math
 from collections import deque
 
 from deap import gp
 from repair.grammar.grammar import ROBUSTNESS_FN_MAP
 
-# TODO Fix this.some theoretical stuff to do here
-# TODO how about multiple fitness values?
+
+def is_within_margin(a, b):
+    return math.isclose(a, b, abs_tol=1e-6)
+
+
 # Fitness function: count how many time steps FAIL the requirement
 def get_fitness_correctness(individual, trace_suite):
     """
-    Evaluates the robustness of a requirement represented by a GP individual.
+    Evaluates the correctness of a requirement represented by a GP individual.
 
     Returns:
-        (robustness,) — lower is better; 0 means satisfied; positive means violated.
+        (delta correctness, perc correctness) —
+          delta: 0 means 100% correct, positive means violated, lower is better.
+          perc: percentage of violations.
     """
-    total_rob = 0.0
+    delta_cor = 0.0
+    count_cor = 0
+    count_total = 0
     try:
+        all_nodes = deque(iter(individual))
         for trace in trace_suite.traces:
+            count_total += len(trace.items)
             for i, item in enumerate(trace.items):
-                rob = eval_tree(individual, i, item)
-                total_rob += max(0.0, rob)  # Only penalize violations
+                cor = max(0.0, eval_nodes(deque(all_nodes), i, item)) # only penalize violations
+                delta_cor += cor
+                if is_within_margin(cor, 0.0):
+                    count_cor += 1
     except Exception as e:
         raise ValueError(f"Error evaluating individual: {individual} | {e}")
 
-    return (total_rob,)
+    return delta_cor, count_cor/count_total
 
 
-def eval_tree(individual, i, item) -> float:
+def eval_tree(individual, i, item) -> float | int:
     """
     Evaluates a DEAP PrimitiveTree individual using robustness semantics.
 
@@ -37,12 +49,10 @@ def eval_tree(individual, i, item) -> float:
     Returns:
         float — robustness value (negative = valid, positive = invalid)
     """
-
-    remaining_nodes = deque(iter(individual))
-    return eval_node(remaining_nodes, i, item)
+    return eval_nodes(deque(iter(individual)), i, item)
 
 
-def eval_node(remaining_nodes, i, item) -> (float, int):
+def eval_nodes(remaining_nodes, i, item) -> float | int:
     node = remaining_nodes.popleft()
     if isinstance(node, gp.Terminal):
         value = node.value
@@ -61,10 +71,10 @@ def eval_node(remaining_nodes, i, item) -> (float, int):
 
     elif isinstance(node, gp.Primitive):
         if node.name == "dur": # dur(time, Bool)
-            time = eval_node(remaining_nodes, i, item)
+            time = eval_nodes(remaining_nodes, i, item)
             if time > i+1: # not enough trace items to cover duration time
                 # dur will always fail on the initial items of trace, do not penalize it
-                return float(0.0)
+                return 0.0
             else:
                 rob_dur = float("-inf")
                 i_dur = i+1-time
@@ -72,12 +82,12 @@ def eval_node(remaining_nodes, i, item) -> (float, int):
                     # copy nodes for past iterations, advance as normal for current iteration
                     nodes_dur = deque(remaining_nodes) if t != i else remaining_nodes
                     item_dur = item.trace.items[t] if t != i else item
-                    rob = eval_node(nodes_dur, t, item_dur) # eval Bool component at each t
+                    rob = eval_nodes(nodes_dur, t, item_dur) # eval Bool component at each t
                     rob_dur = max(rob_dur, rob) # keep max (worst)
                 return rob_dur
         else:
             # Recursively evaluate all children
-            children = [eval_node(remaining_nodes, i, item) for _ in range(node.arity)]
+            children = [eval_nodes(remaining_nodes, i, item) for _ in range(node.arity)]
             # Use robustness function for this primitive
             rob_fn = ROBUSTNESS_FN_MAP.get(node.name)
             if rob_fn is None:

@@ -16,7 +16,7 @@ class Requirement:
         self.name = name
         self.approach = approach
         self.p = p
-        self.correctness = self.approach.toolbox.evaluate_cor(self.p)[0]
+        self.correctness = self.approach.toolbox.evaluate_cor(self.p)
         self.desirability = self.approach.toolbox.evaluate_des(self.p)
 
     def __repr__(self):
@@ -24,7 +24,7 @@ class Requirement:
             f"{self.name}:\n"
             f"\t{grammar_utils.to_infix(self.p, self.approach)}\n"
             f"\t{self.p}\n"
-            f"\tCorrectness: {self.correctness}\n"
+            f"\tCorrectness: delta {self.correctness[0]}, perc {self.correctness[1]*100}\n"
             f"\tDesirability: {self.desirability}\n")
 
 
@@ -111,7 +111,7 @@ class OptimizationApproach(Approach):
                 if is_non_trivial:
                     # If sanity check passes, evaluate the individual
                     # This is where the requirement would be used to evaluate fitness
-                    ind.fitness.values = self.toolbox.evaluate_cor(ind)
+                    ind.fitness.values = (self.toolbox.evaluate_cor(ind)[0],)
                 else:
                     ind.fitness.values = (float("inf"),)
 

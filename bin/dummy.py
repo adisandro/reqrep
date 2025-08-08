@@ -26,6 +26,7 @@ if __name__ == "__main__":
     # TODO signal in/out variables with a dictionary
     suite = TraceSuite(args.trace_suite, args.prev0)
     # Define requirement
+    # TODO Fix evaluate_cor with True value, maybe hardcode it?
     req = ('True', 'lt(x, 1.0)')
     # Define Desirability
     # TODO For now, only semantic is implemented, so syntactic and applicability are set to 0.0
