@@ -23,8 +23,8 @@ s = "or_(gt(5.0, x), lt(0.0, x))"
 s = "or_(True, False)"
 s = "eq(add(5.0, 5.125377100590745), x)"
 s = "lt(add(0.0, x), add(10.0, x))"
-expr = gp.PrimitiveTree.from_string(s, a1.pset)
-print(f"Repaired Requirement: {utils.to_infix(expr, a1)}")
+expr = gp.PrimitiveTree.from_string(s, a1.req.pre.pset)
+print(f"Repaired Requirement: {utils.to_infix(expr, ts)}")
 print(f"Repaired Requirement: {expr}")
 
 # Compute Robustness

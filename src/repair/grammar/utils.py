@@ -1,10 +1,10 @@
 from repair.grammar.grammar import TERMINAL_NAMES, DISPLAY_MAP
 from deap import gp
 
-def to_infix(individual, approach):
+def to_infix(individual, trace_suite):
 
     ARG_NAMES = {}
-    for i, var_name in enumerate(approach.trace_suite.variable_names):
+    for i, var_name in enumerate(trace_suite.variable_names):
         ARG_NAMES[f"ARG{i}"] = var_name
 
     def recurse(node, iterator):

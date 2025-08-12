@@ -21,7 +21,7 @@ class GrammarTerminal:
             GrammarTerminal("const_10", lambda: 10.0, float, display_name="10"),
         ]
         for var_name in trace_suite.variable_names:
-            # use the underscore to avoid clashing with proper var names (float type)
+            # prev(_var) uses the underscore to avoid clashing with proper var names (of float type)
             terminals.append(GrammarTerminal(var_name, lambda: f"_{var_name}", str, display_name=var_name))
         return terminals
 

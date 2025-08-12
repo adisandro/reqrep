@@ -15,14 +15,16 @@ import time
 if __name__ == "__main__":
     parser = ArgumentParser(description="Repairs test requirements")
     parser.add_argument("trace_suite", help="Path to the directory containing the trace suite")
-    parser.add_argument("input_vars", help="The names of the input variables, comma separated without spaces")
+    parser.add_argument("input_vars", nargs="+", help="The names of the input variables, space separated")
     parser.add_argument("-p", "--prev0", type=float, default=0.0,
                         help="Initial value for the prev() operator at time 0 (defaults to 0.0)")
+    parser.add_argument("-t", "--threshold", type=float, default=100.0,
+                        help="Requirement repair threshold: repair if correctness % < threshold (defaults to 100)")
     args = parser.parse_args()
     utils.setup_logger("repair.log")
 
     # Define Trace Suite
-    suite = TraceSuite(args.trace_suite, set(args.input_vars.split(",")), args.prev0)
+    suite = TraceSuite(args.trace_suite, set(args.input_vars), args.prev0)
     # Define requirement
     req = ("True", "lt(x, 1.0)")
     # req = ("and(reset, and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")
@@ -41,8 +43,12 @@ if __name__ == "__main__":
 
     # Perform Repair
     start_time = time.time()
-    repaired_req = a.repair()
+    repaired_req = a.repair(args.threshold)
     elapsed = time.time() - start_time
-    print(a.requirement)
-    print(repaired_req)
+    print(a.req.pre)
+    if repaired_req.pre is not None:
+        print(repaired_req.pre)
+    print(a.req.post)
+    if repaired_req.post is not None:
+        print(repaired_req.post)
     print(f"Repair time: {elapsed:.2f} seconds")
