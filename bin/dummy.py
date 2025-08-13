@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 from repair.fitness.desirability.applicabilitypreservation import AggregatedRobustnessDifference
 from repair.fitness.desirability.desirability import Desirability
 from repair.fitness.desirability.semanticsanity import SamplingBasedSanity
-from repair.fitness.desirability.syntacticsimilarity import TreeEditDistance
+from repair.fitness.desirability.syntacticsimilarity import CosineSimilarity
 import repair.utils as utils
 from repair.approach.optimization.optimization import OptimizationApproach
 from repair.approach.trace import TraceSuite
@@ -23,30 +23,34 @@ if __name__ == "__main__":
     args = parser.parse_args()
     utils.setup_logger("repair.log")
 
-    # Define Trace Suite
+    # Define TRACE SUITE
     suite = TraceSuite(args.trace_suite, set(args.input_vars), args.prev0)
-    # Define requirement
+
+    # Define REQUIREMENT
     req = ("True", "lt(x, 1.0)")
+    req = ("True", "lt(y, 1.0)")
     # req = ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")
     # req = ("True", "and(le(yout, TL), ge(yout, BL))")
-    # Define Desirability
+
+    # Define DESIRABILITY
     # TODO For now, only semantic is implemented, so syntactic and applicability are set to 0.0
     d = Desirability(
         trace_suite=suite,
         semantic=SamplingBasedSanity(n_samples=10),
-        syntactic=TreeEditDistance(), # TODO
+        syntactic=CosineSimilarity(), # TODO
         applicability=AggregatedRobustnessDifference(), # TODO
         weights=[1.0, 0.0, 0.0]
     )
-    # Define Approach
+
+    # Define APPROACH
     a = OptimizationApproach(suite, req, d)
 
-    # Perform Repair
+    # Perform REPAIR
     start_time = time.time()
     repaired_req = a.repair(args.threshold)
     elapsed = time.time() - start_time
-    print(a.req.pre)
+    print(a.init_requirement.pre)
     print("No repair necessary\n" if repaired_req.pre is None else repaired_req.pre)
-    print(a.req.post)
+    print(a.init_requirement.post)
     print("No repair necessary\n" if repaired_req.post is None else repaired_req.post)
     print(f"Repair time: {elapsed:.2f} seconds")
