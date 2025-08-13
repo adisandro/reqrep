@@ -12,10 +12,10 @@ def generate_csv_file(mconfigs, output_dir):
         filename = os.path.join(output_dir, f'dummy_{file_index:03d}.csv')
         with open(filename, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(['Time', 'x'])
+            writer.writerow(['Time', 'x', 'y'])
             for t in time_values:
-                x = np.random.normal(mean, std_dev)
-                writer.writerow([round(t, 1), x])
+                y = np.random.normal(mean, std_dev)
+                writer.writerow([round(t, 1), round(t, 1), y])
 
 # Example usage:
 configs = [
@@ -26,4 +26,4 @@ configs = [
     {'mean': 9,  'std_dev': 2.5}
 ]
 
-generate_csv_file(mconfigs=configs, output_dir='case_studies/dummy')
+generate_csv_file(mconfigs=configs, output_dir='data/dummy2')
