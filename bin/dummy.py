@@ -27,7 +27,7 @@ if __name__ == "__main__":
     suite = TraceSuite(args.trace_suite, set(args.input_vars), args.prev0)
     # Define requirement
     req = ("True", "lt(x, 1.0)")
-    # req = ("and(reset, and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")
+    # req = ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")
     # req = ("True", "and(le(yout, TL), ge(yout, BL))")
     # Define Desirability
     # TODO For now, only semantic is implemented, so syntactic and applicability are set to 0.0
@@ -46,9 +46,7 @@ if __name__ == "__main__":
     repaired_req = a.repair(args.threshold)
     elapsed = time.time() - start_time
     print(a.req.pre)
-    if repaired_req.pre is not None:
-        print(repaired_req.pre)
+    print("No repair necessary\n" if repaired_req.pre is None else repaired_req.pre)
     print(a.req.post)
-    if repaired_req.post is not None:
-        print(repaired_req.post)
+    print("No repair necessary\n" if repaired_req.post is None else repaired_req.post)
     print(f"Repair time: {elapsed:.2f} seconds")
