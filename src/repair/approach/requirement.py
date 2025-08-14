@@ -2,10 +2,10 @@
 from collections import namedtuple
 import repair.grammar.utils as grammar_utils
 from deap import gp
-
+from abc import ABC
 
 Requirement = namedtuple("Requirement", ["pre", "post"])
-class Condition:
+class Condition(ABC):
     def __init__(self, name, pset, toolbox, trace_suite, condition):
         self.name = name
         self.pset = pset
@@ -20,7 +20,7 @@ class Condition:
 
     @property
     def desirability(self):
-        return self.toolbox.evaluate_des(self.condition)
+        return self.toolbox.evaluate_des_tuple(self.condition, self.pre_post_id)
 
     def __repr__(self):
         return (
@@ -29,3 +29,14 @@ class Condition:
             f"\t{self.condition}\n"
             f"\tCorrectness: Δ = {round(self.correctness[0], 4)}, % = {self.correctness[1] * 100}\n"
             f"\tDesirability: {self.desirability}\n")
+    
+
+class PreCondition(Condition):
+    def __init__(self, name, pset, toolbox, trace_suite, condition):
+        super().__init__(f'{name} PRE', pset, toolbox, trace_suite, condition)
+        self.pre_post_id = 0
+
+class PostCondition(Condition):
+    def __init__(self, name, pset, toolbox, trace_suite, condition):
+        super().__init__(f'{name} POST', pset, toolbox, trace_suite, condition)
+        self.pre_post_id = 1

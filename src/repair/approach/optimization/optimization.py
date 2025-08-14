@@ -3,7 +3,7 @@ from tqdm import tqdm
 import random
 import logging
 from deap import base, creator, gp, tools
-from repair.approach.requirement import Condition, Requirement
+from repair.approach.requirement import PreCondition, PostCondition, Requirement
 from repair.approach.optimization import expressiongenerator
 
 logger = logging.getLogger("gp_logger")
@@ -39,10 +39,12 @@ class OptimizationApproach(Approach):
         self.toolboxes[pset_id].decorate("mate", gp.staticLimit(key=len, max_value=10))
         self.toolboxes[pset_id].decorate("mutate", gp.staticLimit(key=len, max_value=10))
 
-    def _repair(self, toolbox):
+    def _repair(self, pre_post_id):
         # TODO add support for the requirement,
         # (1) for the initialization, also
         # (2) for the fitness
+
+        toolbox = self.toolboxes[pre_post_id]
 
         # Create an initial population of random individuals (formulas)
         pop = toolbox.population(n=10)
@@ -52,7 +54,7 @@ class OptimizationApproach(Approach):
 
         # Evolutionary loop: run for a fixed number of generations
         # TODO review this loop entirely
-        for gen in tqdm(range(5)):
+        for gen in tqdm(range(1005)):
             # Select individuals for the next generation using tournament selection
             offspring = toolbox.select(pop, len(pop))
             offspring = list(map(toolbox.clone, offspring))  # Deep copy the individuals
@@ -76,7 +78,7 @@ class OptimizationApproach(Approach):
 
                 # TODO integrate the desirability as a fitness function
                 # Currently, it is only a guard
-                f_des = toolbox.evaluate_des(ind)
+                f_des = toolbox.evaluate_des(ind, pre_post_id)
 
                 is_non_trivial = f_des == 0.0
                 if is_non_trivial:
@@ -102,12 +104,10 @@ class OptimizationApproach(Approach):
     def repair(self, threshold):
         pre = None
         if (self.init_requirement.pre.correctness[1] * 100) < threshold:
-            # repaired = self._repair(self.req.pre.toolbox)
-            # pre = Condition("Repaired PRE", self.req.pre.pset, self.req.pre.toolbox, self.trace_suite, repaired)
-            repaired = self._repair(self.toolboxes[0])
-            pre = Condition("Repaired PRE", self.init_requirement.pre.pset, self.init_requirement.pre.toolbox, self.trace_suite, repaired)
+            repaired = self._repair(0)
+            pre = PreCondition("Repaired", self.init_requirement.pre.pset, self.init_requirement.pre.toolbox, self.trace_suite, repaired)
         post = None
         if (self.init_requirement.post.correctness[1] * 100) < threshold:
-            repaired = self._repair(self.toolboxes[1])
-            post = Condition("Repaired POST", self.init_requirement.post.pset, self.init_requirement.post.toolbox, self.trace_suite, repaired)
+            repaired = self._repair(1)
+            post = PostCondition("Repaired", self.init_requirement.post.pset, self.init_requirement.post.toolbox, self.trace_suite, repaired)
         return Requirement(pre, post)

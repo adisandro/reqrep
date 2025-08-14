@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from repair.approach.requirement import Condition, Requirement
+from repair.approach.requirement import PreCondition, PostCondition, Requirement
 from repair.grammar import grammar
 from repair.fitness.desirability.desirability import Desirability
 from repair.approach.trace import TraceSuite
@@ -18,18 +18,19 @@ class Approach(ABC):
     def __init__(self, trace_suite: TraceSuite, requirement_text: tuple[str, str], desirability: Desirability=None):
     
         self.trace_suite = trace_suite
+        self.desirability = desirability
+
         self.psets = grammar.get_gp_primitive_sets(self.trace_suite)
         self.toolboxes = self.init_toolbox(0), self.init_toolbox(1) # TODO: should we have pre_toolbox and post_toolbox separately?
 
         # Process initial requirement
         self.init_requirement = Requirement(
-            Condition("Initial PRE", self.psets[0], self.toolboxes[0], trace_suite, requirement_text[0]),
-            Condition("Initial POST", self.psets[1], self.toolboxes[1], trace_suite, requirement_text[1])
+            PreCondition("Initial", self.psets[0], self.toolboxes[0], trace_suite, requirement_text[0]),
+            PostCondition("Initial", self.psets[1], self.toolboxes[1], trace_suite, requirement_text[1])
         )
 
         # Handle desirability
-        self.desirability = desirability
-        self.add_desirability_to_toolboxes()
+        self.desirability.initial_requirement = self.init_requirement
 
     def init_toolbox(self, pset_id):
         toolbox = base.Toolbox()
@@ -38,16 +39,13 @@ class Approach(ABC):
         # TODO does the expressiongenerator beong to the subclass?
         toolbox.register("compile", gp.compile, pset=self.psets[pset_id])
 
+        # Metrics
         toolbox.register("evaluate_cor", correctness.get_fitness_correctness,
                          trace_suite=self.trace_suite, # this is fixed throughout execution
         )
+        toolbox.register("evaluate_des", self.desirability.evaluate)
+        toolbox.register("evaluate_des_tuple", self.desirability.get_desirability_tuple)
         return toolbox
-    
-    def add_desirability_to_toolboxes(self):
-        for toolbox in self.toolboxes:
-            toolbox.register("evaluate_des", self.desirability.evaluate,
-                             original=None,  # TODO: add original requirement
-            )
 
     @abstractmethod
     def repair(self, threshold):

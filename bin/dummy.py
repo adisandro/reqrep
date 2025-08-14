@@ -27,23 +27,23 @@ if __name__ == "__main__":
     suite = TraceSuite(args.trace_suite, set(args.input_vars), args.prev0)
 
     # Define REQUIREMENT
-    req = ("True", "lt(x, 1.0)")
-    req = ("True", "lt(y, 1.0)")
-    # req = ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")
-    # req = ("True", "and(le(yout, TL), ge(yout, BL))")
+    req_text = ("True", "lt(x, 1.0)")
+    req_text = ("True", "lt(y, 1.0)")
+    # req_text = ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")
+    # req_text = ("True", "and(le(yout, TL), ge(yout, BL))")
 
     # Define DESIRABILITY
     # TODO For now, only semantic is implemented, so syntactic and applicability are set to 0.0
     d = Desirability(
         trace_suite=suite,
         semantic=SamplingBasedSanity(n_samples=10),
-        syntactic=CosineSimilarity(), # TODO
+        syntactic=CosineSimilarity(),
         applicability=AggregatedRobustnessDifference(), # TODO
-        weights=[1.0, 0.0, 0.0]
+        weights=[1.0, 1.0, 0.0]
     )
 
     # Define APPROACH
-    a = OptimizationApproach(suite, req, d)
+    a = OptimizationApproach(suite, req_text, d)
 
     # Perform REPAIR
     start_time = time.time()

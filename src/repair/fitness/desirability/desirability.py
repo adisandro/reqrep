@@ -1,24 +1,25 @@
 from abc import ABC, abstractmethod
 from typing import List
+from deap import gp
 
 from repair.approach.trace import TraceSuite
 
 
 class SemanticSanity(ABC):
     @abstractmethod
-    def evaluate(self, trace_suite, individual) -> float:
+    def evaluate(self, trace_suite:TraceSuite, individual:gp.PrimitiveTree) -> float:
         pass
 
 
 class SyntacticSimilarity(ABC):
     @abstractmethod
-    def evaluate(self, individual, original) -> float:
+    def evaluate(self, individual:gp.PrimitiveTree, original:gp.PrimitiveTree) -> float:
         pass
 
 
 class ApplicabilityPreservation(ABC):
     @abstractmethod
-    def evaluate(self, trace_suite, individual, original) -> float:
+    def evaluate(self, trace_suite:TraceSuite, individual:gp.PrimitiveTree, original:gp.PrimitiveTree) -> float:
         pass
 
     
@@ -30,6 +31,8 @@ class Desirability:
                  applicability: ApplicabilityPreservation,
                  weights: List[float] = [1.0, 1.0, 1.0]):
         self.trace_suite = trace_suite
+        self.initial_requirement = None
+
         self.semantic = semantic
         self.syntactic = syntactic
         self.applicability = applicability
@@ -38,13 +41,19 @@ class Desirability:
         assert all(w >= 0 for w in self.weights), "All weights must be positive."
         assert sum(self.weights) != 0, "Sum of weights must not be zero."
 
-    def evaluate(self, individual, original=None) -> float:
+    def get_desirability_tuple(self, individual, pre_post_id) -> tuple[float, float, float]:
+        initial_condition = self.initial_requirement[pre_post_id].condition
         sem_val = 0.0 if self.weights[0] == 0 else self.semantic.evaluate(self.trace_suite, individual)
-        syn_val = 0.0 if self.weights[1] == 0 else self.syntactic.evaluate(individual, original)
-        app_val = 0.0 if self.weights[2] == 0 else self.applicability.evaluate(self.trace_suite, individual, original)
+        syn_val = 0.0 if self.weights[1] == 0 else self.syntactic.evaluate(individual, initial_condition)
+        app_val = 0.0 if self.weights[2] == 0 else self.applicability.evaluate(self.trace_suite, individual, initial_condition)
+        return sem_val, syn_val, app_val
+
+    # TODO: pre_post_id should be temporary
+    def evaluate(self, individual, pre_post_id) -> float:
+        des = self.get_desirability_tuple(individual, pre_post_id)
         weighted_sum = (
-            self.weights[0] * sem_val +
-            self.weights[1] * syn_val +
-            self.weights[2] * app_val
+            self.weights[0] * des[0] +
+            self.weights[1] * des[1] +
+            self.weights[2] * des[2]
         )
         return weighted_sum
