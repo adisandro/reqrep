@@ -29,9 +29,8 @@ class CosineSimilarity(SyntacticSimilarity):
         individual, original: gp.PrimitiveTree
         Returns a distance in [0, 1].
         """
-
-        # print(individual)
-        # print(original)
+        # TODO rethink the return value (currently in [0, 1]). Return something that is closer to
+        # the "semantic desirability" order of magnitude
 
         vec_ind = self._tree_to_vector(individual)
         vec_orig = self._tree_to_vector(original)

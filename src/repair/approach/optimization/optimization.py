@@ -42,18 +42,11 @@ class OptimizationApproach(Approach):
         self.toolboxes[pset_id].decorate("mutate", gp.staticLimit(key=len, max_value=10))
 
     def _repair(self, pre_post_id):
-        # TODO add support for the requirement,
-        # for the initialization
-
         toolbox = self.toolboxes[pre_post_id]
+        pop = toolbox.population(n=10) # Random initial population
+        hof = tools.ParetoFront() # Hall of Fame, for keeping track of the best individuals
 
-        # Create an initial population of random individuals (formulas)
-        pop = toolbox.population(n=10)
-
-        # Create a Hall of Fame to keep the best individual found
-        hof = tools.ParetoFront()
-    
-        # Evaluate initial population
+        # (Initial) Evaluation
         for ind in pop:
             f_cor = toolbox.evaluate_cor(ind)[0]
             f_des = toolbox.evaluate_des(ind, pre_post_id)
@@ -64,31 +57,30 @@ class OptimizationApproach(Approach):
         # Evolutionary loop: run for a fixed number of generations
         # TODO review this loop entirely
         for gen in tqdm(range(5)):
-            # Select individuals for the next generation using tournament selection
-            offspring = toolbox.select(pop, len(pop))
+            offspring = toolbox.select(pop, len(pop)) # Selection
             offspring = list(map(toolbox.clone, offspring))  # Deep copy the individuals
 
-            # Apply crossover (recombination) to pairs of offspring
+            # Crossover
             for child1, child2 in zip(offspring[::2], offspring[1::2]):
                 if random.random() < 0.5:
                     toolbox.mate(child1, child2)
                     del child1.fitness.values
                     del child2.fitness.values
 
-            # Apply mutation to some individuals
+            # Mutation
             for mutant in offspring:
                 if random.random() < 0.3:
                     toolbox.mutate(mutant)
                     del mutant.fitness.values
 
-            # Re-evaluate individuals whose fitness has changed
+            # (Re-)evaluation: only individuals whose fitness has changed
             for ind in offspring:
                 if not ind.fitness.valid:
                     f_cor = toolbox.evaluate_cor(ind)[0]
                     f_des = toolbox.evaluate_des(ind, pre_post_id)
                     ind.fitness.values = (f_cor, f_des)
 
-            # Select the new population
+            # Selection
             pop = toolbox.select(pop + offspring, len(pop))
             hof.update(pop) # Update the best-so-far individual
 
@@ -99,7 +91,6 @@ class OptimizationApproach(Approach):
             if any(f_cor == 0 and f_des == 0 for f_cor, f_des in (ind.fitness.values for ind in pop)):
                 break
 
-        # Return the best individual (expression) found
         return hof
 
     def repair(self, threshold):
