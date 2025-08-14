@@ -15,7 +15,7 @@ class OptimizationApproach(Approach):
         super().__init__(trace_suite, requirement_text, desirability)
 
         # STEP 1: Define the creator for individuals and fitness
-        creator.create("FitnessMin", base.Fitness, weights=(-1.0,)) # TODO: multiple fitness values?
+        creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0))  # Minimize both objectives
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
         # STEP 2: Add Optimization-specific registrations
@@ -31,18 +31,19 @@ class OptimizationApproach(Approach):
         self.toolboxes[pset_id].register("individual", tools.initIterate, creator.Individual, self.toolboxes[pset_id].expr)
         self.toolboxes[pset_id].register("population", tools.initRepeat, list, self.toolboxes[pset_id].individual)
 
-        self.toolboxes[pset_id].register("select", tools.selTournament, tournsize=3)
+        self.toolboxes[pset_id].register("select", tools.selNSGA2)
         self.toolboxes[pset_id].register("mate", gp.cxOnePoint)
         # if min_=0, then this requires a False or true terminal. Not supported.
         self.toolboxes[pset_id].register("expr_mut", expressiongenerator.generate_expr, min_=1, max_=2, condition_str="full")
         self.toolboxes[pset_id].register("mutate", gp.mutUniform, expr=self.toolboxes[pset_id].expr_mut, pset=self.psets[pset_id])
+
+        # Decorators to limit tree size
         self.toolboxes[pset_id].decorate("mate", gp.staticLimit(key=len, max_value=10))
         self.toolboxes[pset_id].decorate("mutate", gp.staticLimit(key=len, max_value=10))
 
     def _repair(self, pre_post_id):
         # TODO add support for the requirement,
-        # (1) for the initialization, also
-        # (2) for the fitness
+        # for the initialization
 
         toolbox = self.toolboxes[pre_post_id]
 
@@ -50,11 +51,19 @@ class OptimizationApproach(Approach):
         pop = toolbox.population(n=10)
 
         # Create a Hall of Fame to keep the best individual found
-        hof = tools.HallOfFame(1)
+        hof = tools.ParetoFront()
+    
+        # Evaluate initial population
+        for ind in pop:
+            f_cor = toolbox.evaluate_cor(ind)[0]
+            f_des = toolbox.evaluate_des(ind, pre_post_id)
+            ind.fitness.values = (f_cor, f_des)
+
+        pop = toolbox.select(pop, len(pop))
 
         # Evolutionary loop: run for a fixed number of generations
         # TODO review this loop entirely
-        for gen in tqdm(range(1005)):
+        for gen in tqdm(range(5)):
             # Select individuals for the next generation using tournament selection
             offspring = toolbox.select(pop, len(pop))
             offspring = list(map(toolbox.clone, offspring))  # Deep copy the individuals
@@ -73,41 +82,44 @@ class OptimizationApproach(Approach):
                     del mutant.fitness.values
 
             # Re-evaluate individuals whose fitness has changed
-            invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
-            for ind in invalid_ind:
+            for ind in offspring:
+                if not ind.fitness.valid:
+                    f_cor = toolbox.evaluate_cor(ind)[0]
+                    f_des = toolbox.evaluate_des(ind, pre_post_id)
+                    ind.fitness.values = (f_cor, f_des)
 
-                # TODO integrate the desirability as a fitness function
-                # Currently, it is only a guard
-                f_des = toolbox.evaluate_des(ind, pre_post_id)
-
-                is_non_trivial = f_des == 0.0
-                if is_non_trivial:
-                    # If sanity check passes, evaluate the individual
-                    # This is where the requirement would be used to evaluate fitness
-                    ind.fitness.values = (toolbox.evaluate_cor(ind)[0],)
-                else:
-                    ind.fitness.values = (float("inf"),)
-
-            # Replace the old population with the new one
-            pop[:] = offspring
+            # Select the new population
+            pop = toolbox.select(pop + offspring, len(pop))
             hof.update(pop) # Update the best-so-far individual
 
-            logger.info(f"Generation {gen}: Best = {hof[0]}, Fitness = {hof[0].fitness.values[0]}")
+            logger.info(f"Generation {gen}: Pareto size = {len(hof)}")
 
-            # If an individual satisfies all constraints (zero violations), stop early
-            if hof[0].fitness.values[0] == 0:
+            # If an individual is perfectly correct and perfectly desirable
+            # stop early. This is theoretically impossible for a faulty input requirement
+            if any(f_cor == 0 and f_des == 0 for f_cor, f_des in (ind.fitness.values for ind in pop)):
                 break
 
         # Return the best individual (expression) found
-        return hof[0]
+        return hof
 
     def repair(self, threshold):
+        # TODO: For now, I am only considering the single best repaired individual
+        # wrt. correctness. extend this to support multiple repaired individuals (?)
+
         pre = None
         if (self.init_requirement.pre.correctness[1] * 100) < threshold:
-            repaired = self._repair(0)
-            pre = PreCondition("Repaired", self.init_requirement.pre.pset, self.init_requirement.pre.toolbox, self.trace_suite, repaired)
+            hof_repaired = self._repair(0)
+            best_repaired = min(hof_repaired, key=lambda x: x.fitness.values[0])
+            pre = PreCondition("Repaired", self.init_requirement.pre.pset, self.init_requirement.pre.toolbox, self.trace_suite, best_repaired)
+
         post = None
         if (self.init_requirement.post.correctness[1] * 100) < threshold:
-            repaired = self._repair(1)
-            post = PostCondition("Repaired", self.init_requirement.post.pset, self.init_requirement.post.toolbox, self.trace_suite, repaired)
+            hof_repaired = self._repair(1)
+            # ordered_hof = sorted(hof_repaired, key=lambda ind: ind.fitness.values[0])
+            # print(len(hof_repaired))
+            # for ind in ordered_hof:
+            #     print(ind.fitness.values)
+            # print('-------------------')
+            best_repaired = min(hof_repaired, key=lambda x: x.fitness.values[0])
+            post = PostCondition("Repaired", self.init_requirement.post.pset, self.init_requirement.post.toolbox, self.trace_suite, best_repaired)
         return Requirement(pre, post)
