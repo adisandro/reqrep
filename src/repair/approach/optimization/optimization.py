@@ -14,42 +14,43 @@ class OptimizationApproach(Approach):
     def __init__(self, trace_suite, requirement_text, desirability):
         super().__init__(trace_suite, requirement_text, desirability)
 
-        # STEP 1: Define the creator for individuals and fitness
+        self._init_creator()
+        self._add_to_toolbox()
+       
+        # TODO: check lt and gt robustness, a value of zero should be wrong there
+
+    def _init_creator(self):
         creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0))  # Minimize both objectives
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
-        # STEP 2: Add Optimization-specific registrations
-        self.add_to_toolbox(0)
-        self.add_to_toolbox(1)
-        
-        # TODO: check lt and gt robustness, a value of zero should be wrong there
-
-    def add_to_toolbox(self, pset_id):
-        super().init_toolbox(pset_id)
+    def _add_to_toolbox(self):
+        # super().init_toolbox(pset_id)
 
         # Add approach-specific registrations
-        self.toolboxes[pset_id].register("individual", tools.initIterate, creator.Individual, self.toolboxes[pset_id].expr)
-        self.toolboxes[pset_id].register("population", tools.initRepeat, list, self.toolboxes[pset_id].individual)
+        self.toolbox.register("individual", tools.initIterate, creator.Individual, self.toolbox.expr_post) # TODO alternate between pre and post randomly
+        self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
 
-        self.toolboxes[pset_id].register("select", tools.selNSGA2)
-        self.toolboxes[pset_id].register("mate", gp.cxOnePoint)
+        self.toolbox.register("select", tools.selNSGA2)
+        self.toolbox.register("mate", gp.cxOnePoint)
         # if min_=0, then this requires a False or true terminal. Not supported.
-        self.toolboxes[pset_id].register("expr_mut", expressiongenerator.generate_expr, min_=1, max_=2, condition_str="full")
-        self.toolboxes[pset_id].register("mutate", gp.mutUniform, expr=self.toolboxes[pset_id].expr_mut, pset=self.psets[pset_id])
+        self.toolbox.register("expr_mut", expressiongenerator.generate_expr, min_=1, max_=2, condition_str="full")
+        self.toolbox.register("mutate_pre", gp.mutUniform, expr=self.toolbox.expr_mut, pset=self.pset_pre)
+        self.toolbox.register("mutate_post", gp.mutUniform, expr=self.toolbox.expr_mut, pset=self.pset_post)
 
         # Decorators to limit tree size
-        self.toolboxes[pset_id].decorate("mate", gp.staticLimit(key=len, max_value=10))
-        self.toolboxes[pset_id].decorate("mutate", gp.staticLimit(key=len, max_value=10))
+        self.toolbox.decorate("mate", gp.staticLimit(key=len, max_value=10))
+        self.toolbox.decorate("mutate_pre", gp.staticLimit(key=len, max_value=10))
+        self.toolbox.decorate("mutate_post", gp.staticLimit(key=len, max_value=10))
 
-    def _repair(self, pre_post_id):
-        toolbox = self.toolboxes[pre_post_id]
-        pop = toolbox.population(n=10) # Random initial population
+    def _repair(self):
+        toolbox = self.toolbox
+        pop = toolbox.population(n=10) # Random initial population # TODO fix number
         hof = tools.ParetoFront() # Hall of Fame, for keeping track of the best individuals
 
         # (Initial) Evaluation
         for ind in pop:
             f_cor = toolbox.evaluate_cor(ind)[0]
-            f_des = toolbox.evaluate_des(ind, pre_post_id)
+            f_des = toolbox.evaluate_des(ind, 1) # TODO add support for random pre vs post
             ind.fitness.values = (f_cor, f_des)
 
         pop = toolbox.select(pop, len(pop))
@@ -70,14 +71,14 @@ class OptimizationApproach(Approach):
             # Mutation
             for mutant in offspring:
                 if random.random() < 0.3:
-                    toolbox.mutate(mutant)
+                    toolbox.mutate_post(mutant) # TODO add support for random pre vs post
                     del mutant.fitness.values
 
             # (Re-)evaluation: only individuals whose fitness has changed
             for ind in offspring:
                 if not ind.fitness.valid:
                     f_cor = toolbox.evaluate_cor(ind)[0]
-                    f_des = toolbox.evaluate_des(ind, pre_post_id)
+                    f_des = toolbox.evaluate_des(ind, 1) # TODO add support for random pre vs post
                     ind.fitness.values = (f_cor, f_des)
 
             # Selection
@@ -97,15 +98,17 @@ class OptimizationApproach(Approach):
         # TODO: For now, I am only considering the single best repaired individual
         # wrt. correctness. extend this to support multiple repaired individuals (?)
 
+        # WIP: 
+
         pre = None
         if (self.init_requirement.pre.correctness[1] * 100) < threshold:
-            hof_repaired = self._repair(0)
+            hof_repaired = self._repair()
             best_repaired = min(hof_repaired, key=lambda x: x.fitness.values[0])
             pre = PreCondition("Repaired", self.init_requirement.pre.pset, self.init_requirement.pre.toolbox, self.trace_suite, best_repaired)
 
         post = None
         if (self.init_requirement.post.correctness[1] * 100) < threshold:
-            hof_repaired = self._repair(1)
+            hof_repaired = self._repair()
             # ordered_hof = sorted(hof_repaired, key=lambda ind: ind.fitness.values[0])
             # print(len(hof_repaired))
             # for ind in ordered_hof:

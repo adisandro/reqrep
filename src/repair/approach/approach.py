@@ -20,26 +20,32 @@ class Approach(ABC):
         self.trace_suite = trace_suite
         self.desirability = desirability
 
-        self.psets = grammar.get_gp_primitive_sets(self.trace_suite)
-        self.toolboxes = self.init_toolbox(0), self.init_toolbox(1) # TODO: should we have pre_toolbox and post_toolbox separately?
+        self.pset_pre, self.pset_post= grammar.get_gp_primitive_sets(self.trace_suite)
+        self.toolbox = self.init_toolbox()
 
         # Process initial requirement
         self.init_requirement = Requirement(
-            PreCondition("Initial", self.psets[0], self.toolboxes[0], trace_suite, requirement_text[0]),
-            PostCondition("Initial", self.psets[1], self.toolboxes[1], trace_suite, requirement_text[1])
+            PreCondition("Initial", self.pset_pre, self.toolbox, trace_suite, requirement_text[0]),
+            PostCondition("Initial", self.pset_post, self.toolbox, trace_suite, requirement_text[1])
         )
 
         # Handle desirability
         self.desirability.initial_requirement = self.init_requirement
 
-    def init_toolbox(self, pset_id):
+    def init_toolbox(self):
         toolbox = base.Toolbox()
-        # if min_=0, then this requires a False or true terminal. Not supported.
-        toolbox.register("expr", expressiongenerator.generate_expr, pset=self.psets[pset_id], min_=2, max_=3)
-        # TODO does the expressiongenerator beong to the subclass?
-        toolbox.register("compile", gp.compile, pset=self.psets[pset_id])
 
-        # Metrics
+        # (1) Generator for pre and post repairs
+        # if min_=0, then this requires a False or true terminal. Not supported.
+        toolbox.register("expr_pre", expressiongenerator.generate_expr, pset=self.pset_pre, min_=2, max_=3)
+        toolbox.register("expr_post", expressiongenerator.generate_expr, pset=self.pset_post, min_=2, max_=3)
+        # TODO does the expressiongenerator belong to the subclass?
+
+        # (2) Compilation
+        toolbox.register("compile_pre", gp.compile, pset=self.pset_pre)
+        toolbox.register("compile_post", gp.compile, pset=self.pset_post)
+
+        # (3) Metrics
         toolbox.register("evaluate_cor", correctness.get_fitness_correctness,
                          trace_suite=self.trace_suite, # this is fixed throughout execution
         )
