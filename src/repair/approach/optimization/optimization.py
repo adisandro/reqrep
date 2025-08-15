@@ -24,10 +24,19 @@ class OptimizationApproach(Approach):
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
     def _add_to_toolbox(self):
-        # super().init_toolbox(pset_id)
+
+        def random_individual():
+            if random.random() < 0.5:
+                ind = creator.Individual(self.toolbox.expr_pre())
+                ind.target = "pre"
+            else:
+                ind = creator.Individual(self.toolbox.expr_post())
+                ind.target = "post"
+            return ind
 
         # Add approach-specific registrations
-        self.toolbox.register("individual", tools.initIterate, creator.Individual, self.toolbox.expr_post) # TODO alternate between pre and post randomly
+        # self.toolbox.register("individual", tools.initIterate, creator.Individual, self.toolbox.expr_post)
+        self.toolbox.register("individual", random_individual)    
         self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
 
         self.toolbox.register("select", tools.selNSGA2)
@@ -42,6 +51,17 @@ class OptimizationApproach(Approach):
         self.toolbox.decorate("mutate_pre", gp.staticLimit(key=len, max_value=10))
         self.toolbox.decorate("mutate_post", gp.staticLimit(key=len, max_value=10))
 
+    def _set_ind_fitness(self, ind):
+            if ind.target == "pre":
+                f_cor = self.toolbox.evaluate_cor(ind)[0]
+                f_des = self.toolbox.evaluate_des(ind, 0)
+            else:
+                f_cor = self.toolbox.evaluate_cor(ind)[0]
+                f_des = self.toolbox.evaluate_des(ind, 1)
+            # f_cor = self.toolbox.evaluate_cor(ind)[0] # TODO add support for pre=>post
+            # f_des = self.toolbox.evaluate_des(ind, 1) # TODO add support for pre=>post
+            ind.fitness.values = (f_cor, f_des)
+
     def _repair(self):
         toolbox = self.toolbox
         pop = toolbox.population(n=10) # Random initial population # TODO adjust number
@@ -49,21 +69,19 @@ class OptimizationApproach(Approach):
 
         # (Initial) Evaluation
         for ind in pop:
-            f_cor = toolbox.evaluate_cor(ind)[0] # TODO add support for pre=>post
-            f_des = toolbox.evaluate_des(ind, 1) # TODO add support for random pre vs post
-            ind.fitness.values = (f_cor, f_des)
+            self._set_ind_fitness(ind)
 
         pop = toolbox.select(pop, len(pop))
 
         # Evolutionary loop: run for a fixed number of generations
         # TODO review this loop entirely
-        for gen in tqdm(range(5)):
+        for gen in tqdm(range(10)):
             offspring = toolbox.select(pop, len(pop)) # Selection
             offspring = list(map(toolbox.clone, offspring))  # Deep copy the individuals
 
             # Crossover
             for child1, child2 in zip(offspring[::2], offspring[1::2]):
-                if random.random() < 0.5:
+                if random.random() < 0.5 and child1.target == child2.target:
                     toolbox.mate(child1, child2)
                     del child1.fitness.values
                     del child2.fitness.values
@@ -71,15 +89,16 @@ class OptimizationApproach(Approach):
             # Mutation
             for mutant in offspring:
                 if random.random() < 0.3:
-                    toolbox.mutate_post(mutant) # TODO add support for random pre vs post
+                    if mutant.target == "pre":
+                        toolbox.mutate_pre(mutant)
+                    else:
+                        toolbox.mutate_post(mutant)
                     del mutant.fitness.values
 
             # (Re-)evaluation: only individuals whose fitness has changed
             for ind in offspring:
                 if not ind.fitness.valid:
-                    f_cor = toolbox.evaluate_cor(ind)[0] # TODO add support for pre=>
-                    f_des = toolbox.evaluate_des(ind, 1) # TODO add support for random pre vs post
-                    ind.fitness.values = (f_cor, f_des)
+                    self._set_ind_fitness(ind)
 
             # Selection
             pop = toolbox.select(pop + offspring, len(pop))
@@ -100,26 +119,20 @@ class OptimizationApproach(Approach):
 
         repaired_req = Requirement("Repaired", self.toolbox, self.trace_suite)
 
-        repaired = False
-        if (self.init_requirement.correctness[0][1] * 100) < threshold:
-            hof_repaired = self._repair()
-            best_repaired = min(hof_repaired, key=lambda x: x.fitness.values[0])
-            repaired_req.set_pre(self.pset_pre, best_repaired)
-            repaired = True
-        else:
-            repaired_req.set_pre(self.pset_pre, self.init_requirement.pre)
+        to_repair = self.init_requirement.correctness[0][1] * 100 < threshold or\
+              (self.init_requirement.correctness[1][1] * 100) < threshold # TODO support unified correctness
 
-        if (self.init_requirement.correctness[1][1] * 100) < threshold:
+        if to_repair:
+            # Run the repair
             hof_repaired = self._repair()
-            # ordered_hof = sorted(hof_repaired, key=lambda ind: ind.fitness.values[0])
-            # print(len(hof_repaired))
-            # for ind in ordered_hof:
-            #     print(ind.fitness.values)
-            # print('-------------------')
-            best_repaired = min(hof_repaired, key=lambda x: x.fitness.values[0])
-            repaired_req.set_post(self.pset_post, best_repaired)
-            repaired = True
+            best_repaired = min(hof_repaired, key=lambda x: x.fitness.values[0]) # correctness-based ranking  # TODO once correctness is unified
+            if best_repaired.target == "pre":
+                repaired_req.set_pre(self.pset_pre, best_repaired)
+                repaired_req.set_post(self.pset_post, self.init_requirement.post)
+            else:
+                repaired_req.set_post(self.pset_post, best_repaired)
+                repaired_req.set_pre(self.pset_pre, self.init_requirement.pre)
+            
+            return repaired_req
         else:
-            repaired_req.set_post(self.pset_post, self.init_requirement.post)
-
-        return repaired_req if repaired else None
+            return None
