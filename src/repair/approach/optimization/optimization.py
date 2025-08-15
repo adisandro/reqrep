@@ -3,7 +3,7 @@ from tqdm import tqdm
 import random
 import logging
 from deap import base, creator, gp, tools
-from repair.approach.requirement import PreCondition, PostCondition, Requirement
+from repair.approach.requirement import Requirement
 from repair.approach.optimization import expressiongenerator
 
 logger = logging.getLogger("gp_logger")
@@ -44,12 +44,12 @@ class OptimizationApproach(Approach):
 
     def _repair(self):
         toolbox = self.toolbox
-        pop = toolbox.population(n=10) # Random initial population # TODO fix number
+        pop = toolbox.population(n=10) # Random initial population # TODO adjust number
         hof = tools.ParetoFront() # Hall of Fame, for keeping track of the best individuals
 
         # (Initial) Evaluation
         for ind in pop:
-            f_cor = toolbox.evaluate_cor(ind)[0]
+            f_cor = toolbox.evaluate_cor(ind)[0] # TODO add support for pre=>post
             f_des = toolbox.evaluate_des(ind, 1) # TODO add support for random pre vs post
             ind.fitness.values = (f_cor, f_des)
 
@@ -77,7 +77,7 @@ class OptimizationApproach(Approach):
             # (Re-)evaluation: only individuals whose fitness has changed
             for ind in offspring:
                 if not ind.fitness.valid:
-                    f_cor = toolbox.evaluate_cor(ind)[0]
+                    f_cor = toolbox.evaluate_cor(ind)[0] # TODO add support for pre=>
                     f_des = toolbox.evaluate_des(ind, 1) # TODO add support for random pre vs post
                     ind.fitness.values = (f_cor, f_des)
 
@@ -98,16 +98,18 @@ class OptimizationApproach(Approach):
         # TODO: For now, I am only considering the single best repaired individual
         # wrt. correctness. extend this to support multiple repaired individuals (?)
 
-        # WIP: 
+        repaired_req = Requirement("Repaired", self.toolbox, self.trace_suite)
 
-        pre = None
-        if (self.init_requirement.pre.correctness[1] * 100) < threshold:
+        repaired = False
+        if (self.init_requirement.correctness[0][1] * 100) < threshold:
             hof_repaired = self._repair()
             best_repaired = min(hof_repaired, key=lambda x: x.fitness.values[0])
-            pre = PreCondition("Repaired", self.init_requirement.pre.pset, self.init_requirement.pre.toolbox, self.trace_suite, best_repaired)
+            repaired_req.set_pre(self.pset_pre, best_repaired)
+            repaired = True
+        else:
+            repaired_req.set_pre(self.pset_pre, self.init_requirement.pre)
 
-        post = None
-        if (self.init_requirement.post.correctness[1] * 100) < threshold:
+        if (self.init_requirement.correctness[1][1] * 100) < threshold:
             hof_repaired = self._repair()
             # ordered_hof = sorted(hof_repaired, key=lambda ind: ind.fitness.values[0])
             # print(len(hof_repaired))
@@ -115,5 +117,9 @@ class OptimizationApproach(Approach):
             #     print(ind.fitness.values)
             # print('-------------------')
             best_repaired = min(hof_repaired, key=lambda x: x.fitness.values[0])
-            post = PostCondition("Repaired", self.init_requirement.post.pset, self.init_requirement.post.toolbox, self.trace_suite, best_repaired)
-        return Requirement(pre, post)
+            repaired_req.set_post(self.pset_post, best_repaired)
+            repaired = True
+        else:
+            repaired_req.set_post(self.pset_post, self.init_requirement.post)
+
+        return repaired_req if repaired else None

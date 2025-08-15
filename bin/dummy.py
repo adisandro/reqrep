@@ -11,7 +11,8 @@ from repair.approach.trace import TraceSuite
 import time
 
 # run on the dummy data as follows:
-# `bin/dummy.py data/dummy`
+# `python bin/dummy.py data/dummy2 x`
+# `python bin/dummy.py data/traces xin reset TL BL dT ic`
 if __name__ == "__main__":
     parser = ArgumentParser(description="Repairs test requirements")
     parser.add_argument("trace_suite", help="Path to the directory containing the trace suite")
@@ -27,13 +28,16 @@ if __name__ == "__main__":
     suite = TraceSuite(args.trace_suite, set(args.input_vars), args.prev0)
 
     # Define REQUIREMENT
+    # dummy
     req_text = ("True", "lt(x, 1.0)")
+    # dummy2
     req_text = ("True", "lt(y, 1.0)")
-    # req_text = ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")
+    # TUI
+    req_text = ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")
     # req_text = ("True", "and(le(yout, TL), ge(yout, BL))")
 
     # Define DESIRABILITY
-    # TODO For now, only semantic is implemented, so syntactic and applicability are set to 0.0
+    # TODO For now, only semantic and syntactic are implemented, so applicability is set to 0.0
     d = Desirability(
         trace_suite=suite,
         semantic=SamplingBasedSanity(n_samples=10),
@@ -49,8 +53,9 @@ if __name__ == "__main__":
     start_time = time.time()
     repaired_req = a.repair(args.threshold)
     elapsed = time.time() - start_time
-    print(a.init_requirement.pre)
-    print("No repair necessary\n" if repaired_req.pre is None else repaired_req.pre)
-    print(a.init_requirement.post)
-    print("No repair necessary\n" if repaired_req.post is None else repaired_req.post)
+    print(a.init_requirement)
+    if repaired_req is not None:
+        print(repaired_req)
+    else:
+        print("No repair necessary")
     print(f"Repair time: {elapsed:.2f} seconds")

@@ -8,12 +8,18 @@ from repair.approach.trace import TraceSuite
 class SemanticSanity(ABC):
     @abstractmethod
     def evaluate(self, trace_suite:TraceSuite, individual:gp.PrimitiveTree) -> float:
+        """
+        Return either 0 or 1
+        """
         pass
 
 
 class SyntacticSimilarity(ABC):
     @abstractmethod
     def evaluate(self, individual:gp.PrimitiveTree, original:gp.PrimitiveTree) -> float:
+        """
+        Return a distance in [0, 1]
+        """
         pass
 
 
@@ -42,7 +48,7 @@ class Desirability:
         assert sum(self.weights) != 0, "Sum of weights must not be zero."
 
     def get_desirability_tuple(self, individual, pre_post_id) -> tuple[float, float, float]:
-        initial_condition = self.initial_requirement[pre_post_id].condition
+        initial_condition = self.initial_requirement.get_condition(pre_post_id)
         sem_val = 0.0 if self.weights[0] == 0 else self.semantic.evaluate(self.trace_suite, individual)
         syn_val = 0.0 if self.weights[1] == 0 else self.syntactic.evaluate(individual, initial_condition)
         app_val = 0.0 if self.weights[2] == 0 else self.applicability.evaluate(self.trace_suite, individual, initial_condition)

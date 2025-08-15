@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 
-from repair.approach.requirement import PreCondition, PostCondition, Requirement
+from repair.approach.requirement import Requirement
 from repair.grammar import grammar
 from repair.fitness.desirability.desirability import Desirability
 from repair.approach.trace import TraceSuite
-from deap import base, creator, gp, tools
+from deap import base, gp
 from repair.approach.optimization import expressiongenerator
 from repair.fitness import correctness
 
@@ -24,10 +24,10 @@ class Approach(ABC):
         self.toolbox = self.init_toolbox()
 
         # Process initial requirement
-        self.init_requirement = Requirement(
-            PreCondition("Initial", self.pset_pre, self.toolbox, trace_suite, requirement_text[0]),
-            PostCondition("Initial", self.pset_post, self.toolbox, trace_suite, requirement_text[1])
-        )
+        r = Requirement("Initial", self.toolbox, trace_suite)
+        r.set_pre(self.pset_pre, requirement_text[0])
+        r.set_post(self.pset_post, requirement_text[1])
+        self.init_requirement = r
 
         # Handle desirability
         self.desirability.initial_requirement = self.init_requirement
