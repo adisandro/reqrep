@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser
 
+from repair.approach.transformation.transformation import TransformationApproach
 from repair.fitness.desirability.applicabilitypreservation import AggregatedRobustnessDifference
 from repair.fitness.desirability.desirability import Desirability
 from repair.fitness.desirability.semanticsanity import SamplingBasedSanity
@@ -33,7 +34,7 @@ if __name__ == "__main__":
     # dummy2
     req_text = ("True", "lt(y, 1.0)")
     # TUI
-    # req_text = ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")
+    req_text = ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")
     # req_text = ("True", "and(le(yout, TL), ge(yout, BL))")
 
     # Define DESIRABILITY
@@ -48,6 +49,7 @@ if __name__ == "__main__":
 
     # Define APPROACH
     a = OptimizationApproach(suite, req_text, d)
+    # a = TransformationApproach(suite, req_text, d)
 
     # Perform REPAIR
     start_time = time.time()
