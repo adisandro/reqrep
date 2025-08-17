@@ -11,8 +11,8 @@ from repair.approach.trace import TraceSuite
 import time
 
 # run on the dummy data as follows:
-# `python bin/dummy.py data/dummy2 x`
-# `python bin/dummy.py data/traces xin reset TL BL dT ic`
+# `python bin/main.py data/dummy2 x`
+# `python bin/main.py data/traces xin reset TL BL dT ic`
 if __name__ == "__main__":
     parser = ArgumentParser(description="Repairs test requirements")
     parser.add_argument("trace_suite", help="Path to the directory containing the trace suite")
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     # dummy2
     req_text = ("True", "lt(y, 1.0)")
     # TUI
-    req_text = ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")
+    # req_text = ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")
     # req_text = ("True", "and(le(yout, TL), ge(yout, BL))")
 
     # Define DESIRABILITY

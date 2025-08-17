@@ -6,8 +6,10 @@ def logical_or(a, b): return a or b
 
 def add_robustness(a, b): return a + b
 def sub_robustness(a, b): return a - b
-def lt_robustness(a, b): return a - b
-def gt_robustness(a, b): return b - a
+def lt_robustness(a, b): return a - b + 1e-5
+def le_robustness(a, b): return a - b
+def gt_robustness(a, b): return b - a + 1e-5
+def ge_robustness(a, b): return b - a
 def eq_robustness(a, b): return abs(a - b)
 def and_robustness(a, b): return max(a, b)
 def or_robustness(a, b): return min(a, b)
@@ -38,9 +40,9 @@ class GrammarFunction:
             GrammarFunction("sub", operator.sub, [float, float], float, robustness_fn=sub_robustness, display_name="-"),
             # Comparison ops
             GrammarFunction("lt", operator.lt, [float, float], Bool, robustness_fn=lt_robustness, display_name="<"),
-            GrammarFunction("le", operator.le, [float, float], Bool, robustness_fn=lt_robustness, display_name="<="),
+            GrammarFunction("le", operator.le, [float, float], Bool, robustness_fn=le_robustness, display_name="<="),
             GrammarFunction("gt", operator.gt, [float, float], Bool, robustness_fn=gt_robustness, display_name=">"),
-            GrammarFunction("ge", operator.ge, [float, float], Bool, robustness_fn=gt_robustness, display_name=">="),
+            GrammarFunction("ge", operator.ge, [float, float], Bool, robustness_fn=ge_robustness, display_name=">="),
             GrammarFunction("eq", operator.eq, [float, float], Bool, robustness_fn=eq_robustness, display_name="=="),
             # Logic ops
             GrammarFunction("and", logical_and, [Bool, Bool], Bool, robustness_fn=and_robustness, display_name="and"),

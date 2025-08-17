@@ -16,8 +16,6 @@ class OptimizationApproach(Approach):
 
         self._init_creator()
         self._add_to_toolbox()
-       
-        # TODO: check lt and gt robustness, a value of zero should be wrong there
 
     def _init_creator(self):
         creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0))  # Minimize both objectives
