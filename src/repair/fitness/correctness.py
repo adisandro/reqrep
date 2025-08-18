@@ -111,22 +111,13 @@ def eval_nodes(remaining_nodes, i, item) -> float | int:
                 return item.trace.suite.prev0
             else:
                 return eval_nodes(remaining_nodes, i-1, item.trace.items[i-1])
-        elif node.name == "dur": # dur(time, Bool)
-            time = eval_nodes(remaining_nodes, i, item)
-            if time > i+1: # not enough trace items to cover duration time
-                # dur will always fail on the initial items of trace, do not penalize it
-                # TODO We should popleft the whole Bool component
-                return 0.0
-            else:
-                rob_dur = float("-inf")
-                i_dur = i+1-time
-                for t in range(i_dur, i+1): # i_dur <= t <= i
-                    # copy nodes for past iterations, advance as normal for current iteration
-                    nodes_dur = deque(remaining_nodes) if t != i else remaining_nodes
-                    item_dur = item.trace.items[t] if t != i else item
-                    rob = eval_nodes(nodes_dur, t, item_dur) # eval Bool component at each t
-                    rob_dur = max(rob_dur, rob) # keep max (worst)
-                return rob_dur
+        elif node.name == "dur": # dur(time1, time2, Bool), times can be unordered
+            time1 = eval_nodes(remaining_nodes, i, item)
+            time2 = eval_nodes(remaining_nodes, i, item)
+            start_time = min(time1, time2)
+            end_time = max(time1, time2)
+            cor = eval_nodes(remaining_nodes, i, item) # needed to advance nodes even for out of duration bounds
+            return 0.0 if (item.time < start_time or item.time > end_time) else cor
         else:
             # Recursively evaluate all children
             children = [eval_nodes(remaining_nodes, i, item) for _ in range(node.arity)]

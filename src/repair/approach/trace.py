@@ -8,6 +8,10 @@ class TraceItem:
         self.trace = trace
         self.values = {k: float(row[i]) for k, i in trace.suite.variables.items()}
 
+    @cached_property
+    def time(self):
+        return self.values[self.trace.suite.TIME_VAR]
+
 
 class Trace:
     def __init__(self, suite, path):
@@ -31,8 +35,18 @@ class Trace:
                     continue
                 self.items.append(TraceItem(self, row))
 
+    @cached_property
+    def start_time(self):
+        return self.items[0].time
+
+    @cached_property
+    def end_time(self):
+        return self.items[-1].time
+
 
 class TraceSuite:
+    TIME_VAR = "Time"
+
     def __init__(self, path, in_variable_names, prev0):
         self.in_variable_names = in_variable_names
         self.prev0 = prev0
@@ -47,4 +61,4 @@ class TraceSuite:
 
     @cached_property
     def variable_names(self):
-        return sorted([v for v in self.variables if v != "Time"])
+        return sorted([v for v in self.variables if v != self.TIME_VAR])

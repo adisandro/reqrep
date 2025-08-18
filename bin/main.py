@@ -11,9 +11,7 @@ from repair.approach.optimization.optimization import OptimizationApproach
 from repair.approach.trace import TraceSuite
 import time
 
-# run on the dummy data as follows:
-# `python bin/main.py data/dummy2 x`
-# `python bin/main.py data/traces xin reset TL BL dT ic`
+# Check the REQUIREMENT section for info on how to run it
 if __name__ == "__main__":
     parser = ArgumentParser(description="Repairs test requirements")
     parser.add_argument("trace_suite", help="Path to the directory containing the trace suite")
@@ -29,13 +27,26 @@ if __name__ == "__main__":
     suite = TraceSuite(args.trace_suite, set(args.input_vars), args.prev0)
 
     # Define REQUIREMENT
-    if args.trace_suite == "data/dummy":
-        req_text = ("True", "lt(x, 1.0)")
-    elif args.trace_suite == "data/dummy2":
-        req_text = ("True", "lt(y, 1.0)")
-    elif args.trace_suite == "data/traces":
-        req_text = ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")
-        # req_text = ("True", "and(le(yout, TL), ge(yout, BL))")
+    REQUIREMENTS = {
+        # bin/main.py data/dummy x
+        "data/dummy": ("True", "lt(x, 1.0)"),
+        # bin/main.py data/dummy2 x
+        "data/dummy2": ("True", "lt(y, 1.0)"),
+        # bin/main.py data/traces xin reset TL BL dT ic
+        "data/traces": ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)"),
+        # "data/traces": ("True", "and(le(yout, TL), ge(yout, BL))"),
+        # bin/main.py data/case_studies/AFC Throttle Engine
+        "data/case_studies/AFC": (
+            "and(and(ge(Throttle, 0.0), lt(Throttle, 61.2)), and(ge(Engine, 900.0), le(Engine, 1100.0)))",
+            "dur(11, 50, lt(Error, 0.007))"
+        ),
+        # bin/main.py data/case_studies/TUI xin reset TL BL dT ic
+        "data/case_studies/TUI": (
+            "and(and(ge(xin, 0.0), lt(xin, 1.0)), and(eq(reset, 0.0), and(eq(TL, 10.0), and(eq(BL, -10.0), eq(ic, 0.0)))))",
+            "and(le(yout, TL), ge(yout, BL))"
+        ),
+    }
+    req_text = REQUIREMENTS[args.trace_suite]
 
     # Define DESIRABILITY
     # TODO For now, only semantic and syntactic are implemented, so applicability is set to 0.0

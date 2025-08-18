@@ -1,3 +1,5 @@
+from functools import cached_property
+
 import repair.grammar.utils as grammar_utils
 from deap import gp
 from functools import cached_property

@@ -15,7 +15,7 @@ def and_robustness(a, b): return max(a, b)
 def or_robustness(a, b): return min(a, b)
 def not_robustness(a): return -a
 
-# this is needed to differentiate bool and int types, since in Python bool is a subclass of int
+# this differentiates bool and int types, since bool is a subclass of int in Python
 class Bool: pass
 
 class GrammarFunction:
@@ -49,5 +49,5 @@ class GrammarFunction:
             GrammarFunction("or", logical_or, [Bool, Bool], Bool, robustness_fn=or_robustness, display_name="or"),
             GrammarFunction("not", operator.not_, [Bool], Bool, robustness_fn=not_robustness, display_name="not"),
             GrammarFunction("prev", lambda: None, [str], float, robustness_fn=lambda: None, display_name="prev"),
-            GrammarFunction("dur", lambda: None, [int, Bool], Bool, robustness_fn=lambda: None, display_name="dur"),
+            GrammarFunction("dur", lambda: None, [int, int, Bool], Bool, robustness_fn=lambda: None, display_name="dur")
         ]
