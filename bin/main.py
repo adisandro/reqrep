@@ -29,13 +29,13 @@ if __name__ == "__main__":
     suite = TraceSuite(args.trace_suite, set(args.input_vars), args.prev0)
 
     # Define REQUIREMENT
-    # dummy
-    req_text = ("True", "lt(x, 1.0)")
-    # dummy2
-    req_text = ("True", "lt(y, 1.0)")
-    # TUI
-    req_text = ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")
-    # req_text = ("True", "and(le(yout, TL), ge(yout, BL))")
+    if args.trace_suite == "data/dummy":
+        req_text = ("True", "lt(x, 1.0)")
+    elif args.trace_suite == "data/dummy2":
+        req_text = ("True", "lt(y, 1.0)")
+    elif args.trace_suite == "data/traces":
+        req_text = ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")
+        # req_text = ("True", "and(le(yout, TL), ge(yout, BL))")
 
     # Define DESIRABILITY
     # TODO For now, only semantic and syntactic are implemented, so applicability is set to 0.0
