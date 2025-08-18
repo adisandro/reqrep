@@ -8,9 +8,12 @@ from repair.grammar.grammar import ROBUSTNESS_FN_MAP
 def is_within_margin(a, b):
     return math.isclose(a, b, abs_tol=1e-6)
 
+def get_robustness(condition, i, trace_item):
+    # only penalize violations
+    return max(0.0, eval_nodes(deque(condition), i, trace_item))
 
 # Fitness function: count how many time steps FAIL the requirement
-def get_fitness_correctness(individual, trace_suite):
+def get_fitness_correctness(precondition, postcondition, trace_suite):
     """
     Evaluates the correctness of a requirement represented by a GP individual.
 
@@ -20,21 +23,51 @@ def get_fitness_correctness(individual, trace_suite):
           perc: percentage of violations.
     """
     delta_cor = 0.0
+    delta_pre_sat = 0.0
+    delta_post_sat = 0.0
     count_cor = 0
+    count_pre_sat = 0
+    count_post_sat = 0
     count_total = 0
     try:
-        all_nodes = deque(iter(individual))
+        # TODO somehow cache the correctness outcomes of pre- and post-
+        all_nodes_pre = deque(iter(precondition))
+        all_nodes_post = deque(iter(postcondition))
+        # For each trace, ...
         for trace in trace_suite.traces:
             count_total += len(trace.items)
+            # ... at each time stamp, ...
             for i, item in enumerate(trace.items):
-                cor = max(0.0, eval_nodes(deque(all_nodes), i, item)) # only penalize violations
-                delta_cor += cor
-                if is_within_margin(cor, 0.0):
+                # ... does precondition hold? ...
+                pre_rob = get_robustness(all_nodes_pre, i, item)
+                delta_pre_sat += pre_rob
+                if is_within_margin(pre_rob, 0.0):
+                    # (pre holds)
+                    count_pre_sat += 1
+
+                    # ... does postcondition hold?
+                    post_rob = get_robustness(all_nodes_post, i, item)
+                    delta_cor += post_rob
+                    delta_post_sat += post_rob
+                    if is_within_margin(post_rob, 0.0):
+                        # (post holds)
+                        # (pre=>post holds)
+                        count_cor += 1
+                        count_post_sat += 1
+                else:
+                    # (pre does not hold)
+                    # (pre=>post trivially holds)
+                    delta_cor += 0.0
                     count_cor += 1
     except Exception as e:
-        raise ValueError(f"Error evaluating individual: {individual} | {e}")
+        raise ValueError(f"Error evaluating: {precondition} => {postcondition} | {e}")
 
-    return delta_cor, count_cor/count_total
+    out = {
+        "cor": (delta_cor, count_cor / count_total),
+        "pre_cor": (delta_pre_sat, count_pre_sat / count_total),
+        "post_cor": (delta_post_sat, count_post_sat / count_total),
+    }
+    return out
 
 
 def eval_tree(individual, i, item) -> float | int:

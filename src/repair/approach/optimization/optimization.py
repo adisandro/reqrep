@@ -51,13 +51,19 @@ class OptimizationApproach(Approach):
 
     def _set_ind_fitness(self, ind):
             if ind.target == "pre":
-                f_cor = self.toolbox.evaluate_cor(ind)[0]
+                pre = ind
+                post = self.init_requirement.post
+            else:
+                pre = self.init_requirement.pre
+                post = ind
+
+            # Get correctness and desirability
+            f_cor = self.toolbox.evaluate_cor(pre, post)["cor"][0]
+
+            if ind.target == "pre":
                 f_des = self.toolbox.evaluate_des(ind, 0)
             else:
-                f_cor = self.toolbox.evaluate_cor(ind)[0]
-                f_des = self.toolbox.evaluate_des(ind, 1)
-            # f_cor = self.toolbox.evaluate_cor(ind)[0] # TODO add support for pre=>post
-            # f_des = self.toolbox.evaluate_des(ind, 1) # TODO add support for pre=>post
+                f_des = self.toolbox.evaluate_des(ind, 1) # TODO add support for pre=>post
             ind.fitness.values = (f_cor, f_des)
 
     def _repair(self):
@@ -115,22 +121,22 @@ class OptimizationApproach(Approach):
         # TODO: For now, I am only considering the single best repaired individual
         # wrt. correctness. extend this to support multiple repaired individuals (?)
 
-        repaired_req = Requirement("Repaired", self.toolbox, self.trace_suite)
-
-        to_repair = self.init_requirement.correctness[0][1] * 100 < threshold or\
-              (self.init_requirement.correctness[1][1] * 100) < threshold # TODO support unified correctness
+        # (1) Do we need to repair?
+        to_repair = self.init_requirement.correctness["cor"][1] * 100 < threshold
 
         if to_repair:
             # Run the repair
             hof_repaired = self._repair()
-            best_repaired = min(hof_repaired, key=lambda x: x.fitness.values[0]) # correctness-based ranking  # TODO once correctness is unified
+            best_repaired = min(hof_repaired, key=lambda x: (x.fitness.values[0], x.fitness.values[1]))  # rank by correctness, then desirability
+
             if best_repaired.target == "pre":
-                repaired_req.set_pre(self.pset_pre, best_repaired)
-                repaired_req.set_post(self.pset_post, self.init_requirement.post)
+                repaired_req = Requirement("Repaired", self.toolbox,
+                                           self.pset_pre, best_repaired,
+                                           self.pset_post, self.init_requirement.post)
             else:
-                repaired_req.set_post(self.pset_post, best_repaired)
-                repaired_req.set_pre(self.pset_pre, self.init_requirement.pre)
-            
+                repaired_req = Requirement("Repaired", self.toolbox,
+                                           self.pset_pre, self.init_requirement.pre,
+                                           self.pset_post, best_repaired)
             return repaired_req
         else:
             return None

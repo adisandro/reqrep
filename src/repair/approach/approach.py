@@ -24,10 +24,9 @@ class Approach(ABC):
         self.toolbox = self.init_toolbox()
 
         # Process initial requirement
-        r = Requirement("Initial", self.toolbox, trace_suite)
-        r.set_pre(self.pset_pre, requirement_text[0])
-        r.set_post(self.pset_post, requirement_text[1])
-        self.init_requirement = r
+        self.init_requirement = Requirement("Initial", self.toolbox,
+                        self.pset_pre, requirement_text[0],
+                        self.pset_post, requirement_text[1])
 
         # Handle desirability
         self.desirability.initial_requirement = self.init_requirement

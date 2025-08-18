@@ -55,9 +55,9 @@ if __name__ == "__main__":
     start_time = time.time()
     repaired_req = a.repair(args.threshold)
     elapsed = time.time() - start_time
-    print(a.init_requirement)
+    print(a.init_requirement.to_str(suite))
     if repaired_req is not None:
-        print(repaired_req)
+        print(repaired_req.to_str(suite))
     else:
         print("No repair necessary")
     print(f"Repair time: {elapsed:.2f} seconds")

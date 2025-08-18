@@ -1,25 +1,20 @@
 import repair.grammar.utils as grammar_utils
 from deap import gp
+from functools import cached_property
 
 
 class Requirement:
+    __slots__ = ("name", "toolbox", "pre", "post", "__dict__")
     
-    def __init__(self, name, toolbox, trace_suite):
+    def __init__(self, name, toolbox, pset_pre, precond, pset_post, postcond):
         self.name = name
         self.toolbox = toolbox
-        self.trace_suite = trace_suite
-        self.pre = None # TODO Temp
-        self.post = None # TODO Temp
+        self.pre = self._set_condition(pset_pre, precond)
+        self.post = self._set_condition(pset_post, postcond)
 
     def _set_condition(self, pset, condition):
         return gp.PrimitiveTree.from_string(condition, pset) if isinstance(condition, str)\
             else condition
-
-    def set_pre(self, pset, condition):
-        self.pre = self._set_condition(pset, condition)
-
-    def set_post(self, pset, condition):
-        self.post = self._set_condition(pset, condition)
 
     def get_condition(self, pre_post_id):
         if pre_post_id == 0:
@@ -29,31 +24,34 @@ class Requirement:
         else:
             raise ValueError("Invalid pre_post_id")
 
-    @property
+    @cached_property
     def correctness(self):
-        # TODO
-        return (self.toolbox.evaluate_cor(self.pre),
-                self.toolbox.evaluate_cor(self.post))
+        return self.toolbox.evaluate_cor(self.pre, self.post)
 
-    @property
+    @cached_property
     def desirability(self):
         # TODO
         return (self.toolbox.evaluate_des_tuple(self.pre, 0),
                 self.toolbox.evaluate_des_tuple(self.post, 1))
     
     def __repr__(self):
-        # infix
-        pre_infix = grammar_utils.to_infix(self.pre, self.trace_suite)
-        post_infix = grammar_utils.to_infix(self.post, self.trace_suite)
+        return f"Requirement(name={self.name}, pre={self.pre}, post={self.post})"
+
+    def to_str(self, trace_suite):
+        pre_infix = grammar_utils.to_infix(self.pre, trace_suite)
+        post_infix = grammar_utils.to_infix(self.post, trace_suite)
 
         # correctness
-        c_delta = (self.correctness[0][0], self.correctness[1][0])
-        c_perc = (self.correctness[0][1]*100, self.correctness[1][1]*100)
+        c_delta, c_perc = self.correctness["cor"]
+        c_pre_delta, c_pre_perc = self.correctness["pre_cor"]
+        c_post_delta, c_post_perc = self.correctness["post_cor"]
 
         return (
             f"{self.name}:\n"
             f"\t{pre_infix}\t=>\t{post_infix}\n"
             f"\t{self.pre}\t=>\t{self.post}\n"
-            f"\tCorrectness: Δ = {c_delta}, % = {c_perc}\n"
+            f"\tCorrectness: Δ = {c_delta}, % = {c_perc*100}\n"
+            f"\tPre-correctness: Δ = {c_pre_delta}, % = {c_pre_perc*100}\n"
+            f"\tPost-correctness: Δ = {c_post_delta}, % = {c_post_perc*100}\n"
             f"\tDesirability: {self.desirability}\n")
 
