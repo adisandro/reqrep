@@ -40,7 +40,7 @@ if __name__ == "__main__":
             "and("
               "and(ge(Throttle, 0.0), lt(Throttle, 61.2)),"
               "and(ge(Engine, 900.0), le(Engine, 1100.0)))",
-            "dur(11, 50, lt(Error, 0.007))"
+            "dur(11, 50, and(gt(Error, -0.007), lt(Error, 0.007)))"
         ),
         # bin/main.py data/case_studies/AT-AT1 Throttle Brake
         "data/case_studies/AT-AT1": (
@@ -65,9 +65,8 @@ if __name__ == "__main__":
             # "dur(0, 50, and("
             #   "gt(sub(Position5, Position4), 7.5), and("
             #   "gt(sub(Position4, Position3), 7.5), and("
-            #   "gt(sub(Position3, Position2), 7.5), and("
-            #   "gt(sub(Position2, Position1), 7.5),"
-            #   "gt(sub(Position1, Position0), 7.5))))))"
+            #   "gt(sub(Position3, Position2), 7.5),"
+            #   "gt(sub(Position2, Position1), 7.5)))))"
         ),
         # bin/main.py data/case_studies/EU Phi Theta Psi Vin_x Vin_y Vin_z
         "data/case_studies/EU": (
@@ -81,6 +80,9 @@ if __name__ == "__main__":
             "and("
               "ge(sub(norm_Vin, norm_Vout), -0.01),"
               "le(sub(norm_Vin, norm_Vout),  0.01))"
+            # "and("
+            #   "ge(sub(det_R, 1.0), -0.01),"
+            #   "le(sub(det_R, 1.0),  0.01))"
         ),
         # bin/main.py data/case_studies/NNP xIn yIn
         "data/case_studies/NNP": (
