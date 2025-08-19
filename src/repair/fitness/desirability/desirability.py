@@ -26,6 +26,9 @@ class SyntacticSimilarity(ABC):
 class ApplicabilityPreservation(ABC):
     @abstractmethod
     def evaluate(self, trace_suite:TraceSuite, individual:gp.PrimitiveTree, original:gp.PrimitiveTree) -> float:
+        """
+        Return a distance in [0, 1]
+        """
         pass
 
     
@@ -47,19 +50,21 @@ class Desirability:
         assert all(w >= 0 for w in self.weights), "All weights must be positive."
         assert sum(self.weights) != 0, "Sum of weights must not be zero."
 
-    def get_desirability_tuple(self, individual, pre_post_id) -> tuple[float, float, float]:
-        initial_condition = self.initial_requirement.get_condition(pre_post_id)
-        sem_val = 0.0 if self.weights[0] == 0 else self.semantic.evaluate(self.trace_suite, individual)
-        syn_val = 0.0 if self.weights[1] == 0 else self.syntactic.evaluate(individual, initial_condition)
-        app_val = 0.0 if self.weights[2] == 0 else self.applicability.evaluate(self.trace_suite, individual, initial_condition)
+    def get_desirability_tuple(self, requirement) -> tuple[float, float, float]:
+        sem_val = 0.0 if self.weights[0] == 0 else self.semantic.evaluate(self.trace_suite, requirement)
+        syn_val = 0.0 if self.weights[1] == 0 else self.syntactic.evaluate(requirement, self.initial_requirement)
+        app_val = 0.0 if self.weights[2] == 0 else self.applicability.evaluate(requirement, self.initial_requirement)
         return sem_val, syn_val, app_val
 
-    # TODO: pre_post_id should be temporary
-    def evaluate(self, individual, pre_post_id) -> float:
-        des = self.get_desirability_tuple(individual, pre_post_id)
+    def evaluate(self, requirement) -> float:
+        des = self.get_desirability_tuple(requirement)
         weighted_sum = (
             self.weights[0] * des[0] +
             self.weights[1] * des[1] +
             self.weights[2] * des[2]
         )
-        return weighted_sum
+        out = {
+            "des": weighted_sum,
+            "tuple": des
+        }
+        return out

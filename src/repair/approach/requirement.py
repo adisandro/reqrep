@@ -32,9 +32,7 @@ class Requirement:
 
     @cached_property
     def desirability(self):
-        # TODO
-        return (self.toolbox.evaluate_des_tuple(self.pre, 0),
-                self.toolbox.evaluate_des_tuple(self.post, 1))
+        return self.toolbox.evaluate_des(self)
     
     def __repr__(self):
         return f"Requirement(name={self.name}, pre={self.pre}, post={self.post})"
@@ -55,5 +53,5 @@ class Requirement:
             f"\tCorrectness: Δ = {c_delta}, % = {c_perc*100}\n"
             f"\tPre-correctness: Δ = {c_pre_delta}, % = {c_pre_perc*100}\n"
             f"\tPost-correctness: Δ = {c_post_delta}, % = {c_post_perc*100}\n"
-            f"\tDesirability: {self.desirability}\n")
+            f"\tDesirability: {self.desirability["tuple"]}\n")
 

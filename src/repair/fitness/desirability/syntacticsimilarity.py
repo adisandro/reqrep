@@ -23,8 +23,8 @@ class CosineSimilarity(SyntacticSimilarity):
         # Convert a PrimitiveTree into a frequency vector of its nodes.
         counts = Counter(str(node) for node in tree)
         return counts
-
-    def evaluate(self, individual, original):
+    
+    def _get_cosine_similarity(self, individual, original):
         """
         individual, original: gp.PrimitiveTree
         Returns a distance in [0, 1].
@@ -56,3 +56,9 @@ class CosineSimilarity(SyntacticSimilarity):
         similarity = dot / (mag1 * mag2)
         distance = 1 - similarity
         return distance
+
+    def evaluate(self, current_req, initial_req):
+        # TODO currently using the average distance between the pre and post conditions
+        pre_dist = self._get_cosine_similarity(current_req.pre, initial_req.pre)
+        post_dist = self._get_cosine_similarity(current_req.post, initial_req.post)
+        return (pre_dist + post_dist) / 2
