@@ -51,19 +51,23 @@ class OptimizationApproach(Approach):
 
     def _set_ind_fitness(self, ind):
             if ind.target == "pre":
-                pre = ind
-                post = self.init_requirement.post
-            else:
-                pre = self.init_requirement.pre
-                post = ind
 
-            # Get correctness and desirability
-            f_cor = self.toolbox.evaluate_cor(pre, post)["cor"][0]
-
-            if ind.target == "pre":
-                f_des = self.toolbox.evaluate_des(ind, 0)
+                r = Requirement("Candidate", self.toolbox,
+                                self.pset_pre, ind,
+                                self.pset_post, self.init_requirement.post)
             else:
-                f_des = self.toolbox.evaluate_des(ind, 1) # TODO add support for pre=>post
+                r = Requirement("Candidate", self.toolbox,
+                                self.pset_pre, self.init_requirement.pre,
+                                self.pset_post, ind)
+
+            # Get correctness
+            r_correctness = r.correctness
+            f_cor = r_correctness["cor"][0]
+
+            # Get desirability
+            r_desirability = r.desirability
+            f_des = r_desirability["des"]
+
             ind.fitness.values = (f_cor, f_des)
 
     def _repair(self):
@@ -121,7 +125,7 @@ class OptimizationApproach(Approach):
         # TODO: For now, I am only considering the single best repaired individual
         # wrt. correctness. extend this to support multiple repaired individuals (?)
 
-        # (1) Do we need to repair?
+        # (1) Do we need to repair? # TODO check this
         to_repair = self.init_requirement.correctness["cor"][1] * 100 < threshold
 
         if to_repair:

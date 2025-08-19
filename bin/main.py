@@ -2,7 +2,7 @@
 from argparse import ArgumentParser
 
 from repair.approach.transformation.transformation import TransformationApproach
-from repair.fitness.desirability.applicabilitypreservation import AggregatedRobustnessDifference
+from repair.fitness.desirability.applicabilitypreservation import SatisfiedTimestepDifference
 from repair.fitness.desirability.desirability import Desirability
 from repair.fitness.desirability.semanticsanity import SamplingBasedSanity
 from repair.fitness.desirability.syntacticsimilarity import CosineSimilarity
@@ -106,13 +106,12 @@ if __name__ == "__main__":
     req_text = REQUIREMENTS[args.trace_suite]
 
     # Define DESIRABILITY
-    # TODO For now, only semantic and syntactic are implemented, so applicability is set to 0.0
     d = Desirability(
         trace_suite=suite,
         semantic=SamplingBasedSanity(n_samples=10),
         syntactic=CosineSimilarity(),
-        applicability=AggregatedRobustnessDifference(), # TODO
-        weights=[1.0, 1.0, 0.0]
+        applicability=SatisfiedTimestepDifference(),
+        weights=[1.0, 1.0, 1.0]
     )
 
     # Define APPROACH

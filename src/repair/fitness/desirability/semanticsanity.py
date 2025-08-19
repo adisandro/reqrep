@@ -14,14 +14,15 @@ class SamplingBasedSanity(SemanticSanity):
         super().__init__()
         self.n_samples = n_samples
 
-    def evaluate(self, trace_suite, individual) -> float:
+    def evaluate(self, trace_suite, requirement) -> float:
         """
         Returns:
             0.0 → candidate has variable correctness across inputs (not tautology/contradiction)
             1.0 → candidate is tautology or contradiction (correctness constant)
         """
         all_same = True
-        base_cor = None
+        base_cor_pre = None
+        base_cor_post = None
 
         for _ in range(self.n_samples):
             trace = random.choice(trace_suite.traces)
@@ -29,10 +30,18 @@ class SamplingBasedSanity(SemanticSanity):
                 continue  # skip traces that are too short
             i = random.randint(1, len(trace.items) - 1)
             item = trace.items[i]
-            cor = eval_tree(individual, i, item)
-            if base_cor is None:
-                base_cor = cor
-            elif not is_within_margin(cor, base_cor):
+
+            cor_pre = eval_tree(requirement.pre, i, item)
+            if base_cor_pre is None:
+                base_cor_pre = cor_pre
+            elif not is_within_margin(cor_pre, base_cor_pre):
+                all_same = False
+                break
+            
+            cor_post = eval_tree(requirement.post, i, item)
+            if base_cor_post is None:
+                base_cor_post = cor_post
+            elif not is_within_margin(cor_post, base_cor_post):
                 all_same = False
                 break
 
