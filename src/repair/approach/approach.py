@@ -15,9 +15,11 @@ class Approach(ABC):
     Base class for requirement repair approaches.
     """
 
-    def __init__(self, trace_suite: TraceSuite, requirement_text: tuple[str, str], desirability: Desirability=None):
+    def __init__(self, trace_suite: TraceSuite, requirement_text: tuple[str, str], iterations: int,
+                 desirability: Desirability=None):
     
         self.trace_suite = trace_suite
+        self.iterations = iterations
         self.desirability = desirability
 
         self.pset_pre, self.pset_post= grammar.get_gp_primitive_sets(self.trace_suite)

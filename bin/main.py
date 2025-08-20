@@ -20,6 +20,8 @@ if __name__ == "__main__":
                         help="Initial value for the prev() operator at time 0 (defaults to 0.0)")
     parser.add_argument("-t", "--threshold", type=float, default=100.0,
                         help="Requirement repair threshold: repair if correctness % < threshold (defaults to 100)")
+    parser.add_argument("-i", "--iterations", type=int, default=10,
+                        help="The number of iterations the approach tries when repairing, defaults to 10")
     args = parser.parse_args()
     utils.setup_logger("repair.log")
 
@@ -115,8 +117,8 @@ if __name__ == "__main__":
     )
 
     # Define APPROACH
-    a = OptimizationApproach(suite, req_text, d)
-    # a = TransformationApproach(suite, req_text, d)
+    a = OptimizationApproach(suite, req_text, args.iterations, d)
+    # a = TransformationApproach(suite, req_text, args.iterations, d)
 
     # Perform REPAIR
     start_time = time.time()

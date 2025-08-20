@@ -11,8 +11,8 @@ logger = logging.getLogger("gp_logger")
 
 class OptimizationApproach(Approach):
 
-    def __init__(self, trace_suite, requirement_text, desirability):
-        super().__init__(trace_suite, requirement_text, desirability)
+    def __init__(self, trace_suite, requirement_text, iterations, desirability):
+        super().__init__(trace_suite, requirement_text, iterations, desirability)
 
         self._init_creator()
         self._add_to_toolbox()
@@ -83,7 +83,7 @@ class OptimizationApproach(Approach):
 
         # Evolutionary loop: run for a fixed number of generations
         # TODO review this loop entirely
-        for gen in tqdm(range(10)):
+        for gen in tqdm(range(self.iterations)):
             offspring = toolbox.select(pop, len(pop)) # Selection
             offspring = list(map(toolbox.clone, offspring))  # Deep copy the individuals
 
