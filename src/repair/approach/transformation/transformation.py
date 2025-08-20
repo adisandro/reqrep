@@ -25,6 +25,7 @@ class ChangeConstant(Transformation):
         constants = [node for node in transformed if isinstance(node, gp.Terminal) and isinstance(node.value, float)]
         constant = random.choice(constants)
         constant.value = constant.value + random.uniform(-constant.value, constant.value)
+        constant.name = str(constant.value)
 
         return transformed
 
@@ -42,7 +43,7 @@ class TransformationApproach(Approach):
         candidates = []
         transformations = [ChangeConstant(self)]
         for i in range(self.iterations):
-            candidate = random.choice(transformations)(self.init_requirement.post)
+            candidate = random.choice(transformations).transform(self.init_requirement.post)
             candidates.append(candidate)
         best = min(candidates, key=lambda c:self.toolbox.evaluate_cor(self.init_requirement.pre, c)["post_cor"][0])
 
