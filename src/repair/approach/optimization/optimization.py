@@ -127,20 +127,19 @@ class OptimizationApproach(Approach):
 
         # (1) Do we need to repair? # TODO check this
         to_repair = self.init_requirement.correctness["cor"][1] * 100 < threshold
-
-        if to_repair:
-            # Run the repair
-            hof_repaired = self._repair()
-            best_repaired = min(hof_repaired, key=lambda x: (x.fitness.values[0], x.fitness.values[1]))  # rank by correctness, then desirability
-
-            if best_repaired.target == "pre":
-                repaired_req = Requirement("Repaired", self.toolbox,
-                                           self.pset_pre, best_repaired,
-                                           self.pset_post, self.init_requirement.post)
-            else:
-                repaired_req = Requirement("Repaired", self.toolbox,
-                                           self.pset_pre, self.init_requirement.pre,
-                                           self.pset_post, best_repaired)
-            return repaired_req
-        else:
+        if not to_repair:
             return None
+
+        # Run the repair
+        hof_repaired = self._repair()
+        best_repaired = min(hof_repaired, key=lambda x: (x.fitness.values[0], x.fitness.values[1]))  # rank by correctness, then desirability
+
+        if best_repaired.target == "pre":
+            repaired_req = Requirement("Repaired", self.toolbox,
+                                       self.pset_pre, best_repaired,
+                                       self.pset_post, self.init_requirement.post)
+        else:
+            repaired_req = Requirement("Repaired", self.toolbox,
+                                       self.pset_pre, self.init_requirement.pre,
+                                       self.pset_post, best_repaired)
+        return repaired_req
