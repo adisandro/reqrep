@@ -31,9 +31,7 @@ if __name__ == "__main__":
     # Define REQUIREMENT
     REQUIREMENTS = {
         # bin/main.py data/dummy x
-        "data/dummy": ("True", "lt(x, 1.0)"),
-        # bin/main.py data/dummy2 x
-        "data/dummy2": ("True", "lt(y, 1.0)"),
+        "data/dummy": ("True", "lt(y, 1.0)"),
         # bin/main.py data/traces xin reset TL BL dT ic
         "data/traces": ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)"),
         # "data/traces": ("True", "and(le(yout, TL), ge(yout, BL))"),
