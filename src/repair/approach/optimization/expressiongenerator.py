@@ -1,5 +1,4 @@
 import random
-import sys
 from deap import gp
 
 from repair.grammar.functions import Bool
