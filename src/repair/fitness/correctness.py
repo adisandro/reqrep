@@ -8,10 +8,6 @@ from repair.grammar.grammar import ROBUSTNESS_FN_MAP
 def is_within_margin(a, b):
     return math.isclose(a, b, abs_tol=1e-6)
 
-def get_robustness(condition, i, trace_item):
-    # only penalize violations
-    return max(0.0, eval_nodes(deque(condition), i, trace_item))
-
 # Fitness function: count how many time steps FAIL the requirement
 def get_fitness_correctness(precondition, postcondition, trace_suite):
     """
@@ -23,11 +19,11 @@ def get_fitness_correctness(precondition, postcondition, trace_suite):
           perc: percentage of violations.
     """
     delta_cor = 0.0
-    delta_pre_sat = 0.0
-    delta_post_sat = 0.0
+    delta_pre_cor = 0.0
+    delta_post_cor = 0.0
     count_cor = 0
-    count_pre_sat = 0
-    count_post_sat = 0
+    count_pre_cor = 0
+    count_post_cor = 0
     count_total = 0
     try:
         # TODO somehow cache the correctness outcomes of pre- and post-
@@ -38,34 +34,38 @@ def get_fitness_correctness(precondition, postcondition, trace_suite):
             count_total += len(trace.items)
             # ... at each time stamp, ...
             for i, item in enumerate(trace.items):
-                # ... does precondition hold? ...
-                pre_rob = get_robustness(all_nodes_pre, i, item)
-                delta_pre_sat += pre_rob
-                if is_within_margin(pre_rob, 0.0):
+                # ... does pre hold? ...
+                pre_cor = max(0.0, eval_nodes(deque(all_nodes_pre), i, item))
+                pre_sat = is_within_margin(pre_cor, 0.0)
+                delta_pre_cor += pre_cor
+                # ... does post hold?
+                post_cor = max(0.0, eval_nodes(deque(all_nodes_post), i, item))
+                post_sat = is_within_margin(post_cor, 0.0)
+                delta_post_cor += post_cor
+                if pre_sat:
                     # (pre holds)
-                    count_pre_sat += 1
-
-                    # ... does postcondition hold?
-                    post_rob = get_robustness(all_nodes_post, i, item)
-                    delta_cor += post_rob
-                    delta_post_sat += post_rob
-                    if is_within_margin(post_rob, 0.0):
+                    count_pre_cor += 1
+                    if post_sat:
                         # (post holds)
+                        count_post_cor += 1
                         # (pre=>post holds)
                         count_cor += 1
-                        count_post_sat += 1
+                    else:
+                        # (pre=>post does not hold)
+                        delta_cor += post_cor
                 else:
-                    # (pre does not hold)
-                    # (pre=>post trivially holds)
-                    delta_cor += 0.0
+                    # (pre=>post holds)
                     count_cor += 1
+                    if post_sat:
+                        # (post holds)
+                        count_post_cor += 1
     except Exception as e:
         raise ValueError(f"Error evaluating: {precondition} => {postcondition} | {e}")
 
     out = {
         "cor": (delta_cor, count_cor / count_total),
-        "pre_cor": (delta_pre_sat, count_pre_sat / count_total),
-        "post_cor": (delta_post_sat, count_post_sat / count_total),
+        "pre_cor": (delta_pre_cor, count_pre_cor / count_total),
+        "post_cor": (delta_post_cor, count_post_cor / count_total),
     }
     return out
 

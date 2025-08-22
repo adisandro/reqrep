@@ -2,7 +2,7 @@ import random
 
 from repair.approach.approach import Approach
 from repair.approach.requirement import Requirement
-from repair.approach.transformation.library import ChangeConstant
+from repair.approach.transformation.catalog import ChangeConstant
 
 
 class TransformationApproach(Approach):
