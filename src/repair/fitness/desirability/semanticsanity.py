@@ -5,7 +5,7 @@ from statistics import correlation
 
 from repair.fitness.desirability.desirability import SemanticSanity
 
-from repair.fitness.correctness import eval_tree, is_within_margin
+from repair.fitness.correctness.correctness import eval_tree, is_within_margin
 
 
 class SamplingBasedSanity(SemanticSanity):

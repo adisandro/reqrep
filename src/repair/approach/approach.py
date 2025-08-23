@@ -6,7 +6,7 @@ from repair.fitness.desirability.desirability import Desirability
 from repair.approach.trace import TraceSuite
 from deap import base, gp
 from repair.approach.optimization import expressiongenerator
-from repair.fitness import correctness
+from repair.fitness.correctness import correctness
 
 
 # TODO complete below, once we have multiple approaches
@@ -31,7 +31,8 @@ class Approach(ABC):
                         self.pset_post, requirement_text[1])
 
         # Handle desirability
-        self.desirability.initial_requirement = self.init_requirement
+        if self.desirability is not None:
+            self.desirability.initial_requirement = self.init_requirement
 
     def init_toolbox(self):
         toolbox = base.Toolbox()
@@ -50,8 +51,8 @@ class Approach(ABC):
         toolbox.register("evaluate_cor", correctness.get_fitness_correctness,
                          trace_suite=self.trace_suite, # this is fixed throughout execution
         )
-        toolbox.register("evaluate_des", self.desirability.evaluate)
-        toolbox.register("evaluate_des_tuple", self.desirability.get_desirability_tuple)
+        if self.desirability is not None:
+            toolbox.register("evaluate_des", self.desirability.evaluate)
         return toolbox
 
     @abstractmethod

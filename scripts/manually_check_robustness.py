@@ -3,7 +3,7 @@ from repair.fitness.desirability.desirability import Desirability
 from repair.fitness.desirability.semanticsanity import SamplingBasedSanity
 from repair.grammar import utils
 from repair.approach.trace import TraceSuite
-import repair.fitness.correctness as correctness
+import repair.fitness.correctness.correctness as correctness
 from deap import gp
 
 # Set up

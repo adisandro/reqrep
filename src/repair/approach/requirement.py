@@ -32,6 +32,8 @@ class Requirement:
 
     @cached_property
     def desirability(self):
+        if not hasattr(self.toolbox, "evaluate_des"):
+            return {"des": None, "tuple": None}
         return self.toolbox.evaluate_des(self)
     
     def __repr__(self):
