@@ -123,8 +123,7 @@ python -m bin.main <path-to-trace-suite>
 Case studies are in `case_studies/case_studies/`:
 
 - `AFC/` - Abstract Fuel Control (100 traces)
-- `AT-AT1/` - AT-AT1 test cases
-- `AT-AT2/` - AT-AT2 test cases
+- `AT/` - AT test cases
 - `CC/` - CC test cases
 - `EU/` - EU test cases
 - `NNP/` - NNP test cases
