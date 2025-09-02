@@ -17,8 +17,7 @@ import time
 # bin/main.py data/dummy x
 # bin/main.py data/traces xin reset TL BL dT ic
 # bin/main.py data/case_studies/AFC Throttle Engine
-# bin/main.py data/case_studies/AT-AT1 Throttle Brake
-# bin/main.py data/case_studies/AT-AT2 Throttle Brake
+# bin/main.py data/case_studies/AT Throttle Brake
 # bin/main.py data/case_studies/CC Throttle Brake
 # bin/main.py data/case_studies/EU Phi Theta Psi Vin_x Vin_y Vin_z
 # bin/main.py data/case_studies/NNP xIn yIn

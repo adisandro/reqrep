@@ -8,23 +8,18 @@ REQUIREMENTS = {
             "and(ge(Engine, 900.0), le(Engine, 1100.0)))",
         "dur(11, 50, and(gt(Error, -0.007), lt(Error, 0.007)))"
     ),
-    "data/case_studies/AT-AT1": (
-        "and("
-            "and(ge(Throttle, 50.0), le(Throttle, 100.0)),"
-            "and(ge(Brake, 0.0),     le(Brake, 160.0)))",
-        "dur(0, 20, lt(Speed, 120.0))"
-    ),
-    "data/case_studies/AT-AT2": (
+    "data/case_studies/AT": (
         "and("
             "and(ge(Throttle, 5.0), le(Throttle, 100.0)),"
             "and(ge(Brake, 0.0),    le(Brake, 325.0)))",
-        "dur(0, 10, lt(Engine, 4750.0))"
+        "dur(0, 20, lt(Speed, 120.0))"
+        # "dur(0, 10, lt(Engine, 4750.0))"
     ),
     "data/case_studies/CC": (
         "and("
-            "and(ge(Throttle, 0.0), le(Throttle, 1.0)),"
-            "and(ge(Brake, 0.0),    le(Brake, 1.0)))",
-        "dur(0, 100, lt(sub(Position5, Position4), 40.0))"
+            "and(ge(Throttle, 0.0), le(Throttle, 1.1)),"
+            "and(ge(Brake, 0.0),    le(Brake, 1.1)))",
+        "dur(0, 100, le(sub(Position5, Position4), 40.0))"
         # "dur(0, 50, and("
         #   "gt(sub(Position5, Position4), 7.5), and("
         #   "gt(sub(Position4, Position3), 7.5), and("
@@ -55,7 +50,7 @@ REQUIREMENTS = {
     ),
     "data/case_studies/TUI": (
         "and("
-            "and(ge(xin, 0.0), lt(xin, 1.0)), and("
+            "and(ge(xin, 0.0), le(xin, 1.0)), and("
             "eq(reset, 0.0), and("
             "eq(TL, 10.0), and("
             "eq(BL, -10.0),"
