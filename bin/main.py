@@ -5,7 +5,7 @@ from utils import REQUIREMENTS
 from repair.approach.transformation.transformation import TransformationApproach
 from repair.fitness.desirability.applicabilitypreservation import SatisfiedTimestepDifference
 from repair.fitness.desirability.desirability import Desirability
-from repair.fitness.desirability.semanticsanity import SamplingBasedSanity
+from repair.fitness.desirability.semanticsanity import SamplingAndVarTypeSanity
 from repair.fitness.desirability.syntacticsimilarity import CosineSimilarity
 import repair.utils as utils
 from repair.approach.optimization.optimization import OptimizationApproach
@@ -17,8 +17,7 @@ import time
 # bin/main.py data/dummy x
 # bin/main.py data/traces xin reset TL BL dT ic
 # bin/main.py data/case_studies/AFC Throttle Engine
-# bin/main.py data/case_studies/AT-AT1 Throttle Brake
-# bin/main.py data/case_studies/AT-AT2 Throttle Brake
+# bin/main.py data/case_studies/AT Throttle Brake
 # bin/main.py data/case_studies/CC Throttle Brake
 # bin/main.py data/case_studies/EU Phi Theta Psi Vin_x Vin_y Vin_z
 # bin/main.py data/case_studies/NNP xIn yIn
@@ -46,7 +45,7 @@ if __name__ == "__main__":
     # Define DESIRABILITY
     d = Desirability(
         trace_suite=suite,
-        semantic=SamplingBasedSanity(n_samples=10),
+        semantic=SamplingAndVarTypeSanity(n_samples=10),
         syntactic=CosineSimilarity(),
         applicability=SatisfiedTimestepDifference(),
         weights=[1.0, 1.0, 1.0]
