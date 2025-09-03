@@ -3,6 +3,7 @@ from collections import deque
 
 from deap import gp
 from repair.grammar.grammar import ROBUSTNESS_FN_MAP
+import traceback
 
 
 def is_within_margin(a, b):
@@ -18,9 +19,17 @@ def get_fitness_correctness(precondition, postcondition, trace_suite):
           delta: 0 means 100% correct, positive means violated, lower is better.
           perc: percentage of violations.
     """
-    delta_cor = 0.0
-    delta_pre_cor = 0.0
-    delta_post_cor = 0.0
+    # delta_cor = 0.0
+    # delta_pre_cor = 0.0
+    # delta_post_cor = 0.0
+    
+    ts_delta_cor = float("-inf")
+    ts_delta_pre_cor = float("-inf")
+    ts_delta_post_cor = float("-inf")
+
+    t_delta_cor = float("-inf")
+    t_delta_pre_cor = float("-inf")
+    t_delta_post_cor = float("-inf")
     count_cor = 0
     count_pre_cor = 0
     count_post_cor = 0
@@ -34,38 +43,43 @@ def get_fitness_correctness(precondition, postcondition, trace_suite):
             count_total += len(trace.items)
             # ... at each time stamp, ...
             for i, item in enumerate(trace.items):
-                # ... does pre hold? ...
-                pre_cor = max(0.0, eval_nodes(deque(all_nodes_pre), i, item))
-                pre_sat = is_within_margin(pre_cor, 0.0)
-                delta_pre_cor += pre_cor
-                # ... does post hold?
-                post_cor = max(0.0, eval_nodes(deque(all_nodes_post), i, item))
-                post_sat = is_within_margin(post_cor, 0.0)
-                delta_post_cor += post_cor
-                if pre_sat:
-                    # (pre holds)
-                    count_pre_cor += 1
-                    if post_sat:
-                        # (post holds)
-                        count_post_cor += 1
-                        # (pre=>post holds)
-                        count_cor += 1
-                    else:
-                        # (pre=>post does not hold)
-                        delta_cor += post_cor
-                else:
-                    # (pre=>post holds)
-                    count_cor += 1
-                    if post_sat:
-                        # (post holds)
-                        count_post_cor += 1
+                # ... does PRE hold? ...
+                # pre_cor = max(0.0, eval_nodes(deque(all_nodes_pre), i, item))
+                pre_cor = eval_nodes(deque(all_nodes_pre), i, item)
+                # pre_sat = is_within_margin(pre_cor, 0.0)
+                pre_sat = is_within_margin(pre_cor, 0.0) or pre_cor < 0.0
+                count_pre_cor += 1 if pre_sat else 0
+
+                # delta_pre_cor += pre_cor
+                t_delta_pre_cor = max(t_delta_pre_cor, pre_cor)
+                ts_delta_pre_cor = max(ts_delta_pre_cor, pre_cor)
+
+                # ... does POST hold?
+                # post_cor = max(0.0, eval_nodes(deque(all_nodes_post), i, item))
+                post_cor = eval_nodes(deque(all_nodes_post), i, item)
+                # post_sat = is_within_margin(post_cor, 0.0)
+                post_sat = is_within_margin(post_cor, 0.0) or post_cor < 0.0
+                count_post_cor += 1 if post_sat else 0
+
+                # delta_post_cor += post_cor
+                t_delta_post_cor = max(t_delta_post_cor, post_cor)
+                ts_delta_post_cor = max(ts_delta_post_cor, post_cor)
+
+                # ... does PRE=>POST hold?
+                t_cor = min(-pre_cor, post_cor)
+                # t_sat = is_within_margin(t_cor, 0.0)
+                t_sat = is_within_margin(t_cor, 0.0) or t_cor < 0.0
+                count_cor += 1 if t_sat else 0
+                # print(f"{t_cor:.2f} = min(-({pre_cor:.2f}), {post_cor:.2f})")
+                t_delta_cor = max(t_delta_cor, t_cor)
+                ts_delta_cor = max(ts_delta_cor, t_cor)
     except Exception as e:
         raise ValueError(f"Error evaluating: {precondition} => {postcondition} | {e}")
 
     out = {
-        "cor": (delta_cor, count_cor / count_total),
-        "pre_cor": (delta_pre_cor, count_pre_cor / count_total),
-        "post_cor": (delta_post_cor, count_post_cor / count_total),
+        "cor": (ts_delta_cor, count_cor / count_total),
+        "pre_cor": (ts_delta_pre_cor, count_pre_cor / count_total),
+        "post_cor": (ts_delta_post_cor, count_post_cor / count_total),
     }
     return out
 

@@ -1,11 +1,16 @@
 import os
-import random
 import pandas as pd
 import matplotlib.pyplot as plt
 
 from repair.approach.approach import Approach
-from repair.approach.trace import Trace, TraceSuite  # Reuse the Trace class
+from repair.approach.optimization.optimization import OptimizationApproach
+from repair.approach.requirement import Requirement
+from repair.approach.trace import TraceSuite  # Reuse the Trace class
 from repair.fitness.correctness.utils import get_trace_correctness
+from repair.fitness.desirability.applicabilitypreservation import SatisfiedTimestepDifference
+from repair.fitness.desirability.desirability import Desirability
+from repair.fitness.desirability.semanticsanity import SamplingBasedSanity
+from repair.fitness.desirability.syntacticsimilarity import CosineSimilarity
 from utils import REQUIREMENTS, INPUT_VARIABLES
 
 OUTPUT_FOLDER = "output/figures2"
@@ -73,6 +78,7 @@ def plot_trace(traces, violating_indices_list,
 
         ax.set_xlabel('Time (s)')
         ax.set_ylabel(var if var not in LABELS else LABELS[var])
+        # ax.set_ylim(bottom=y_lb)
         if y_ranges:
             y_lb, y_ub = y_ranges.get(var, (None, None))
             ax.set_ylim(y_lb, y_ub)  # Set y-axis range from 0 to 100
@@ -88,10 +94,23 @@ def plot_trace(traces, violating_indices_list,
         print(f"Saved plot to {output_path}")
 
 
-def process_traces(folder_path, requirement, in_variable_names):
+def process_traces(folder_path, requirement, in_variable_names, ids_to_include=None):
     # make Trace suite
     traceSuite = TraceSuite(folder_path, in_variable_names, -1)
-    approach = DummyApproach(traceSuite, requirement, -1, None)
+
+    if ids_to_include is not None:
+        traceSuite.traces = [traceSuite.traces[i] for i in ids_to_include]
+
+    d = Desirability(
+        trace_suite=traceSuite,
+        semantic=SamplingBasedSanity(n_samples=10),
+        syntactic=CosineSimilarity(),
+        applicability=SatisfiedTimestepDifference(),
+        weights=[1.0, 1.0, 1.0]
+    )
+
+    # Define APPROACH
+    approach = OptimizationApproach(traceSuite, requirement, -1, d)
     # print(traceSuite.traces[68].items[150].values)
 
     init_req = approach.init_requirement
@@ -100,7 +119,7 @@ def process_traces(folder_path, requirement, in_variable_names):
     # Get best trace
     df_cor = get_trace_correctness(init_req.pre, init_req.post, traceSuite)
 
-    return traceSuite, df_cor
+    return traceSuite, df_cor, approach
 
 def print_trace(trace, index, show_dur=False):
     print(f"Trace {index}:")
@@ -140,7 +159,6 @@ def print_trace(trace, index, show_dur=False):
 
         df.to_csv(f"output/trace_{index}_full.csv", index=False)
 
-
     # Round all float columns to 3 decimal places
     if 'Time' in df.columns:
         df['Time'] = df['Time'].round(2)
@@ -148,7 +166,6 @@ def print_trace(trace, index, show_dur=False):
     df[float_cols] = df[float_cols].round(3)
 
     print(df.head(30))
-
 
 
 def prep_best_plots(traceSuite, df_cor, folder_path, output_folder):
@@ -222,12 +239,39 @@ def prep_other_plots(traceSuite, df_cor, more_traces_to_show, folder_path, outpu
                     add_legend=True
                     )
 
+
+def print_des_of_other(folder, in_variable_names, traces_to_show):
+
+    requirements = [
+                ("and(ge(Throttle, 0.0), le(Throttle, 98.0))",
+                 "lt(Engine, 4650.0)"), # INITIAL
+                ("and(ge(Throttle, 0.0), le(Throttle, 98.0))",
+                 "lt(Engine, 4800.0)"), # SYN
+                ("and(ge(Throttle, 0.0), le(Throttle, 98.0))",
+                 "lt(Engine, add(Engine, 1.0))") # TAUT
+    ]
+    # TODO add a couple more examples
+
+    for trace_indices in traces_to_show:
+        traceSuite, df_cor, approach = process_traces(folder, requirements[0], in_variable_names, trace_indices)
+
+        for i, r_text in enumerate(requirements):
+            r = Requirement(f"r_{i}", approach.toolbox,
+                        approach.pset_pre, r_text[0],
+                        approach.pset_post, r_text[1])
+            
+            print(r.to_str(trace_suite=traceSuite))
+
+
 if __name__ == "__main__":
 
     traces_to_show = [[1, 2, 3], # random
                       [68, 82, 27], # violations
                     #   [68] # Worst one
                       ]
+    
+    # traces_to_show = [[68]]    
+    traces_to_show = [[68, 82, 27]]
 
     folder = "data/case_studies/AT-AT2"
     custom = {"Engine": [4650, 4764.86],
@@ -242,6 +286,8 @@ if __name__ == "__main__":
     )
     else:
         requirement = REQUIREMENTS[folder]
-    ts, df_cor = process_traces(folder, requirement, in_variable_names)
+    ts, df_cor, _ = process_traces(folder, requirement, in_variable_names)
     prep_best_plots(ts, df_cor, folder, OUTPUT_FOLDER)
     prep_other_plots(ts, df_cor, traces_to_show, folder, OUTPUT_FOLDER)
+
+    print_des_of_other(folder, in_variable_names, traces_to_show)
