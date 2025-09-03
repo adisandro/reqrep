@@ -17,8 +17,8 @@ REQUIREMENTS = {
     ),
     "data/case_studies/CC": (
         "and("
-            "and(ge(Throttle, 0.0), le(Throttle, 1.1)),"
-            "and(ge(Brake, 0.0),    le(Brake, 1.1)))",
+            "and(ge(Throttle, 0.0), le(Throttle, 1.0)),"
+            "and(ge(Brake, 0.0),    le(Brake, 1.0)))",
         "dur(0, 100, le(sub(Position5, Position4), 40.0))"
         # "dur(0, 50, and("
         #   "gt(sub(Position5, Position4), 7.5), and("

@@ -5,7 +5,7 @@ from utils import REQUIREMENTS
 from repair.approach.transformation.transformation import TransformationApproach
 from repair.fitness.desirability.applicabilitypreservation import SatisfiedTimestepDifference
 from repair.fitness.desirability.desirability import Desirability
-from repair.fitness.desirability.semanticsanity import SamplingBasedSanity, SamplingAndVarTypeSanity
+from repair.fitness.desirability.semanticsanity import SamplingAndVarTypeSanity
 from repair.fitness.desirability.syntacticsimilarity import CosineSimilarity
 import repair.utils as utils
 from repair.approach.optimization.optimization import OptimizationApproach
