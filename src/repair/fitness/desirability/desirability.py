@@ -4,6 +4,8 @@ from deap import gp
 
 from repair.approach.trace import TraceSuite
 
+DIMENSION_IDS = ['Sem', 'Syn', 'App']
+
 
 class SemanticSanity(ABC):
     @abstractmethod

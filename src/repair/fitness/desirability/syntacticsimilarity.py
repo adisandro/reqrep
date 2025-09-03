@@ -21,7 +21,7 @@ class CosineSimilarity(SyntacticSimilarity):
 
     def _tree_to_vector(self, tree):
         # Convert a PrimitiveTree into a frequency vector of its nodes.
-        counts = Counter(str(node) for node in tree)
+        counts = Counter(node.name for node in tree)
         return counts
     
     def _get_cosine_similarity(self, individual, original):

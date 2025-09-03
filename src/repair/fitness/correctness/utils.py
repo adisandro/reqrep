@@ -27,6 +27,7 @@ def get_trace_correctness(precondition, postcondition, trace_suite):
             all_nodes_pre = deque(iter(precondition))
             all_nodes_post = deque(iter(postcondition))
             violating_indices = []
+            violating_times = []
             for i, item in enumerate(trace.items):
                 # ... does precondition hold? ...
                 pre_rob = max(0.0, eval_nodes(deque(all_nodes_pre), i, item))
@@ -42,6 +43,7 @@ def get_trace_correctness(precondition, postcondition, trace_suite):
                     else:
                         # (pre holds, post fails)
                         violating_indices.append(i)
+                        violating_times.append(item.time)
                 else:
                     # (pre does not hold)
                     # (pre=>post trivially holds)
@@ -51,7 +53,8 @@ def get_trace_correctness(precondition, postcondition, trace_suite):
                 "trace_index": j,
                 "delta_cor": delta_cor,
                 "perc_cor": count_cor / count_total,
-                "violating_indices": violating_indices
+                "violating_indices": violating_indices,
+                "violating_times": violating_times
             })
             results = pd.DataFrame(data)
     except Exception as e:

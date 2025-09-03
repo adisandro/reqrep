@@ -1,5 +1,6 @@
 from functools import cached_property
 
+from repair.fitness.desirability.desirability import DIMENSION_IDS
 import repair.grammar.utils as grammar_utils
 from deap import gp
 from functools import cached_property
@@ -55,5 +56,5 @@ class Requirement:
             f"\tCorrectness: Δ = {c_delta}, % = {c_perc*100}\n"
             f"\tPre-correctness: Δ = {c_pre_delta}, % = {c_pre_perc*100}\n"
             f"\tPost-correctness: Δ = {c_post_delta}, % = {c_post_perc*100}\n"
-            f"\tDesirability: {self.desirability["tuple"]}\n")
+            f"\tDesirability: {[f"{i}={v}" for i, v in zip(DIMENSION_IDS, self.desirability["tuple"])]}\n")
 
