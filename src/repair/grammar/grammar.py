@@ -26,6 +26,9 @@ def get_gp_primitive_sets(trace_suite):
     for i, var_name in enumerate(trace_suite.variable_names):
         pset_post.renameArguments(**{f"ARG{i}": var_name})
 
+    # print([f"{k}: {v.format()}|{v.name}" for k, v in pset_pre.mapping.items()])
+    # print([f"{k}: {v.format()}|{v.name}" for k, v in pset_post.mapping.items()])
+
     ## OPERATORS
     for func in GRAMMAR_FUNCTIONS:
         ROBUSTNESS_FN_MAP[func.name] = func.robustness_fn

@@ -15,6 +15,9 @@ class Requirement:
         self.pre = self._set_condition(pset_pre, precond)
         self.post = self._set_condition(pset_post, postcond)
 
+        implies_primitive = pset_post.mapping['implies']
+        self.merged = gp.PrimitiveTree([implies_primitive] + list(self.pre) + list(self.post))
+
     def _set_condition(self, pset, condition):
         return gp.PrimitiveTree.from_string(condition, pset) if isinstance(condition, str)\
             else condition
@@ -41,8 +44,7 @@ class Requirement:
         return f"Requirement(name={self.name}, pre={self.pre}, post={self.post})"
 
     def to_str(self, trace_suite):
-        pre_infix = grammar_utils.to_infix(self.pre, trace_suite)
-        post_infix = grammar_utils.to_infix(self.post, trace_suite)
+        merged_infix = grammar_utils.to_infix(self.merged, trace_suite)
 
         # correctness
         c_delta, c_perc = self.correctness["cor"]
@@ -51,8 +53,8 @@ class Requirement:
 
         return (
             f"{self.name}:\n"
-            f"\t{pre_infix}\t=>\t{post_infix}\n"
-            f"\t{self.pre}\t=>\t{self.post}\n"
+            f"\t{merged_infix}\n"
+            f"\t{self.merged}\n"
             f"\tCorrectness: Δ = {c_delta}, % = {c_perc*100}\n"
             f"\tPre-correctness: Δ = {c_pre_delta}, % = {c_pre_perc*100}\n"
             f"\tPost-correctness: Δ = {c_post_delta}, % = {c_post_perc*100}\n"

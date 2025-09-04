@@ -58,4 +58,7 @@ class TraceSuite:
 
     @cached_property
     def variable_names(self):
-        return sorted([v for v in self.variables if v != self.TIME_VAR])
+        assert all(v in self.variables for v in self.in_variable_names)
+        # Start with in_variable_names, then add the rest (excluding TIME_VAR and already included)
+        rest = [v for v in self.variables if v != self.TIME_VAR and v not in self.in_variable_names]
+        return list(self.in_variable_names) + sorted(rest)
