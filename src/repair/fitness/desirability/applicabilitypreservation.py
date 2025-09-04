@@ -8,13 +8,9 @@ class AggregatedRobustnessDifference(ApplicabilityPreservation):
         # Will be complicated since need to compare at each time step individually
 
 
-class SatisfiedTimestepDifference(ApplicabilityPreservation):
+class PreconditionSatisfaction(ApplicabilityPreservation):
     def evaluate(self, current_req, initial_req) -> float:
 
-        # correctness ratio, in [0, 1], 
-        cor_cur = current_req.correctness["pre_cor"][1]
-        cor_init = initial_req.correctness["pre_cor"][1]
-
-        d = abs(cor_cur - cor_init)
-        return d
+        pre_sd = current_req.satisfaction_degrees["pre_sd"][0]
+        return max(0, -pre_sd)
     

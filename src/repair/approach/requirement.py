@@ -37,7 +37,6 @@ class Requirement:
     @cached_property
     def correctness(self):
         return self.toolbox.get_fitness_correctness(self.satisfaction_degrees)
-        # return self.toolbox.evaluate_cor(self.pre, self.post)
 
     @cached_property
     def desirability(self):
@@ -65,6 +64,6 @@ class Requirement:
             f"\tSAT DEG - Post:         Δ = {sd_post_delta}, % = {sd_post_perc*100}\n"
 
             f"\tFITNESS - Correctness:  {self.correctness}\n"
-            f"\tFITNESS - Desirability: {[f'{i}={v}' for i, v in zip(DIMENSION_IDS, self.desirability['tuple'])]}\n"
+            f"\tFITNESS - Desirability: {[f'{i}={round(v, 3)}' for i, v in zip(DIMENSION_IDS, self.desirability['tuple'])]}\n"
             f"\tFITNESS - Desirability: {self.desirability['des']}\n")
 
