@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser
 
+from repair.fitness.desirability.satisfactionmagnitude import TraceSuiteSatisfactionMagnitude
 from utils import REQUIREMENTS
 from repair.approach.transformation.transformation import TransformationApproach
 from repair.fitness.desirability.applicabilitypreservation import PreconditionSatisfaction
@@ -45,10 +46,11 @@ if __name__ == "__main__":
     # Define DESIRABILITY
     d = Desirability(
         trace_suite=suite,
+        magnitude=TraceSuiteSatisfactionMagnitude(),
         semantic=SamplingAndVarTypeSanity(n_samples=10),
         syntactic=TreeEditDistance(),
         applicability=PreconditionSatisfaction(),
-        weights=[20.0, 1.0, 1.0]
+        weights=[1.0, 20.0, 1.0, 1.0]
     )
 
     # Define APPROACH

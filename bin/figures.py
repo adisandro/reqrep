@@ -9,6 +9,7 @@ from repair.approach.trace import TraceSuite  # Reuse the Trace class
 from repair.fitness.correctness.utils import get_trace_correctness
 from repair.fitness.desirability.applicabilitypreservation import PreconditionSatisfaction
 from repair.fitness.desirability.desirability import Desirability
+from repair.fitness.desirability.satisfactionmagnitude import TraceSuiteSatisfactionMagnitude
 from repair.fitness.desirability.semanticsanity import SamplingBasedSanity
 from repair.fitness.desirability.syntacticsimilarity import CosineSimilarity, TreeEditDistance
 from utils import REQUIREMENTS, INPUT_VARIABLES
@@ -103,11 +104,12 @@ def process_traces(folder_path, requirement, in_variable_names, ids_to_include=N
 
     d = Desirability(
         trace_suite=traceSuite,
+        magnitude=TraceSuiteSatisfactionMagnitude(),
         semantic=SamplingBasedSanity(n_samples=10),
         # syntactic=CosineSimilarity(),
         syntactic=TreeEditDistance(),
         applicability=PreconditionSatisfaction(),
-        weights=[1.0, 1.0, 1.0]
+        weights=[1.0, 1.0, 1.0, 1.0]
     )
 
     # Define APPROACH
