@@ -13,7 +13,7 @@ def is_within_margin(a, b):
 # Fitness function: count how many time steps FAIL the requirement
 def get_fitness_correctness(satisfaction_degrees=None):
     sd = satisfaction_degrees["sd"][0]
-    fitness = max(0.0, sd)  # we want to minimize fitness, so 0 is best (fully correct)
+    fitness = max(0.0, -sd)  # we want to minimize fitness, so 0 is best (fully correct)
     return fitness
 
 
@@ -21,13 +21,13 @@ def get_satisfaction_degrees(precondition, postcondition, trace_suite):
 
     # print("Running get_satisfaction_degrees on: ", precondition, " => ", postcondition)
 
-    ts_delta_cor = float("-inf")
-    ts_delta_pre_cor = float("-inf")
-    ts_delta_post_cor = float("-inf")
+    ts_delta_cor = float("inf")
+    ts_delta_pre_cor = float("inf")
+    ts_delta_post_cor = float("inf")
 
-    t_delta_cor = float("-inf")
-    t_delta_pre_cor = float("-inf")
-    t_delta_post_cor = float("-inf")
+    t_delta_cor = float("inf")
+    t_delta_pre_cor = float("inf")
+    t_delta_post_cor = float("inf")
     count_cor = 0
     count_pre_cor = 0
     count_post_cor = 0
@@ -45,32 +45,32 @@ def get_satisfaction_degrees(precondition, postcondition, trace_suite):
                 # pre_cor = max(0.0, eval_nodes(deque(all_nodes_pre), i, item))
                 pre_cor = eval_nodes(deque(all_nodes_pre), i, item)
                 # pre_sat = is_within_margin(pre_cor, 0.0)
-                pre_sat = is_within_margin(pre_cor, 0.0) or pre_cor < 0.0
+                pre_sat = is_within_margin(pre_cor, 0.0) or pre_cor > 0.0
                 count_pre_cor += 1 if pre_sat else 0
 
                 # delta_pre_cor += pre_cor
-                t_delta_pre_cor = max(t_delta_pre_cor, pre_cor)
-                ts_delta_pre_cor = max(ts_delta_pre_cor, pre_cor)
+                t_delta_pre_cor = min(t_delta_pre_cor, pre_cor)
+                ts_delta_pre_cor = min(ts_delta_pre_cor, pre_cor)
 
                 # ... does POST hold?
                 # post_cor = max(0.0, eval_nodes(deque(all_nodes_post), i, item))
                 post_cor = eval_nodes(deque(all_nodes_post), i, item)
                 # post_sat = is_within_margin(post_cor, 0.0)
-                post_sat = is_within_margin(post_cor, 0.0) or post_cor < 0.0
+                post_sat = is_within_margin(post_cor, 0.0) or post_cor > 0.0
                 count_post_cor += 1 if post_sat else 0
 
                 # delta_post_cor += post_cor
-                t_delta_post_cor = max(t_delta_post_cor, post_cor)
-                ts_delta_post_cor = max(ts_delta_post_cor, post_cor)
+                t_delta_post_cor = min(t_delta_post_cor, post_cor)
+                ts_delta_post_cor = min(ts_delta_post_cor, post_cor)
 
                 # ... does PRE=>POST hold?
-                t_cor = min(-pre_cor, post_cor)
+                t_cor = max(-pre_cor, post_cor)
                 # t_sat = is_within_margin(t_cor, 0.0)
-                t_sat = is_within_margin(t_cor, 0.0) or t_cor < 0.0
+                t_sat = is_within_margin(t_cor, 0.0) or t_cor > 0.0
                 count_cor += 1 if t_sat else 0
                 # print(f"{t_cor:.2f} = min(-({pre_cor:.2f}), {post_cor:.2f})")
-                t_delta_cor = max(t_delta_cor, t_cor)
-                ts_delta_cor = max(ts_delta_cor, t_cor)
+                t_delta_cor = min(t_delta_cor, t_cor)
+                ts_delta_cor = min(ts_delta_cor, t_cor)
     except Exception as e:
         raise ValueError(f"Error evaluating: {precondition} => {postcondition} | {e}")
 

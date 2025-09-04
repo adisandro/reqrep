@@ -7,14 +7,15 @@ def logical_impl(a, b): return (not a) or b
 
 def add_robustness(a, b): return a + b
 def sub_robustness(a, b): return a - b
-def lt_robustness(a, b): return a - b + 1e-5
-def le_robustness(a, b): return a - b
-def gt_robustness(a, b): return b - a + 1e-5
-def ge_robustness(a, b): return b - a
+def lt_robustness(a, b): return b - a + 1e-5
+def le_robustness(a, b): return b - a
+def gt_robustness(a, b): return a - b + 1e-5
+def ge_robustness(a, b): return a - b
 def eq_robustness(a, b): return abs(a - b)
-def and_robustness(a, b): return max(a, b)
-def or_robustness(a, b): return min(a, b)
-def impl_robustness(a, b): return min(-a, b)
+
+def and_robustness(a, b): return min(a, b)
+def or_robustness(a, b): return max(a, b)
+def impl_robustness(a, b): return max(-a, b)
 def not_robustness(a): return -a
 
 # this differentiates bool and int types, since bool is a subclass of int in Python

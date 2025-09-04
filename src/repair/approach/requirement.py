@@ -41,10 +41,10 @@ class Requirement:
 
     @cached_property
     def desirability(self):
-        if not hasattr(self.toolbox, "evaluate_des"):
+        if not hasattr(self.toolbox, "get_fitness_desirability"):
             return {"des": None, "tuple": None}
-        return self.toolbox.evaluate_des(self)
-    
+        return self.toolbox.get_fitness_desirability(self)
+
     def __repr__(self):
         return f"Requirement(name={self.name}, pre={self.pre}, post={self.post})"
 
