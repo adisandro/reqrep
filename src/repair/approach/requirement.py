@@ -51,17 +51,17 @@ class Requirement:
         merged_infix = grammar_utils.to_infix(self.merged, trace_suite)
 
         # correctness
-        sd_delta, sd_perc = self.satisfaction_degrees["sd"]
-        sd_pre_delta, sd_pre_perc = self.satisfaction_degrees["pre_sd"]
-        sd_post_delta, sd_post_perc = self.satisfaction_degrees["post_sd"]
+        sd_delta, sd_perc, sd_count = self.satisfaction_degrees["sd"]
+        sd_pre_delta, sd_pre_perc, sd_pre_count = self.satisfaction_degrees["pre_sd"]
+        sd_post_delta, sd_post_perc, sd_post_count = self.satisfaction_degrees["post_sd"]
 
         return (
             f"{self.name}:\n"
             f"\t{merged_infix}\n"
             f"\t{self.merged}\n"
-            f"\tSAT DEG - Pre=>Post:    Δ = {sd_delta}, % = {sd_perc*100}\n"
-            f"\tSAT DEG - Pre:          Δ = {sd_pre_delta}, % = {sd_pre_perc*100}\n"
-            f"\tSAT DEG - Post:         Δ = {sd_post_delta}, % = {sd_post_perc*100}\n"
+            f"\tSAT DEG - Pre=>Post:    Δ = {sd_delta}, % = {sd_perc*100}, # = {sd_count}\n"
+            f"\tSAT DEG - Pre:          Δ = {sd_pre_delta}, % = {sd_pre_perc*100}, # = {sd_pre_count}\n"
+            f"\tSAT DEG - Post:         Δ = {sd_post_delta}, % = {sd_post_perc*100}, # = {sd_post_count}\n"
 
             f"\tFITNESS - Correctness:  {self.correctness}\n"
             f"\tFITNESS - Desirability: {[f'{i}={round(v, 3)}' for i, v in zip(DIMENSION_IDS, self.desirability['tuple'])]}\n"
