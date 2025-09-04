@@ -29,10 +29,15 @@ class Requirement:
             return self.post
         else:
             raise ValueError("Invalid pre_post_id")
+        
+    @cached_property
+    def satisfaction_degrees(self):
+        return self.toolbox.get_sat_deg(self.pre, self.post)
 
     @cached_property
     def correctness(self):
-        return self.toolbox.evaluate_cor(self.pre, self.post)
+        return self.toolbox.get_fitness_correctness(self.satisfaction_degrees)
+        # return self.toolbox.evaluate_cor(self.pre, self.post)
 
     @cached_property
     def desirability(self):
@@ -47,16 +52,19 @@ class Requirement:
         merged_infix = grammar_utils.to_infix(self.merged, trace_suite)
 
         # correctness
-        c_delta, c_perc = self.correctness["cor"]
-        c_pre_delta, c_pre_perc = self.correctness["pre_cor"]
-        c_post_delta, c_post_perc = self.correctness["post_cor"]
+        sd_delta, sd_perc = self.satisfaction_degrees["sd"]
+        sd_pre_delta, sd_pre_perc = self.satisfaction_degrees["pre_sd"]
+        sd_post_delta, sd_post_perc = self.satisfaction_degrees["post_sd"]
 
         return (
             f"{self.name}:\n"
             f"\t{merged_infix}\n"
             f"\t{self.merged}\n"
-            f"\tCorrectness: Δ = {c_delta}, % = {c_perc*100}\n"
-            f"\tPre-correctness: Δ = {c_pre_delta}, % = {c_pre_perc*100}\n"
-            f"\tPost-correctness: Δ = {c_post_delta}, % = {c_post_perc*100}\n"
-            f"\tDesirability: {[f"{i}={v}" for i, v in zip(DIMENSION_IDS, self.desirability["tuple"])]}\n")
+            f"\tSAT DEG - Pre=>Post:    Δ = {sd_delta}, % = {sd_perc*100}\n"
+            f"\tSAT DEG - Pre:          Δ = {sd_pre_delta}, % = {sd_pre_perc*100}\n"
+            f"\tSAT DEG - Post:         Δ = {sd_post_delta}, % = {sd_post_perc*100}\n"
+
+            f"\tFITNESS - Correctness:  {self.correctness}\n"
+            f"\tFITNESS - Desirability: {[f'{i}={v}' for i, v in zip(DIMENSION_IDS, self.desirability['tuple'])]}\n"
+            f"\tFITNESS - Desirability: {self.desirability['des']}\n")
 

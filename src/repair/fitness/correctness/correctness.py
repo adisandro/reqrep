@@ -9,20 +9,18 @@ import traceback
 def is_within_margin(a, b):
     return math.isclose(a, b, abs_tol=1e-6)
 
-# Fitness function: count how many time steps FAIL the requirement
-def get_fitness_correctness(precondition, postcondition, trace_suite):
-    """
-    Evaluates the correctness of a requirement represented by a GP individual.
 
-    Returns:
-        (delta correctness, perc correctness) —
-          delta: 0 means 100% correct, positive means violated, lower is better.
-          perc: percentage of violations.
-    """
-    # delta_cor = 0.0
-    # delta_pre_cor = 0.0
-    # delta_post_cor = 0.0
-    
+# Fitness function: count how many time steps FAIL the requirement
+def get_fitness_correctness(satisfaction_degrees=None):
+    sd = satisfaction_degrees["sd"][0]
+    fitness = max(0.0, sd)  # we want to minimize fitness, so 0 is best (fully correct)
+    return fitness
+
+
+def get_satisfaction_degrees(precondition, postcondition, trace_suite):
+
+    # print("Running get_satisfaction_degrees on: ", precondition, " => ", postcondition)
+
     ts_delta_cor = float("-inf")
     ts_delta_pre_cor = float("-inf")
     ts_delta_post_cor = float("-inf")
@@ -77,9 +75,9 @@ def get_fitness_correctness(precondition, postcondition, trace_suite):
         raise ValueError(f"Error evaluating: {precondition} => {postcondition} | {e}")
 
     out = {
-        "cor": (ts_delta_cor, count_cor / count_total),
-        "pre_cor": (ts_delta_pre_cor, count_pre_cor / count_total),
-        "post_cor": (ts_delta_post_cor, count_post_cor / count_total),
+        "sd": (ts_delta_cor, count_cor / count_total),
+        "pre_sd": (ts_delta_pre_cor, count_pre_cor / count_total),
+        "post_sd": (ts_delta_post_cor, count_post_cor / count_total),
     }
     return out
 

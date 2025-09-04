@@ -5,8 +5,8 @@ from utils import REQUIREMENTS
 from repair.approach.transformation.transformation import TransformationApproach
 from repair.fitness.desirability.applicabilitypreservation import SatisfiedTimestepDifference
 from repair.fitness.desirability.desirability import Desirability
-from repair.fitness.desirability.semanticsanity import SamplingAndVarTypeSanity
-from repair.fitness.desirability.syntacticsimilarity import CosineSimilarity
+from repair.fitness.desirability.semanticsanity import SamplingAndVarTypeSanity, SamplingBasedSanity
+from repair.fitness.desirability.syntacticsimilarity import CosineSimilarity, TreeEditDistance
 import repair.utils as utils
 from repair.approach.optimization.optimization import OptimizationApproach
 from repair.approach.trace import TraceSuite
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     d = Desirability(
         trace_suite=suite,
         semantic=SamplingAndVarTypeSanity(n_samples=10),
-        syntactic=CosineSimilarity(),
+        syntactic=TreeEditDistance(),
         applicability=SatisfiedTimestepDifference(),
         weights=[1.0, 1.0, 1.0]
     )

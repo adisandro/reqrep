@@ -48,7 +48,7 @@ class OptimizationApproach(Approach):
                 ind_pre = self.init_requirement.pre
                 ind_post = ind
             r = Requirement("Candidate", self.toolbox, self.pset_pre, ind_pre, self.pset_post, ind_post)
-            ind.fitness.values = (r.correctness[f"{target}_cor"][0], r.desirability["des"])
+            ind.fitness.values = (r.satisfaction_degrees[f"{target}_sd"][0], r.desirability["des"])
 
     def _repair(self, target):
         toolbox = self.toolbox
@@ -110,8 +110,8 @@ class OptimizationApproach(Approach):
         # TODO: wrt. correctness. extend this to support multiple repaired individuals (?)
 
         # Do we need to repair?
-        to_repair_pre = self.init_requirement.correctness["pre_cor"][1] * 100 < threshold
-        to_repair_post = self.init_requirement.correctness["post_cor"][1] * 100 < threshold
+        to_repair_pre = self.init_requirement.satisfaction_degrees["pre_sd"][1] * 100 < threshold
+        to_repair_post = self.init_requirement.satisfaction_degrees["post_sd"][1] * 100 < threshold
         if not to_repair_pre and not to_repair_post:
             return None
 
@@ -124,7 +124,8 @@ class OptimizationApproach(Approach):
         if to_repair_post:
             hof_repaired = self._repair("post")
             best_repaired_post = min(hof_repaired, key=lambda x: (x.fitness.values[0], x.fitness.values[1]))
-        repaired_req = Requirement("Repaired", self.toolbox, self.pset_pre, best_repaired_pre, self.pset_post,
-                                   best_repaired_post)
+        repaired_req = Requirement("Repaired", self.toolbox,
+                                   self.pset_pre, best_repaired_pre,
+                                   self.pset_post, best_repaired_post)
 
         return repaired_req

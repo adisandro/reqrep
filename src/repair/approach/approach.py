@@ -48,9 +48,11 @@ class Approach(ABC):
         toolbox.register("compile_post", gp.compile, pset=self.pset_post)
 
         # (3) Metrics
-        toolbox.register("evaluate_cor", correctness.get_fitness_correctness,
+        toolbox.register("get_sat_deg", correctness.get_satisfaction_degrees,
                          trace_suite=self.trace_suite, # this is fixed throughout execution
         )
+
+        toolbox.register("get_fitness_correctness", correctness.get_fitness_correctness)
         if self.desirability is not None:
             toolbox.register("evaluate_des", self.desirability.evaluate)
         return toolbox
