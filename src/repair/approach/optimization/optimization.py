@@ -22,11 +22,20 @@ class OptimizationApproach(Approach):
         creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
     def _add_to_toolbox(self):
+
+        def random_individual():
+            if random.random() < 0.5:
+                ind = creator.Individual(self.toolbox.expr_pre())
+                ind.target = "pre"
+            else:
+                ind = creator.Individual(self.toolbox.expr_post())
+                ind.target = "post"
+            return ind
+
         # Add approach-specific registrations
-        self.toolbox.register("individual_pre", tools.initIterate, creator.Individual, self.toolbox.expr_pre)
-        self.toolbox.register("individual_post", tools.initIterate, creator.Individual, self.toolbox.expr_post)
-        self.toolbox.register("population_pre", tools.initRepeat, list, self.toolbox.individual_pre)
-        self.toolbox.register("population_post", tools.initRepeat, list, self.toolbox.individual_post)
+        # self.toolbox.register("individual", tools.initIterate, creator.Individual, self.toolbox.expr_post)
+        self.toolbox.register("individual", random_individual)    
+        self.toolbox.register("population", tools.initRepeat, list, self.toolbox.individual)
 
         self.toolbox.register("select", tools.selNSGA2)
         self.toolbox.register("mate", gp.cxOnePoint)
@@ -40,26 +49,24 @@ class OptimizationApproach(Approach):
         self.toolbox.decorate("mutate_pre", gp.staticLimit(key=len, max_value=10))
         self.toolbox.decorate("mutate_post", gp.staticLimit(key=len, max_value=10))
 
-    def _set_ind_fitness(self, ind, target):
-            if target == "pre":
+    def _set_ind_fitness(self, ind):
+            if ind.target == "pre":
                 ind_pre = ind
                 ind_post = self.init_requirement.post
             else:
                 ind_pre = self.init_requirement.pre
                 ind_post = ind
             r = Requirement("Candidate", self.toolbox, self.pset_pre, ind_pre, self.pset_post, ind_post)
-            ind.fitness.values = (max(0, -r.satisfaction_degrees[f"{target}_sd"][0]), r.desirability["des"])
-            # TODO Aren, check above...
+            ind.fitness.values = (max(0, -r.satisfaction_degrees["sd"][0]), r.desirability["des"])
 
-    def _repair(self, target):
+    def _repair(self):
         toolbox = self.toolbox
-        # Random initial population # TODO adjust number
-        pop = toolbox.population_pre(n=10) if target == "pre" else toolbox.population_post(n=10)
+        pop = toolbox.population(n=10) # Random initial population # TODO adjust number
         hof = tools.ParetoFront() # Hall of Fame, for keeping track of the best individuals
 
         # (Initial) Evaluation
         for ind in pop:
-            self._set_ind_fitness(ind, target)
+            self._set_ind_fitness(ind)
 
         pop = toolbox.select(pop, len(pop))
 
@@ -71,7 +78,7 @@ class OptimizationApproach(Approach):
 
             # Crossover
             for child1, child2 in zip(offspring[::2], offspring[1::2]):
-                if random.random() < 0.5:
+                if random.random() < 0.5 and child1.target == child2.target:
                     toolbox.mate(child1, child2)
                     del child1.fitness.values
                     del child2.fitness.values
@@ -79,13 +86,13 @@ class OptimizationApproach(Approach):
             # Mutation
             for mutant in offspring:
                 if random.random() < 0.3:
-                    toolbox.mutate_pre(mutant) if target == "pre" else toolbox.mutate_post(mutant)
+                    toolbox.mutate_pre(mutant) if mutant.target == "pre" else toolbox.mutate_post(mutant)
                     del mutant.fitness.values
 
             # (Re-)evaluation: only individuals whose fitness has changed
             for ind in offspring:
                 if not ind.fitness.valid:
-                    self._set_ind_fitness(ind, target)
+                    self._set_ind_fitness(ind)
 
             # Selection
             pop = toolbox.select(pop + offspring, len(pop))
@@ -100,32 +107,24 @@ class OptimizationApproach(Approach):
 
         return hof
 
-    def repair(self, threshold):
-        # pre | post | pre => post | repair what?
-        # 0   | 0    | 1           | must repair pre, must repair post
-        # 0   | 1    | 1           | must repair pre
-        # 1   | 0    | 0           | must repair post
-        # 1   | 1    | 1           | no repair needed
-
+    def repair(self):
         # TODO: For now, I am only considering the single best repaired individual
         # TODO: wrt. correctness. extend this to support multiple repaired individuals (?)
 
         # Do we need to repair?
-        to_repair_pre = self.init_requirement.satisfaction_degrees["pre_sd"][1] * 100 < threshold
-        to_repair_post = self.init_requirement.satisfaction_degrees["post_sd"][1] * 100 < threshold
-        if not to_repair_pre and not to_repair_post:
+        to_repair = self.init_requirement.satisfaction_degrees["sd"][1] < 1
+        if not to_repair:
             return None
 
         # Run the repair: rank by correctness, then desirability
-        # TODO Aren, check for potential problem here
-        best_repaired_pre = self.init_requirement.pre
-        if to_repair_pre:
-            hof_repaired = self._repair("pre")
-            best_repaired_pre = min(hof_repaired, key=lambda x: (x.fitness.values[0], x.fitness.values[1]))
-        best_repaired_post = self.init_requirement.post
-        if to_repair_post:
-            hof_repaired = self._repair("post")
-            best_repaired_post = min(hof_repaired, key=lambda x: (x.fitness.values[0], x.fitness.values[1]))
+        hof_repaired = self._repair()
+        best_repaired = min(hof_repaired, key=lambda x: (x.fitness.values[0], x.fitness.values[1]))
+        if best_repaired.target == "pre":
+            best_repaired_pre = best_repaired
+            best_repaired_post = self.init_requirement.post
+        else:
+            best_repaired_pre = self.init_requirement.pre
+            best_repaired_post = best_repaired
         repaired_req = Requirement("Repaired", self.toolbox,
                                    self.pset_pre, best_repaired_pre,
                                    self.pset_post, best_repaired_post)

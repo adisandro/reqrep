@@ -30,8 +30,6 @@ if __name__ == "__main__":
     parser.add_argument("input_vars", nargs="+", help="The names of the input variables, space separated")
     parser.add_argument("-p", "--prev0", type=float, default=0.0,
                         help="Initial value for the prev() operator at time 0 (defaults to 0.0)")
-    parser.add_argument("-t", "--threshold", type=float, default=100.0,
-                        help="Requirement repair threshold: repair if correctness % < threshold (defaults to 100)")
     parser.add_argument("-i", "--iterations", type=int, default=10,
                         help="The number of iterations the approach tries when repairing, defaults to 10")
     args = parser.parse_args()
@@ -59,7 +57,7 @@ if __name__ == "__main__":
 
     # Perform REPAIR
     start_time = time.time()
-    repaired_req = a.repair(args.threshold)
+    repaired_req = a.repair()
     elapsed = time.time() - start_time
     print(a.init_requirement.to_str(suite))
     if repaired_req is not None:

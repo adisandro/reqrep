@@ -10,8 +10,8 @@ class TransformationApproach(Approach):
     def __init__(self, trace_suite, requirement_text, iterations, desirability):
         super().__init__(trace_suite, requirement_text, iterations, desirability)
 
-    def repair(self, threshold):
-        to_repair = self.init_requirement.correctness["cor"][1] * 100 < threshold
+    def repair(self):
+        to_repair = self.init_requirement.satisfaction_degrees["sd"][1] < 1
         if not to_repair:
             return None
 

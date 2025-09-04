@@ -58,6 +58,6 @@ class Approach(ABC):
         return toolbox
 
     @abstractmethod
-    def repair(self, threshold):
+    def repair(self):
         pass
     
