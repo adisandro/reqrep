@@ -2,12 +2,37 @@
 from repair.fitness.desirability.desirability import SyntacticSimilarity
 import math
 from collections import Counter
-from deap import gp
+from zss import simple_distance, Node
 
 
 class TreeEditDistance(SyntacticSimilarity):
-    def evaluate(self, individual, original) -> float:
-        pass  # to be implemented
+    
+    def __init__(self):
+        super().__init__()
+
+    def tree_to_zss_node(self, tree):
+        # tree is iterable, root is tree[0]
+        def build_subtree(expr, idx=0):
+            node = Node(expr[idx].name) # name is important here
+            arity = expr[idx].arity if hasattr(expr[idx], "arity") else 0
+            next_idx = idx + 1
+            for _ in range(arity):
+                child, next_idx = build_subtree(expr, next_idx)
+                node.addkid(child)
+            return node, next_idx
+        root, _ = build_subtree(tree)
+        return root
+
+    def _get_tree_edit_distance(self, individual, original):
+        node1 = self.tree_to_zss_node(individual)
+        node2 = self.tree_to_zss_node(original)
+        return simple_distance(node1, node2)
+        
+    def evaluate(self, current_req, initial_req):
+        tree_edit_distance = self._get_tree_edit_distance(current_req.merged, initial_req.merged)
+
+        fitness = tree_edit_distance # TODO (MAYBE) improve
+        return fitness
 
 
 class CosineSimilarity(SyntacticSimilarity):
@@ -21,7 +46,7 @@ class CosineSimilarity(SyntacticSimilarity):
 
     def _tree_to_vector(self, tree):
         # Convert a PrimitiveTree into a frequency vector of its nodes.
-        counts = Counter(node.name for node in tree)
+        counts = Counter(node.name for node in tree) # Node names are important for similarity
         return counts
     
     def _get_cosine_similarity(self, individual, original):
@@ -54,11 +79,10 @@ class CosineSimilarity(SyntacticSimilarity):
             return 1.0  # No similarity if one is empty
 
         similarity = dot / (mag1 * mag2)
-        distance = 1 - similarity
-        return distance
+        return similarity
 
     def evaluate(self, current_req, initial_req):
-        # TODO currently using the average distance between the pre and post conditions
-        pre_dist = self._get_cosine_similarity(current_req.pre, initial_req.pre)
-        post_dist = self._get_cosine_similarity(current_req.post, initial_req.post)
-        return (pre_dist + post_dist) / 2
+        cosine_similarity = self._get_cosine_similarity(current_req.merged, initial_req.merged)
+        fitness = 1 - cosine_similarity
+        return fitness
+    

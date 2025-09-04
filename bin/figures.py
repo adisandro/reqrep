@@ -10,7 +10,7 @@ from repair.fitness.correctness.utils import get_trace_correctness
 from repair.fitness.desirability.applicabilitypreservation import SatisfiedTimestepDifference
 from repair.fitness.desirability.desirability import Desirability
 from repair.fitness.desirability.semanticsanity import SamplingBasedSanity
-from repair.fitness.desirability.syntacticsimilarity import CosineSimilarity
+from repair.fitness.desirability.syntacticsimilarity import CosineSimilarity, TreeEditDistance
 from utils import REQUIREMENTS, INPUT_VARIABLES
 
 OUTPUT_FOLDER = "output/figures2"
@@ -104,7 +104,8 @@ def process_traces(folder_path, requirement, in_variable_names, ids_to_include=N
     d = Desirability(
         trace_suite=traceSuite,
         semantic=SamplingBasedSanity(n_samples=10),
-        syntactic=CosineSimilarity(),
+        # syntactic=CosineSimilarity(),
+        syntactic=TreeEditDistance(),
         applicability=SatisfiedTimestepDifference(),
         weights=[1.0, 1.0, 1.0]
     )
