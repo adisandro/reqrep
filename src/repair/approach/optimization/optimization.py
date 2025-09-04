@@ -49,7 +49,7 @@ class OptimizationApproach(Approach):
                 ind_post = ind
             r = Requirement("Candidate", self.toolbox, self.pset_pre, ind_pre, self.pset_post, ind_post)
             ind.fitness.values = (max(0, -r.satisfaction_degrees[f"{target}_sd"][0]), r.desirability["des"])
-            # TODO check above...
+            # TODO Aren, check above...
 
     def _repair(self, target):
         toolbox = self.toolbox
@@ -117,6 +117,7 @@ class OptimizationApproach(Approach):
             return None
 
         # Run the repair: rank by correctness, then desirability
+        # TODO Aren, check for potential problem here
         best_repaired_pre = self.init_requirement.pre
         if to_repair_pre:
             hof_repaired = self._repair("pre")
