@@ -22,16 +22,21 @@ class TreeEditDistance(SyntacticSimilarity):
             return node, next_idx
         root, _ = build_subtree(tree)
         return root
+    
+    def tree_size(self, node):
+        return 1 + sum(self.tree_size(child) for child in node.children)
 
     def _get_tree_edit_distance(self, individual, original):
         node1 = self.tree_to_zss_node(individual)
         node2 = self.tree_to_zss_node(original)
-        return simple_distance(node1, node2)
+        return node1, node2, simple_distance(node1, node2)
         
     def evaluate(self, current_req, initial_req):
-        tree_edit_distance = self._get_tree_edit_distance(current_req.merged, initial_req.merged)
+        node1, node2, tree_edit_distance = self._get_tree_edit_distance(current_req.merged, initial_req.merged)
 
-        fitness = float(tree_edit_distance) # TODO (MAYBE) improve
+        max_edit_dist = max(self.tree_size(node1), self.tree_size(node2))
+        fitness = float(tree_edit_distance) / max_edit_dist if max_edit_dist > 0 else 0.0
+        assert fitness >= 0.0 and fitness <= 1.0
         return fitness
 
 
