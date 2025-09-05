@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser
+import random
 
 from repair.fitness.desirability.satisfactionmagnitude import TraceSuiteSatisfactionMagnitude
 from utils import REQUIREMENTS
@@ -52,17 +53,28 @@ if __name__ == "__main__":
     )
 
     # Define APPROACH
-    agg_strat = "weighted_sum" # "weighted_sum" or "no_aggregation"
+    agg_strat = "no_aggregation" # "weighted_sum" or "no_aggregation"
     a = OptimizationApproach(suite, req_text, args.iterations, d, agg_strat)
     # a = TransformationApproach(suite, req_text, args.iterations, d)
 
     # Perform REPAIR
     start_time = time.time()
-    repaired_req = a.repair()
+    all_repaired_reqs = a.repair()
     elapsed = time.time() - start_time
-    print(a.init_requirement.to_str(suite))
-    if repaired_req is not None:
-        print(repaired_req.to_str(suite))
-    else:
+
+    print(type(all_repaired_reqs[0]))
+
+    # Save stats and print results
+    if all_repaired_reqs is None:
         print("No repair necessary")
+        exit()
+    
+    with open("output/repaired_requirements.txt", "w", encoding="utf-8") as f:
+        f.write(f"Repair time: {elapsed:.2f} seconds\n\n")
+        for req in all_repaired_reqs:
+            f.write(req.to_str(suite) + "\n\n")
+
+    repaired_req = all_repaired_reqs[0]
+    print(a.init_requirement.to_str(suite))
+    print(repaired_req.to_str(suite))
     print(f"Repair time: {elapsed:.2f} seconds")

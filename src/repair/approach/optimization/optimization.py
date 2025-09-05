@@ -157,13 +157,14 @@ class OptimizationApproach(Approach):
         if not to_repair:
             return None
 
-        # Run the repair: rank by correctness, then desirability
+        # Run the repair: rank by correctness
         hof_repaired = self._repair()
-        best_repaired_hof_entry = min(hof_repaired, key=lambda x: (x.fitness.values[0]))
-        
-        best_repaired = Requirement(name="Repaired", toolbox=self.toolbox,
-                                    pset_pre=self.pset_pre, pset_post=self.pset_post,
-                                    precond=best_repaired_hof_entry.pre,
-                                  postcond=best_repaired_hof_entry.post)
+        sorted_hof_repaired = sorted(hof_repaired, key=lambda x: (x.fitness.values[0]))
 
-        return best_repaired
+        sorted_hof_requirements = []
+        for i, ind in enumerate(sorted_hof_repaired):
+            sorted_hof_requirements.append(Requirement(name=f"Repaired_{i}", toolbox=self.toolbox,
+                                        pset_pre=self.pset_pre, pset_post=self.pset_post,
+                                        precond=ind.pre, postcond=ind.post))
+        
+        return sorted_hof_requirements
