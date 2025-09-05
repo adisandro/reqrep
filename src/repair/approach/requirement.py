@@ -14,9 +14,7 @@ class Requirement:
         self.toolbox = toolbox
         self.pre = self._set_condition(pset_pre, precond)
         self.post = self._set_condition(pset_post, postcond)
-
-        implies_primitive = pset_post.mapping['implies']
-        self.merged = gp.PrimitiveTree([implies_primitive] + list(self.pre) + list(self.post))
+        self.implies_primitive = pset_post.mapping['implies']
 
     def _set_condition(self, pset, condition):
         return gp.PrimitiveTree.from_string(condition, pset) if isinstance(condition, str)\
@@ -29,7 +27,11 @@ class Requirement:
             return self.post
         else:
             raise ValueError("Invalid pre_post_id")
-        
+
+    @cached_property
+    def merged(self):
+        return gp.PrimitiveTree([self.implies_primitive] + list(self.pre) + list(self.post))
+
     @cached_property
     def satisfaction_degrees(self):
         return self.toolbox.get_sat_deg(self.pre, self.post)
