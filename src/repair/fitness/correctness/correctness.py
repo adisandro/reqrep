@@ -1,10 +1,12 @@
 import math
 from collections import deque
+import logging
 
 from deap import gp
 from repair.grammar.grammar import ROBUSTNESS_FN_MAP
 import traceback
 
+logger = logging.getLogger("gp_logger")
 
 def is_within_margin(a, b):
     return math.isclose(a, b, abs_tol=1e-6)
@@ -37,6 +39,7 @@ def get_satisfaction_degrees(precondition, postcondition, trace_suite):
         all_nodes_pre = deque(iter(precondition))
         all_nodes_post = deque(iter(postcondition))
         # For each trace, ...
+        logger.info(f"    Trace checking:  {precondition}   =>   {postcondition}")
         for trace in trace_suite.traces:
             count_total += len(trace.items)
             # ... at each time stamp, ...

@@ -68,7 +68,7 @@ class Desirability:
         sem_val = 0.0 if self.weights[1] == 0 else self.semantic.evaluate(self.trace_suite, requirement)
         syn_val = 0.0 if self.weights[2] == 0 else self.syntactic.evaluate(requirement, self.initial_requirement)
         app_val = 0.0 if self.weights[3] == 0 else self.applicability.evaluate(requirement, self.initial_requirement)
-        return mag_val,sem_val, syn_val, app_val
+        return mag_val, sem_val, syn_val, app_val
 
     def evaluate(self, requirement) -> float:
         des = self.get_desirability_tuple(requirement)

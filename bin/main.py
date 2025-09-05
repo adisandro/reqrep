@@ -52,7 +52,8 @@ if __name__ == "__main__":
     )
 
     # Define APPROACH
-    a = OptimizationApproach(suite, req_text, args.iterations, d)
+    agg_strat = "weighted_sum" # "weighted_sum" or "no_aggregation"
+    a = OptimizationApproach(suite, req_text, args.iterations, d, agg_strat)
     # a = TransformationApproach(suite, req_text, args.iterations, d)
 
     # Perform REPAIR

@@ -1,8 +1,10 @@
+import time
 from repair.approach.approach import Approach
 from tqdm import tqdm
 import random
 import logging
 from deap import base, creator, gp, tools
+from repair.approach.optimization.customparetofront import LightweightParetoFront
 from repair.approach.requirement import Requirement
 from repair.approach.optimization import expressiongenerator
 import repair.grammar.utils as grammar_utils
@@ -12,14 +14,24 @@ logger = logging.getLogger("gp_logger")
 
 class OptimizationApproach(Approach):
 
-    def __init__(self, trace_suite, requirement_text, iterations, desirability):
+    def __init__(self, trace_suite, requirement_text, iterations, desirability, fitness_aggregation="weighted_sum"):
         super().__init__(trace_suite, requirement_text, iterations, desirability)
 
+        self.set_fitness_aggregation(fitness_aggregation)
         self._init_creator()
         self._add_to_toolbox()
 
+    def set_fitness_aggregation(self, fitness_aggregation):
+        allowed = {"weighted_sum", "no_aggregation"}
+        if fitness_aggregation not in allowed:
+            raise ValueError(f"Invalid fitness aggregation method: {fitness_aggregation}")
+        self.fitness_aggregation = fitness_aggregation
+
     def _init_creator(self):
-        creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0))  # Minimize both objectives
+        if self.fitness_aggregation == "weighted_sum":
+            creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0))
+        elif self.fitness_aggregation == "no_aggregation":
+            creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0, -1.0, -1.0, -1.0))
         creator.create("Individual", Requirement, fitness=creator.FitnessMin)
 
     def _add_to_toolbox(self):
@@ -51,7 +63,10 @@ class OptimizationApproach(Approach):
     def _repair(self):
 
         def _set_ind_fitness(ind):
-            ind.fitness.values = (max(0, -ind.satisfaction_degrees["sd"][0]), ind.desirability["des"])
+            if self.fitness_aggregation == "weighted_sum":
+                ind.fitness.values = (ind.correctness, ind.desirability["des"])
+            elif self.fitness_aggregation == "no_aggregation":
+                ind.fitness.values = (ind.correctness,) + ind.desirability["tuple"]
 
         toolbox = self.toolbox
         pop = toolbox.population(n=9) # Random initial population # TODO adjust number
@@ -59,7 +74,7 @@ class OptimizationApproach(Approach):
                                   pset_post=self.pset_post, precond=toolbox.clone(self.init_requirement.pre),
                                   postcond=toolbox.clone(self.init_requirement.post))
         pop.append(orig) # Plus original requirement
-        hof = tools.ParetoFront() # Hall of Fame, for keeping track of the best individuals
+        hof = LightweightParetoFront() # Hall of Fame, for keeping track of the best individuals
 
         # (Initial) Evaluation
         for ind in pop:
@@ -68,6 +83,10 @@ class OptimizationApproach(Approach):
 
         # Evolutionary loop: run for a fixed number of generations
         for gen in tqdm(range(self.iterations)):
+            start_time = time.time()
+            logger.info(f"  Generation {gen}:")
+
+            logger.info("  Creating POPULATION ...")
             # offspring = toolbox.select(pop, len(pop)) # Selection
             # offspring = list(map(toolbox.clone, offspring))  # Deep copy the individuals
             offspring = []
@@ -77,9 +96,10 @@ class OptimizationApproach(Approach):
                                               postcond=toolbox.clone(ind.post))
                 ind_copy.fitness.values = ind.fitness.values
                 offspring.append(ind_copy)
+            logger.info(f"  ... population created ({time.time() - start_time:.2f}s)")
+            start_time = time.time()
 
-
-            # Crossover
+            logger.info("  CROSSOVER application ...")
             for child1, child2 in zip(offspring[::2], offspring[1::2]):
                 mated = False
                 if random.random() < 0.5:
@@ -91,8 +111,10 @@ class OptimizationApproach(Approach):
                 if mated:
                     del child1.fitness.values
                     del child2.fitness.values
+            logger.info(f"  ... crossover applied ({time.time() - start_time:.2f}s)")
+            start_time = time.time()
 
-            # Mutation
+            logger.info("  MUTATION application ...")
             for mutant in offspring:
                 mutated = False
                 if random.random() < 0.3:
@@ -103,21 +125,25 @@ class OptimizationApproach(Approach):
                     toolbox.mutate_post(mutant.post)
                 if mutated:
                     del mutant.fitness.values
+            logger.info(f"  ... mutation applied ({time.time() - start_time:.2f}s)")
+            start_time = time.time()
 
-            # (Re-)evaluation: only individuals whose fitness has changed
+            logger.info(f"  RE-EVALUATION of individuals with invalid fitness ...")
             for ind in offspring:
                 if not ind.fitness.valid:
                     _set_ind_fitness(ind)
+            logger.info(f"  ... individuals re-evaluated ({time.time() - start_time:.2f}s)")
+            start_time = time.time()
 
-            # Selection
+            logger.info("  SELECTION + HoF UPDATE")
             pop = toolbox.select(pop + offspring, len(pop))
-            hof.update(pop) # Update the best-so-far individual
+            hof.update(pop)
+            logger.info(f"  HoF updated ({time.time() - start_time:.2f}s)")
 
             logger.info(f"Generation {gen}: Pareto size = {len(hof)}")
 
             # If an individual is perfectly correct and perfectly desirable
-            # stop early. This is theoretically impossible for a faulty input requirement
-            if any(f_cor == 0 and f_des == 0 for f_cor, f_des in (ind.fitness.values for ind in pop)):
+            if any(all(f == 0 for f in ind.fitness.values) for ind in pop):
                 break
 
         return hof
@@ -133,7 +159,11 @@ class OptimizationApproach(Approach):
 
         # Run the repair: rank by correctness, then desirability
         hof_repaired = self._repair()
-        best_repaired = min(hof_repaired, key=lambda x: (x.fitness.values[0], x.fitness.values[1]))
-        best_repaired.name = "Repaired"
+        best_repaired_hof_entry = min(hof_repaired, key=lambda x: (x.fitness.values[0]))
+        
+        best_repaired = Requirement(name="Repaired", toolbox=self.toolbox,
+                                    pset_pre=self.pset_pre, pset_post=self.pset_post,
+                                    precond=best_repaired_hof_entry.pre,
+                                  postcond=best_repaired_hof_entry.post)
 
         return best_repaired

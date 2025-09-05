@@ -31,7 +31,7 @@ class TreeEditDistance(SyntacticSimilarity):
     def evaluate(self, current_req, initial_req):
         tree_edit_distance = self._get_tree_edit_distance(current_req.merged, initial_req.merged)
 
-        fitness = tree_edit_distance # TODO (MAYBE) improve
+        fitness = float(tree_edit_distance) # TODO (MAYBE) improve
         return fitness
 
 
