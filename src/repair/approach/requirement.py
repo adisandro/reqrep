@@ -53,19 +53,19 @@ class Requirement:
         merged_infix = grammar_utils.to_infix(self.merged, trace_suite)
 
         # correctness
-        sd_delta, sd_perc, sd_count = self.satisfaction_degrees["sd"]
-        sd_pre_delta, sd_pre_perc, sd_pre_count = self.satisfaction_degrees["pre_sd"]
-        sd_post_delta, sd_post_perc, sd_post_count = self.satisfaction_degrees["post_sd"]
+        impl_sd, impl_item_perc, impl_item_viol, impl_t_perc, impl_trace_viol = self.satisfaction_degrees["sd"]
+        pre_sd,  pre_item_perc,  pre_item_viol,  pre_t_perc,  pre_trace_viol  = self.satisfaction_degrees["pre_sd"]
+        post_sd, post_item_perc, post_item_viol, post_t_perc, post_trace_viol = self.satisfaction_degrees["post_sd"]
 
         return (
             f"{self.name}:\n"
             f"\t{merged_infix}\n"
             f"\t{self.merged}\n"
-            f"\tSAT DEG - Pre=>Post:    Δ = {sd_delta}, % = {sd_perc*100}, # = {sd_count}\n"
-            f"\tSAT DEG - Pre:          Δ = {sd_pre_delta}, % = {sd_pre_perc*100}, # = {sd_pre_count}\n"
-            f"\tSAT DEG - Post:         Δ = {sd_post_delta}, % = {sd_post_perc*100}, # = {sd_post_count}\n"
-
-            f"\tFITNESS - Correctness:  {self.correctness}\n"
-            f"\tFITNESS - Desirability: {[f'{i}={round(v, 3)}' for i, v in zip(DIMENSION_IDS, self.desirability['tuple'])]}\n"
-            f"\tFITNESS - Desirability: {self.desirability['des']}\n")
+            f"\tSAT DEG - Pre=>Post: Δ = {impl_sd:<8.3f}, %_it_suc = {impl_item_perc*100:<8.3f}, #_it_vio = {impl_item_viol:<5}, %_tr_suc = {impl_t_perc*100:<8.3f}, #_tr_vio = {impl_trace_viol:<5}\n"
+            f"\tSAT DEG - Pre:       Δ = {pre_sd:<8.3f}, %_it_suc = {pre_item_perc*100:<8.3f}, #_it_vio = {pre_item_viol:<5}, %_tr_suc = {pre_t_perc*100:<8.3f}, #_tr_vio = {pre_trace_viol:<5}\n"
+            f"\tSAT DEG - Post:      Δ = {post_sd:<8.3f}, %_it_suc = {post_item_perc*100:<8.3f}, #_it_vio = {post_item_viol:<5}, %_tr_suc = {post_t_perc*100:<8.3f}, #_tr_vio = {post_trace_viol:<5}\n"
+            f"\tFITNESS - Correctness:   {self.correctness:<8.3f}\n"
+            f"\tFITNESS - Desirability:  {[f'{i}={v:.3f}' for i, v in zip(DIMENSION_IDS, self.desirability['tuple'])]}\n"
+            f"\tFITNESS - Desirability:  {self.desirability['des']:.3f}\n"
+        )
 

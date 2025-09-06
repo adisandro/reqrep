@@ -21,66 +21,71 @@ def get_fitness_correctness(satisfaction_degrees=None):
 
 def get_satisfaction_degrees(precondition, postcondition, trace_suite):
 
+    def is_sat(sd):
+        return sd >= 0.0 or is_within_margin(sd, 0.0)
+
     # print("Running get_satisfaction_degrees on: ", precondition, " => ", postcondition)
 
-    ts_delta_cor = float("inf")
-    ts_delta_pre_cor = float("inf")
-    ts_delta_post_cor = float("inf")
+    ts_pre_sd = float("inf")
+    ts_post_sd = float("inf")
+    ts_impl_sd = float("inf")
 
-    t_delta_cor = float("inf")
-    t_delta_pre_cor = float("inf")
-    t_delta_post_cor = float("inf")
-    count_cor = 0
-    count_pre_cor = 0
-    count_post_cor = 0
-    count_total = 0
+    t_count_pre_sat = 0
+    t_count_post_sat = 0
+    t_count_impl_sat = 0
+    t_count_total = len(trace_suite.traces)
+
+    item_count_pre_sat = 0
+    item_count_post_sat = 0
+    item_count_impl_sat = 0
+    item_count_total = 0
     try:
-        # TODO somehow cache the correctness outcomes of pre- and post-
         all_nodes_pre = deque(iter(precondition))
         all_nodes_post = deque(iter(postcondition))
         # For each trace, ...
         logger.info(f"    Trace checking:  {precondition}   =>   {postcondition}")
-        for trace in trace_suite.traces:
-            count_total += len(trace.items)
+        for trace in trace_suite.traces[:10]:
+            item_count_total += len(trace.items)
+
+            t_pre_sd = float("inf")
+            t_post_sd = float("inf")
+            t_impl_sd = float("inf")
+
             # ... at each time stamp, ...
             for i, item in enumerate(trace.items):
                 # ... does PRE hold? ...
-                # pre_cor = max(0.0, eval_nodes(deque(all_nodes_pre), i, item))
-                pre_cor = eval_nodes(deque(all_nodes_pre), i, item)
-                # pre_sat = is_within_margin(pre_cor, 0.0)
-                pre_sat = pre_cor >= 0.0 or is_within_margin(pre_cor, 0.0)
-                count_pre_cor += 1 if pre_sat else 0
+                item_pre_sd = eval_nodes(deque(all_nodes_pre), i, item)
+                item_count_pre_sat += 1 if is_sat(item_pre_sd) else 0
 
-                # delta_pre_cor += pre_cor
-                t_delta_pre_cor = min(t_delta_pre_cor, pre_cor)
-                ts_delta_pre_cor = min(ts_delta_pre_cor, pre_cor)
+                t_pre_sd = min(t_pre_sd, item_pre_sd)
+                ts_pre_sd = min(ts_pre_sd, item_pre_sd)
 
                 # ... does POST hold?
-                # post_cor = max(0.0, eval_nodes(deque(all_nodes_post), i, item))
-                post_cor = eval_nodes(deque(all_nodes_post), i, item)
-                # post_sat = is_within_margin(post_cor, 0.0)
-                post_sat = post_cor >= 0.0 or is_within_margin(post_cor, 0.0)
-                count_post_cor += 1 if post_sat else 0
+                item_post_sd = eval_nodes(deque(all_nodes_post), i, item)
+                item_count_post_sat += 1 if is_sat(item_post_sd) else 0
 
-                # delta_post_cor += post_cor
-                t_delta_post_cor = min(t_delta_post_cor, post_cor)
-                ts_delta_post_cor = min(ts_delta_post_cor, post_cor)
+                t_post_sd = min(t_post_sd, item_post_sd)
+                ts_post_sd = min(ts_post_sd, item_post_sd)
 
                 # ... does PRE=>POST hold?
-                t_cor = max(-pre_cor, post_cor)
-                # t_sat = is_within_margin(t_cor, 0.0)
-                t_sat = t_cor >= 0.0 or is_within_margin(t_cor, 0.0)
-                count_cor += 1 if t_sat else 0
-                # print(f"{t_cor:.2f} = min(-({pre_cor:.2f}), {post_cor:.2f})")
-                t_delta_cor = min(t_delta_cor, t_cor)
-                ts_delta_cor = min(ts_delta_cor, t_cor)
+                item_impl_sd = max(-item_pre_sd, item_post_sd)
+                item_count_impl_sat += 1 if is_sat(item_impl_sd) else 0
+
+                t_impl_sd = min(t_impl_sd, item_impl_sd)
+                ts_impl_sd = min(ts_impl_sd, item_impl_sd)
+
+            # Measure trace-level stats
+            t_count_pre_sat += 1 if is_sat(t_pre_sd) else 0
+            t_count_post_sat += 1 if is_sat(t_post_sd) else 0
+            t_count_impl_sat += 1 if is_sat(t_impl_sd) else 0
+
     except Exception as e:
         raise ValueError(f"Error evaluating: {precondition} => {postcondition} | {e}")
 
     out = {
-        "sd": (ts_delta_cor, count_cor / count_total, count_total - count_cor),
-        "pre_sd": (ts_delta_pre_cor, count_pre_cor / count_total, count_total - count_pre_cor),
-        "post_sd": (ts_delta_post_cor, count_post_cor / count_total, count_total - count_post_cor),
+        "sd": (ts_impl_sd, item_count_impl_sat / item_count_total, item_count_total - item_count_impl_sat, t_count_impl_sat/t_count_total, t_count_total - t_count_impl_sat),
+        "pre_sd": (ts_pre_sd, item_count_pre_sat / item_count_total, item_count_total - item_count_pre_sat, t_count_pre_sat/t_count_total, t_count_total - t_count_pre_sat),
+        "post_sd": (ts_post_sd, item_count_post_sat / item_count_total, item_count_total - item_count_post_sat, t_count_post_sat/t_count_total, t_count_total - t_count_post_sat),
     }
     return out
 

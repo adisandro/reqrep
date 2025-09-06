@@ -7,7 +7,6 @@ from deap import base, creator, gp, tools
 from repair.approach.optimization.customparetofront import LightweightParetoFront
 from repair.approach.requirement import Requirement
 from repair.approach.optimization import expressiongenerator
-import repair.grammar.utils as grammar_utils
 
 logger = logging.getLogger("gp_logger")
 
@@ -135,10 +134,26 @@ class OptimizationApproach(Approach):
             logger.info(f"  ... individuals re-evaluated ({time.time() - start_time:.2f}s)")
             start_time = time.time()
 
-            logger.info("  SELECTION + HoF UPDATE")
+            logger.info("  SELECTION + UPDATE of HoF ...")
             pop = toolbox.select(pop + offspring, len(pop))
-            hof.update(pop)
-            logger.info(f"  HoF updated ({time.time() - start_time:.2f}s)")
+
+            # Deduplication
+            unique_pop = []
+            seen = set()
+            hof_genomes = set((str(ind.pre), str(ind.post)) for ind in hof)
+
+            for ind in pop:
+                genome = (str(ind.pre), str(ind.post))
+                if genome not in seen and genome not in hof_genomes:
+                    seen.add(genome)
+                    unique_pop.append(ind)
+
+            hof.update(unique_pop)
+            # hof.update(pop)
+            # for ind in hof:
+            #     print(f"  HoF ind: {ind.pre} => {ind.post}, fitness: {ind.fitness.values}")
+
+            logger.info(f"  ... HoF updated ({time.time() - start_time:.2f}s)")
 
             logger.info(f"Generation {gen}: Pareto size = {len(hof)}")
 
@@ -149,9 +164,6 @@ class OptimizationApproach(Approach):
         return hof
 
     def repair(self):
-        # TODO: For now, I am only considering the single best repaired individual
-        # TODO: wrt. correctness. extend this to support multiple repaired individuals (?)
-
         # Do we need to repair?
         to_repair = self.init_requirement.satisfaction_degrees["sd"][1] < 1
         if not to_repair:
@@ -166,5 +178,5 @@ class OptimizationApproach(Approach):
             sorted_hof_requirements.append(Requirement(name=f"Repaired_{i}", toolbox=self.toolbox,
                                         pset_pre=self.pset_pre, pset_post=self.pset_post,
                                         precond=ind.pre, postcond=ind.post))
-        
+
         return sorted_hof_requirements

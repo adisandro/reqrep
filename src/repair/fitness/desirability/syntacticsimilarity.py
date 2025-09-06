@@ -2,7 +2,7 @@
 from repair.fitness.desirability.desirability import SyntacticSimilarity
 import math
 from collections import Counter
-from zss import simple_distance, Node
+from zss import simple_distance, Node, distance
 
 
 class TreeEditDistance(SyntacticSimilarity):
@@ -29,14 +29,16 @@ class TreeEditDistance(SyntacticSimilarity):
     def _get_tree_edit_distance(self, individual, original):
         node1 = self.tree_to_zss_node(individual)
         node2 = self.tree_to_zss_node(original)
-        return node1, node2, simple_distance(node1, node2)
+        return node1, node2, simple_distance(node1, node2, return_operations=True)
         
     def evaluate(self, current_req, initial_req):
-        node1, node2, tree_edit_distance = self._get_tree_edit_distance(current_req.merged, initial_req.merged)
+        node1, node2, (zss_ted, operations) = self._get_tree_edit_distance(current_req.merged, initial_req.merged)
+        tree_edit_distance = sum(1 for op in operations if op.type != 3)
 
         max_edit_dist = max(self.tree_size(node1), self.tree_size(node2))
-        fitness = float(tree_edit_distance) / max_edit_dist if max_edit_dist > 0 else 0.0
-        assert fitness >= 0.0 and fitness <= 1.0
+        fitness = float(tree_edit_distance / max_edit_dist) if max_edit_dist > 0 else 0.0
+        assert fitness >= 0.0 and fitness <= 1.0, f"Fitness out of range: {fitness} | current: {current_req.merged}, initial: {initial_req.merged}"
+        assert zss_ted >= tree_edit_distance
         return fitness
 
 
