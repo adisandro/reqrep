@@ -19,10 +19,6 @@ class SamplingBasedSanity(SemanticSanity):
             0.0 → candidate has variable correctness across inputs (not tautology/contradiction)
             1.0 → candidate is tautology or contradiction (correctness constant)
         """
-        # base_cor_pre = None
-        # all_same_pre = True
-        # base_cor_post = None
-        # all_same_post = True
         base_cor_merged = None
         all_same_merged = True
 
@@ -32,22 +28,6 @@ class SamplingBasedSanity(SemanticSanity):
                 continue  # skip traces that are too short
             i = random.randint(1, len(trace.items) - 1)
             item = trace.items[i]
-
-        #     cor_pre = eval_tree(requirement.pre, i, item)
-        #     if base_cor_pre is None:
-        #         base_cor_pre = cor_pre
-        #     elif not is_within_margin(cor_pre, base_cor_pre):
-        #         all_same_pre = False
-        #         if not all_same_pre and not all_same_post:
-        #             break
-
-        #     cor_post = eval_tree(requirement.post, i, item)
-        #     if base_cor_post is None:
-        #         base_cor_post = cor_post
-        #     elif not is_within_margin(cor_post, base_cor_post):
-        #         all_same_post = False
-        #         if not all_same_pre and not all_same_post:
-        #             break
 
             cor_merged = eval_tree(requirement.merged, i, item)
             if base_cor_merged is None:
@@ -72,37 +52,53 @@ class VarTypeSanity(SemanticSanity):
         node = remaining_nodes.popleft()
         if isinstance(node, gp.Terminal):
             value = node.value
-            # Constant (e.g., fixed or random constant)
+            # Number
             if isinstance(value, (float, int)):
-                return "*" # wildcard
-            # Variable (named terminal)
+                if isinstance(node.name, str):
+                    return node.name  # Random (typed) number
+                return "*"  # Fixed number
+            # Variable
             if value.startswith("_"):  # Variable from the prev primitive (starts with underscore)
-                return trace_suite.variables[value[1:]]
-            return trace_suite.variables[value]
+                return trace_suite.variables[value[1:]]["unit"]
+            return trace_suite.variables[value]["unit"]
         elif isinstance(node, gp.Primitive):
-            if node.name == "dur":  # dur(time1, time2, Bool)
+            # dur(time1, time2, Bool)
+            if node.name == "dur":
                 # pop times, eval Bool
                 remaining_nodes.popleft()
                 remaining_nodes.popleft()
                 return self.evaluate_nodes(trace_suite, remaining_nodes)
-            if node.name == "prev":  # prev(_var)
+            # prev(_var)
+            if node.name == "prev":
                 return self.evaluate_nodes(trace_suite, remaining_nodes)
             children = [self.evaluate_nodes(trace_suite, remaining_nodes) for _ in range(node.arity)]
-            if node.name in {"not", "and", "or"}:
-                return max(children)  # return worst desirability value
-            children_no_num = [c for c in children if c != "*"]  # filter out numbers
+            # not, and, or
+            if node.name in {"not", "and", "or", "implies"}:
+                return max(children)  # worst desirability value
+            # float args functions
+            all_numbers = True
+            children_units = []
+            for child in children:
+                if child == "*":
+                    continue
+                if child.startswith("rand_float_"):
+                    child = child.split("rand_float_")[1]
+                else:
+                    all_numbers = False
+                children_units.append(child)
             if node.name in {"add", "sub"}:
-                if len(children_no_num) == 0 or any(c != children_no_num[0] for c in children_no_num):
-                    return "TYPE_MISMATCH"
-                return children_no_num[0]  # return a type
+                if all_numbers or any(u != children_units[0] for u in children_units):
+                    return "UNIT_MISMATCH"
+                return children_units[0]  # return unit
             # return desirability value
-            if len(children_no_num) == 0 or any(c == "TYPE_MISMATCH" or c != children_no_num[0] for c in children_no_num):
+            if all_numbers or any(u == "UNIT_MISMATCH" or u != children_units[0] for u in children_units):
                 return 1.0
             return 0.0
         else:
             raise TypeError(f"Unexpected node type: {node}")
 
     def evaluate(self, trace_suite, requirement):
+        #TODO can we check for same var comparison?
         return max(self.evaluate_nodes(trace_suite, deque(iter(requirement.pre))),
                    self.evaluate_nodes(trace_suite, deque(iter(requirement.post))))
 

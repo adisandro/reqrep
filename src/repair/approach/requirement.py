@@ -16,9 +16,9 @@ class Requirement:
         self.post = self._set_condition(pset_post, postcond)
         self.implies_primitive = pset_post.mapping['implies']
 
-    def _set_condition(self, pset, condition):
-        return gp.PrimitiveTree.from_string(condition, pset) if isinstance(condition, str)\
-            else condition
+    @staticmethod
+    def _set_condition(pset, condition):
+        return gp.PrimitiveTree.from_string(condition, pset) if isinstance(condition, str) else condition
 
     def get_condition(self, pre_post_id):
         if pre_post_id == 0:

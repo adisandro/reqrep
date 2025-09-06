@@ -13,8 +13,9 @@ logger = logging.getLogger("gp_logger")
 
 class OptimizationApproach(Approach):
 
-    def __init__(self, trace_suite, requirement_text, iterations, desirability, fitness_aggregation="weighted_sum"):
-        super().__init__(trace_suite, requirement_text, iterations, desirability)
+    def __init__(self, trace_suite, requirement_text, iterations, numbers_factor, desirability,
+                 fitness_aggregation="weighted_sum"):
+        super().__init__(trace_suite, requirement_text, iterations, numbers_factor, desirability)
 
         self.set_fitness_aggregation(fitness_aggregation)
         self._init_creator()

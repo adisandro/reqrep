@@ -9,13 +9,13 @@ ROBUSTNESS_FN_MAP = {}
 DISPLAY_MAP = {}
 TERMINAL_NAMES = set()
 
-def get_gp_primitive_sets(trace_suite):
+def get_gp_primitive_sets(trace_suite, numbers_factor):
     global GRAMMAR_FUNCTIONS, GRAMMAR_STATIC_TERMINALS, GRAMMAR_EPHEMERAL_TERMINALS, ROBUSTNESS_FN_MAP, DISPLAY_MAP,\
            TERMINAL_NAMES
 
     GRAMMAR_FUNCTIONS = GrammarFunction.create_functions()
     GRAMMAR_STATIC_TERMINALS = GrammarTerminal.create_terminals(trace_suite)
-    GRAMMAR_EPHEMERAL_TERMINALS = GrammarTerminal.create_ephemerals(trace_suite)
+    GRAMMAR_EPHEMERAL_TERMINALS = GrammarTerminal.create_ephemerals(trace_suite, numbers_factor)
 
     pset_pre = gp.PrimitiveSetTyped("PRE", [float] * len(trace_suite.in_variable_names), Bool)
     pset_post = gp.PrimitiveSetTyped("POST", [float] * len(trace_suite.variable_names), Bool)

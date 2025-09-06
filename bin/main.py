@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser
-import random
 
 from repair.fitness.desirability.satisfactionmagnitude import TraceSuiteSatisfactionMagnitude
 from utils import REQUIREMENTS
@@ -33,6 +32,9 @@ if __name__ == "__main__":
                         help="Initial value for the prev() operator at time 0 (defaults to 0.0)")
     parser.add_argument("-i", "--iterations", type=int, default=10,
                         help="The number of iterations the approach tries when repairing, defaults to 10")
+    parser.add_argument("-n", "--numbers", type=float, default=1.2,
+                        help="When generating numbers, each variable has a window [min, max] based on the values"
+                             "seen in the traces; this widens/shrinks the window by a factor, defaults to 1.2")
     args = parser.parse_args()
     utils.setup_logger("repair.log")
 
@@ -59,8 +61,8 @@ if __name__ == "__main__":
 
     # Define APPROACH
     agg_strat = "no_aggregation" # "weighted_sum" or "no_aggregation"
-    a = OptimizationApproach(suite, req_text, args.iterations, d, agg_strat)
-    # a = TransformationApproach(suite, req_text, args.iterations, d)
+    a = OptimizationApproach(suite, req_text, args.iterations, args.numbers, d, agg_strat)
+    # a = TransformationApproach(suite, req_text, args.iterations, args.numbers, d)
 
     # Perform REPAIR
     start_time = time.time()

@@ -7,8 +7,8 @@ from repair.approach.transformation.catalog import ChangeConstant
 
 class TransformationApproach(Approach):
 
-    def __init__(self, trace_suite, requirement_text, iterations, desirability):
-        super().__init__(trace_suite, requirement_text, iterations, desirability)
+    def __init__(self, trace_suite, requirement_text, iterations, numbers_factor, desirability):
+        super().__init__(trace_suite, requirement_text, iterations, numbers_factor, desirability)
 
     def repair(self):
         to_repair = self.init_requirement.satisfaction_degrees["sd"][1] < 1

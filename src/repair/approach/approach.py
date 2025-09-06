@@ -16,19 +16,16 @@ class Approach(ABC):
     """
 
     def __init__(self, trace_suite: TraceSuite, requirement_text: tuple[str, str], iterations: int,
-                 desirability: Desirability=None):
+                 numbers_factor: float, desirability: Desirability=None):
     
         self.trace_suite = trace_suite
         self.iterations = iterations
         self.desirability = desirability
 
-        self.pset_pre, self.pset_post= grammar.get_gp_primitive_sets(self.trace_suite)
+        self.pset_pre, self.pset_post= grammar.get_gp_primitive_sets(self.trace_suite, numbers_factor)
         self.toolbox = self.init_toolbox()
-
-        # Process initial requirement
-        self.init_requirement = Requirement("Initial", self.toolbox,
-                        self.pset_pre, requirement_text[0],
-                        self.pset_post, requirement_text[1])
+        self.init_requirement = Requirement("Initial", self.toolbox, self.pset_pre, requirement_text[0],
+                                            self.pset_post, requirement_text[1])
 
         # Handle desirability
         if self.desirability is not None:
@@ -48,10 +45,7 @@ class Approach(ABC):
         toolbox.register("compile_post", gp.compile, pset=self.pset_post)
 
         # (3) Metrics
-        toolbox.register("get_sat_deg", correctness.get_satisfaction_degrees,
-                         trace_suite=self.trace_suite, # this is fixed throughout execution
-        )
-
+        toolbox.register("get_sat_deg", correctness.get_satisfaction_degrees, trace_suite=self.trace_suite)
         toolbox.register("get_fitness_correctness", correctness.get_fitness_correctness)
         if self.desirability is not None:
             toolbox.register("get_fitness_desirability", self.desirability.evaluate)
