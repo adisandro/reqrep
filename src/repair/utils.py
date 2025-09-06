@@ -1,6 +1,7 @@
 import logging
 
 def setup_logger(logfile="repair.log"):
+    logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger("gp_logger")
     logger.setLevel(logging.INFO)
 

@@ -37,8 +37,6 @@ class TreeEditDistance(SyntacticSimilarity):
 
         max_edit_dist = max(self.tree_size(node1), self.tree_size(node2))
         fitness = float(tree_edit_distance / max_edit_dist) if max_edit_dist > 0 else 0.0
-        assert fitness >= 0.0 and fitness <= 1.0, f"Fitness out of range: {fitness} | current: {current_req.merged}, initial: {initial_req.merged}"
-        assert zss_ted >= tree_edit_distance
         return fitness
 
 

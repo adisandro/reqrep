@@ -49,8 +49,13 @@ if __name__ == "__main__":
         semantic=SamplingAndVarTypeSanity(n_samples=10),
         syntactic=TreeEditDistance(),
         applicability=AvoidAbsoluteSatisfaction(),
-        weights=[1.0, 20.0, 1.0, 1.0]
+        weights=[100.0, 1.0, 1.0, 1.0]
     )
+    # NOTE: ranges for desirability dimensions are (lower is better):
+    #       satisfaction magnitude: [0, inf)
+    #       semantic sanity: {0, 1}
+    #       syntactic similarity: [0, 1]
+    #       applicability preservation: {0, 1}
 
     # Define APPROACH
     agg_strat = "no_aggregation" # "weighted_sum" or "no_aggregation"

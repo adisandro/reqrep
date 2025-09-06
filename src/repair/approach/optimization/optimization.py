@@ -20,6 +20,9 @@ class OptimizationApproach(Approach):
         self._init_creator()
         self._add_to_toolbox()
 
+        if hasattr(random, "seed"):
+            logger.info(f"Random seed (Python): {random.getstate()[1][0]}")
+
     def set_fitness_aggregation(self, fitness_aggregation):
         allowed = {"weighted_sum", "no_aggregation"}
         if fitness_aggregation not in allowed:
