@@ -5,10 +5,10 @@ import random
 from repair.fitness.desirability.satisfactionmagnitude import TraceSuiteSatisfactionMagnitude
 from utils import REQUIREMENTS
 from repair.approach.transformation.transformation import TransformationApproach
-from repair.fitness.desirability.applicabilitypreservation import PreconditionSatisfaction
+from repair.fitness.desirability.applicabilitypreservation import AvoidAbsoluteSatisfaction
 from repair.fitness.desirability.desirability import Desirability
-from repair.fitness.desirability.semanticsanity import SamplingAndVarTypeSanity, SamplingBasedSanity
-from repair.fitness.desirability.syntacticsimilarity import CosineSimilarity, TreeEditDistance
+from repair.fitness.desirability.semanticsanity import SamplingAndVarTypeSanity
+from repair.fitness.desirability.syntacticsimilarity import TreeEditDistance
 import repair.utils as utils
 from repair.approach.optimization.optimization import OptimizationApproach
 from repair.approach.trace import TraceSuite
@@ -48,7 +48,7 @@ if __name__ == "__main__":
         magnitude=TraceSuiteSatisfactionMagnitude(),
         semantic=SamplingAndVarTypeSanity(n_samples=10),
         syntactic=TreeEditDistance(),
-        applicability=PreconditionSatisfaction(),
+        applicability=AvoidAbsoluteSatisfaction(),
         weights=[1.0, 20.0, 1.0, 1.0]
     )
 
@@ -61,8 +61,6 @@ if __name__ == "__main__":
     start_time = time.time()
     all_repaired_reqs = a.repair()
     elapsed = time.time() - start_time
-
-    print(type(all_repaired_reqs[0]))
 
     # Save stats and print results
     if all_repaired_reqs is None:
