@@ -89,13 +89,16 @@ class VarTypeSanity(SemanticSanity):
                 return self.evaluate_nodes(trace_suite, remaining_nodes)
             children = [self.evaluate_nodes(trace_suite, remaining_nodes) for _ in range(node.arity)]
             if node.name in {"not", "and", "or"}:
-                return max(children)  # return desirability value
-            children2 = [c for c in children if c != "*"]  # filter out numbers
+                return max(children)  # return worst desirability value
+            children_no_num = [c for c in children if c != "*"]  # filter out numbers
             if node.name in {"add", "sub"}:
-                if len(children2) == 0:  # all numbers
-                    return "*"
-                return children2[0] if all(c == children2[0] for c in children2) else "TYPE_MISMATCH"  # return a type
-            return 0.0 if all(c != "TYPE_MISMATCH" and c == children2[0] for c in children2) else 1.0  # return desirability value
+                if len(children_no_num) == 0 or any(c != children_no_num[0] for c in children_no_num):
+                    return "TYPE_MISMATCH"
+                return children_no_num[0]  # return a type
+            # return desirability value
+            if len(children_no_num) == 0 or any(c == "TYPE_MISMATCH" or c != children_no_num[0] for c in children_no_num):
+                return 1.0
+            return 0.0
         else:
             raise TypeError(f"Unexpected node type: {node}")
 
