@@ -1,3 +1,4 @@
+from repair.approach.trace import TraceSuite
 from repair.grammar.functions import GrammarFunction, Bool
 from repair.grammar.terminals import GrammarTerminal
 from deap import gp
@@ -17,12 +18,14 @@ def get_gp_primitive_sets(trace_suite, numbers_factor):
     GRAMMAR_STATIC_TERMINALS = GrammarTerminal.create_terminals(trace_suite)
     GRAMMAR_EPHEMERAL_TERMINALS = GrammarTerminal.create_ephemerals(trace_suite, numbers_factor)
 
-    pset_pre = gp.PrimitiveSetTyped("PRE", [float] * len(trace_suite.in_variable_names), Bool)
+    pset_pre = gp.PrimitiveSetTyped("PRE", [float] * (len(trace_suite.in_variable_names)+1), Bool)  # + Time
     pset_post = gp.PrimitiveSetTyped("POST", [float] * len(trace_suite.variable_names), Bool)
 
     # VARIABLES
     for i, in_var_name in enumerate(trace_suite.in_variable_names):
         pset_pre.renameArguments(**{f"ARG{i}": in_var_name})
+    pset_pre.renameArguments(**{f"ARG{len(trace_suite.in_variable_names)}": TraceSuite.TIME_VAR})  # + Time
+    print(pset_pre.arguments)
     for i, var_name in enumerate(trace_suite.variable_names):
         pset_post.renameArguments(**{f"ARG{i}": var_name})
 

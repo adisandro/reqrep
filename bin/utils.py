@@ -17,14 +17,20 @@ REQUIREMENTS = {
     ),
     "data/case_studies/CC": (
         "and("
-            "and(ge(Throttle, 0.0), le(Throttle, 1.0)),"
-            "and(ge(Brake, 0.0),    le(Brake, 1.0)))",
+            "ge(Time,     0.0),   and("
+            "le(Time,     100.0), and("
+            "ge(Throttle, 0.0),   and("
+            "le(Throttle, 1.0),   and("
+            "ge(Brake,    0.0),"
+            "le(Brake,    1.0))))))",
         "dur(0, 100, le(sub(Position5, Position4), 40.0))"
         # "dur(0, 50, and("
-        #   "gt(sub(Position5, Position4), 7.5), and("
-        #   "gt(sub(Position4, Position3), 7.5), and("
-        #   "gt(sub(Position3, Position2), 7.5),"
-        #   "gt(sub(Position2, Position1), 7.5)))))"
+        #     "ge(Time, 0.0),   and("
+        #     "le(Time, 50.0),  and("
+        #     "gt(sub(Position5, Position4), 7.5), and("
+        #     "gt(sub(Position4, Position3), 7.5), and("
+        #     "gt(sub(Position3, Position2), 7.5),"
+        #     "gt(sub(Position2, Position1), 7.5)))))))"
     ),
     "data/case_studies/EU": (
         "and("
