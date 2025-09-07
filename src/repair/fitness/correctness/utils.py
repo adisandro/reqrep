@@ -73,12 +73,12 @@ def eval_nodes(remaining_nodes, i, item) -> float | int:
         value = node.value
         # True/False booleans (we never generate them when repairing, but could be in the input requirement)
         if isinstance(value, bool):
-            return 0.0 if value else float("inf")
-        # Constant (e.g., fixed or random constant)
+            return 0.0 if value else float("-inf")
+        # Number
         if isinstance(value, (float, int)):
             return value
-        # Variable (named terminal)
-        if value.startswith("_"): # Variable from the prev primitive (starts with underscore)
+        # Variable
+        if value.startswith("_"):  # Variable from the prev primitive (starts with underscore)
             value = value[1:]
         if value in item.values:
             return item.values[value]
@@ -86,20 +86,24 @@ def eval_nodes(remaining_nodes, i, item) -> float | int:
         raise ValueError(f"Unrecognized terminal: {node}, name={node.name}, value={value}")
 
     elif isinstance(node, gp.Primitive):
-        if node.name == "prev": # prev(_var)
-            if i == 0: # no previous trace item
+        if node.name == "prev":  # prev(_var)
+            if i == 0:  # no previous trace item
                 # pop and assign default
                 remaining_nodes.popleft()
                 return item.trace.suite.prev0
             else:
                 return eval_nodes(remaining_nodes, i-1, item.trace.items[i-1])
-        elif node.name == "dur": # dur(time1, time2, Bool), times can be unordered
-            time1 = eval_nodes(remaining_nodes, i, item)
-            time2 = eval_nodes(remaining_nodes, i, item)
-            start_time = min(time1, time2)
-            end_time = max(time1, time2)
-            cor = eval_nodes(remaining_nodes, i, item) # needed to advance nodes even for out of duration bounds
-            return 0.0 if (item.time < start_time or item.time > end_time) else cor
+        elif node.name == "dur":  # dur(time, Bool)
+            time = eval_nodes(remaining_nodes, i, item)
+            cor_dur = float("inf")
+            i_dur = i
+            while time > item.time - item.trace.items[i_dur].time:
+                # copy nodes for past iterations, advance as normal for current iteration
+                nodes_dur = deque(remaining_nodes) if i_dur != i else remaining_nodes
+                cor = eval_nodes(nodes_dur, i_dur, item.trace.items[i_dur])
+                cor_dur = min(cor_dur, cor)  # keep min (worst)
+                i_dur -= 1
+            return cor_dur
         else:
             # Recursively evaluate all children
             children = [eval_nodes(remaining_nodes, i, item) for _ in range(node.arity)]

@@ -62,10 +62,9 @@ class VarTypeSanity(SemanticSanity):
                 return trace_suite.variables[value[1:]]["unit"]
             return trace_suite.variables[value]["unit"]
         elif isinstance(node, gp.Primitive):
-            # dur(time1, time2, Bool)
+            # dur(time, Bool)
             if node.name == "dur":
-                # pop times, eval Bool
-                remaining_nodes.popleft()
+                # pop time, eval Bool
                 remaining_nodes.popleft()
                 return self.evaluate_nodes(trace_suite, remaining_nodes)
             # prev(_var)
