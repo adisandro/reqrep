@@ -24,7 +24,8 @@ import time
 # bin/main.py data/case_studies/CC CCX
 # bin/main.py data/case_studies/EU EU3
 # bin/main.py data/case_studies/EU EU8
-# bin/main.py data/case_studies/NNP xIn yIn
+# bin/main.py data/case_studies/NNP NNP1
+# bin/main.py data/case_studies/NNP NNP2
 # bin/main.py data/case_studies/TUI REQ
 
 if __name__ == "__main__":
