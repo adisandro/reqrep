@@ -39,8 +39,11 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--numbers", type=float, default=1.2,
                         help="When generating numbers, each variable has a window [min, max] based on the values"
                              "seen in the traces; this widens/shrinks the window by a factor, defaults to 1.2")
+    parser.add_argument("-s", "--suffix", default="", help="An optional output file suffix")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Activates logging")
     args = parser.parse_args()
-    utils.setup_logger("repair.log")
+    if args.verbose:
+        utils.setup_logger("repair.log")
 
     # Define TRACE SUITE
     suite = TraceSuite(args.trace_suite, INPUT_VARIABLES[args.trace_suite], args.prev0)
@@ -83,7 +86,8 @@ if __name__ == "__main__":
     print(f"Repair time: {elapsed:.2f} seconds")
 
     # Store to file
-    with open(f"output/repair_{args.trace_suite.split("/")[-1]}_{args.requirement}.txt", "w", encoding="utf-8") as f:
+    output_name = f"output/repair_{args.trace_suite.split("/")[-1]}_{args.requirement}{args.suffix}.txt"
+    with open(output_name, "w", encoding="utf-8") as f:
         f.write(f"Repair time: {elapsed:.2f} seconds\n\n")
         for req in all_repaired_reqs:
             f.write(req.to_str(suite) + "\n\n")
