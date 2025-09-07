@@ -25,7 +25,6 @@ def get_gp_primitive_sets(trace_suite, numbers_factor):
     for i, in_var_name in enumerate(trace_suite.in_variable_names):
         pset_pre.renameArguments(**{f"ARG{i}": in_var_name})
     pset_pre.renameArguments(**{f"ARG{len(trace_suite.in_variable_names)}": TraceSuite.TIME_VAR})  # + Time
-    print(pset_pre.arguments)
     for i, var_name in enumerate(trace_suite.variable_names):
         pset_post.renameArguments(**{f"ARG{i}": var_name})
 

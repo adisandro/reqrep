@@ -2,7 +2,7 @@
 from argparse import ArgumentParser
 
 from repair.fitness.desirability.satisfactionmagnitude import TraceSuiteSatisfactionMagnitude
-from utils import REQUIREMENTS
+from utils import REQUIREMENTS, INPUT_VARIABLES
 from repair.approach.transformation.transformation import TransformationApproach
 from repair.fitness.desirability.applicabilitypreservation import AvoidAbsoluteSatisfaction
 from repair.fitness.desirability.desirability import Desirability
@@ -15,19 +15,22 @@ import time
 
 # How to run:
 
-# bin/main.py data/dummy x
-# bin/main.py data/traces xin reset TL BL dT ic
-# bin/main.py data/case_studies/AFC Throttle Engine
-# bin/main.py data/case_studies/AT Throttle Brake
-# bin/main.py data/case_studies/CC Throttle Brake
-# bin/main.py data/case_studies/EU Phi Theta Psi Vin_x Vin_y Vin_z
+# bin/main.py data/dummy REQ
+# bin/main.py data/traces REQ
+# bin/main.py data/case_studies/AFC REQ
+# bin/main.py data/case_studies/AT AT1
+# bin/main.py data/case_studies/AT AT2
+# bin/main.py data/case_studies/CC CC1
+# bin/main.py data/case_studies/CC CCX
+# bin/main.py data/case_studies/EU EU3
+# bin/main.py data/case_studies/EU EU8
 # bin/main.py data/case_studies/NNP xIn yIn
-# bin/main.py data/case_studies/TUI xin reset TL BL dT ic
+# bin/main.py data/case_studies/TUI REQ
 
 if __name__ == "__main__":
     parser = ArgumentParser(description="Repairs test requirements")
     parser.add_argument("trace_suite", help="Path to the directory containing the trace suite")
-    parser.add_argument("input_vars", nargs="+", help="The names of the input variables, space separated")
+    parser.add_argument("requirement", help="The name of the requirement to check")
     parser.add_argument("-p", "--prev0", type=float, default=0.0,
                         help="Initial value for the prev() operator at time 0 (defaults to 0.0)")
     parser.add_argument("-i", "--iterations", type=int, default=10,
@@ -39,10 +42,7 @@ if __name__ == "__main__":
     utils.setup_logger("repair.log")
 
     # Define TRACE SUITE
-    suite = TraceSuite(args.trace_suite, set(args.input_vars), args.prev0)
-
-    # Define REQUIREMENT
-    req_text = REQUIREMENTS[args.trace_suite]
+    suite = TraceSuite(args.trace_suite, INPUT_VARIABLES[args.trace_suite], args.prev0)
 
     # Define DESIRABILITY
     d = Desirability(
@@ -59,6 +59,9 @@ if __name__ == "__main__":
     #       syntactic similarity: [0, 1]
     #       applicability preservation: {0, 1}
 
+    # Define REQUIREMENT
+    req_text = REQUIREMENTS[args.trace_suite][args.requirement]
+
     # Define APPROACH
     agg_strat = "no_aggregation" # "weighted_sum" or "no_aggregation"
     a = OptimizationApproach(suite, req_text, args.iterations, args.numbers, d, agg_strat)
@@ -73,13 +76,13 @@ if __name__ == "__main__":
     if all_repaired_reqs is None:
         print("No repair necessary")
         exit()
-    
-    with open("output/repaired_requirements.txt", "w", encoding="utf-8") as f:
-        f.write(f"Repair time: {elapsed:.2f} seconds\n\n")
-        for req in all_repaired_reqs:
-            f.write(req.to_str(suite) + "\n\n")
-
     repaired_req = all_repaired_reqs[0]
     print(a.init_requirement.to_str(suite))
     print(repaired_req.to_str(suite))
     print(f"Repair time: {elapsed:.2f} seconds")
+
+    # Store to file
+    with open(f"output/repair_{args.trace_suite.split("/")[-1]}_{args.requirement}.txt", "w", encoding="utf-8") as f:
+        f.write(f"Repair time: {elapsed:.2f} seconds\n\n")
+        for req in all_repaired_reqs:
+            f.write(req.to_str(suite) + "\n\n")
