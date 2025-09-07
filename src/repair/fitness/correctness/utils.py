@@ -97,9 +97,10 @@ def eval_nodes(remaining_nodes, i, item) -> float | int:
             time = eval_nodes(remaining_nodes, i, item)
             cor_dur = float("inf")
             i_dur = i
-            while time > item.time - item.trace.items[i_dur].time:
+            nodes_copy = deque(remaining_nodes)
+            while i_dur >= 0 and time > item.time - item.trace.items[i_dur].time:
                 # copy nodes for past iterations, advance as normal for current iteration
-                nodes_dur = deque(remaining_nodes) if i_dur != i else remaining_nodes
+                nodes_dur = deque(nodes_copy) if i_dur != i else remaining_nodes
                 cor = eval_nodes(nodes_dur, i_dur, item.trace.items[i_dur])
                 cor_dur = min(cor_dur, cor)  # keep min (worst)
                 i_dur -= 1
