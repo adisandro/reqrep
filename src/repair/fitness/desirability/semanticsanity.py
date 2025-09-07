@@ -1,5 +1,6 @@
 import random
 from collections import deque
+from os.path import samefile
 
 from deap import gp
 
@@ -58,9 +59,12 @@ class VarTypeSanity(SemanticSanity):
                     return node.name  # Random (typed) number
                 return "*"  # Fixed number
             # Variable
+            # if value.startswith("_"):  # Variable from the prev primitive (starts with underscore)
+            #     return trace_suite.variables[value[1:]]["unit"]
+            # return trace_suite.variables[value]["unit"]
             if value.startswith("_"):  # Variable from the prev primitive (starts with underscore)
-                return trace_suite.variables[value[1:]]["unit"]
-            return trace_suite.variables[value]["unit"]
+                return value[1:]
+            return value
         elif isinstance(node, gp.Primitive):
             # dur(time, Bool)
             if node.name == "dur":
@@ -76,21 +80,31 @@ class VarTypeSanity(SemanticSanity):
                 return max(children)  # worst desirability value
             # float args functions
             all_numbers = True
+            all_same_var = True
+            same_var = None
             children_units = []
             for child in children:
                 if child == "*":
+                    all_same_var = False
                     continue
                 if child.startswith("rand_float_"):
+                    all_same_var = False
                     child = child.split("rand_float_")[1]
                 else:
                     all_numbers = False
+                    if same_var is None:
+                        same_var = child
+                    elif child != same_var:
+                        all_same_var = False
+                    if child in trace_suite.variables:
+                        child = trace_suite.variables[child]["unit"]
                 children_units.append(child)
             if node.name in {"add", "sub"}:
-                if all_numbers or any(u != children_units[0] for u in children_units):
+                if all_numbers or all_same_var or any(u != children_units[0] for u in children_units):
                     return "UNIT_MISMATCH"
                 return children_units[0]  # return unit
             # return desirability value
-            if all_numbers or any(u == "UNIT_MISMATCH" or u != children_units[0] for u in children_units):
+            if all_numbers or all_same_var or any(u == "UNIT_MISMATCH" or u != children_units[0] for u in children_units):
                 return 1.0
             return 0.0
         else:
