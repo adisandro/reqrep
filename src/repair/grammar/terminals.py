@@ -26,11 +26,12 @@ class GrammarTerminal:
     def create_ephemerals(trace_suite, numbers_factor):
         # Ephemeral numeric terminals (randomly sampled each individual)
         # dur
-        min_time = math.floor(trace_suite.variables[TraceSuite.TIME_VAR]["min"])
-        max_time = math.ceil(trace_suite.variables[TraceSuite.TIME_VAR]["max"])
-        max_dur = max_time - min_time
-        ephemerals = [(GrammarTerminal("rand_dur", partial(random.randint, 0, max_dur), int,
-                                       display_name=f"rand_dur(0, {max_dur})"))]
+        # min_time = math.floor(trace_suite.variables[TraceSuite.TIME_VAR]["min"])
+        # max_time = math.ceil(trace_suite.variables[TraceSuite.TIME_VAR]["max"])
+        # max_dur = max_time - min_time
+        # ephemerals = [(GrammarTerminal("rand_dur", partial(random.randint, 0, max_dur), int,
+        #                                display_name=f"rand_dur(0, {max_dur})"))]
+        ephemerals = []
         # vars: collect min and max per unit
         units = {}
         for var_name, var in trace_suite.variables.items():
