@@ -55,15 +55,10 @@ class VarTypeSanity(SemanticSanity):
             value = node.value
             # Number
             if isinstance(value, (float, int)):
-                if isinstance(node.name, str):
+                if node.name.startswith("rand_float_"):
                     return node.name  # Random (typed) number
-                return "*"  # Fixed number
+                return "*"  # Fixed (initial) number
             # Variable
-            # if value.startswith("_"):  # Variable from the prev primitive (starts with underscore)
-            #     return trace_suite.variables[value[1:]]["unit"]
-            # return trace_suite.variables[value]["unit"]
-            if value.startswith("_"):  # Variable from the prev primitive (starts with underscore)
-                return value[1:]
             return value
         elif isinstance(node, gp.Primitive):
             # dur(time, Bool)
@@ -96,6 +91,8 @@ class VarTypeSanity(SemanticSanity):
                         same_var = child
                     elif child != same_var:
                         all_same_var = False
+                    if child.startswith("_"):  # Variable from the prev primitive (starts with underscore)
+                        child = child[1:]
                     if child in trace_suite.variables:
                         child = trace_suite.variables[child]["unit"]
                 children_units.append(child)
@@ -111,7 +108,6 @@ class VarTypeSanity(SemanticSanity):
             raise TypeError(f"Unexpected node type: {node}")
 
     def evaluate(self, trace_suite, requirement):
-        #TODO can we check for same var comparison?
         return max(self.evaluate_nodes(trace_suite, deque(iter(requirement.pre))),
                    self.evaluate_nodes(trace_suite, deque(iter(requirement.post))))
 
@@ -124,6 +120,6 @@ class SamplingAndVarTypeSanity(SemanticSanity):
 
     def evaluate(self, trace_suite, requirement):
         result = self.sampling.evaluate(trace_suite, requirement)
-        if result < 1.0: # 1.0 is already a tautology
+        if result < 1.0:  # 1.0 is already a tautology
             result = max(result, self.var_type.evaluate(trace_suite, requirement))
         return result

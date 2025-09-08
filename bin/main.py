@@ -77,11 +77,11 @@ if __name__ == "__main__":
     elapsed = time.time() - start_time
 
     # Save stats and print results
+    print(a.init_requirement.to_str(suite))
     if all_repaired_reqs is None:
         print("No repair necessary")
         exit()
     repaired_req = all_repaired_reqs[0]
-    print(a.init_requirement.to_str(suite))
     print(repaired_req.to_str(suite))
     print(f"Repair time: {elapsed:.2f} seconds")
 
