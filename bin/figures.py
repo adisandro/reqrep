@@ -14,7 +14,7 @@ from repair.fitness.desirability.semanticsanity import SamplingBasedSanity
 from repair.fitness.desirability.syntacticsimilarity import CosineSimilarity, TreeEditDistance
 from utils import REQUIREMENTS, INPUT_VARIABLES
 
-OUTPUT_FOLDER = "output/figures2"
+OUTPUT_FOLDER = "output/figures"
 
 LABELS = {
     "Engine": "Engine Speed (rpm)",
@@ -24,8 +24,8 @@ LABELS = {
 
 class DummyApproach(Approach):
     
-    def __init__(self, trace_suite, requirement_text, iterations, desirability):
-        super().__init__(trace_suite, requirement_text, iterations, desirability)
+    def __init__(self, trace_suite, requirement_text, iterations, numbers_factor, desirability):
+        super().__init__(trace_suite, requirement_text, iterations, numbers_factor, desirability)
 
     def repair(self, threshold):
         pass
@@ -73,7 +73,11 @@ def plot_trace(traces, violating_indices_list,
                         #show requirement
                         if isinstance(r_line, tuple):
                             r_val, r_color, r_style = r_line
-                            ax.hlines(y=r_val, xmin=0, xmax=10, color=r_color, linestyle=r_style, linewidth=1) #, label=f"Req {r_val}")
+                            if callable(r_val):
+                                r_val = r_val(df['Time'])
+                                ax.plot(df['Time'], r_val, color=r_color, linestyle=r_style, linewidth=1)
+                            else:
+                                ax.hlines(y=r_val, xmin=0, xmax=10, color=r_color, linestyle=r_style, linewidth=1) #, label=f"Req {r_val}")
                         else:
                             ax.hlines(y=r_line, xmin=0, xmax=10, linewidth=1)
 
@@ -113,7 +117,7 @@ def process_traces(folder_path, requirement, in_variable_names, ids_to_include=N
     )
 
     # Define APPROACH
-    approach = OptimizationApproach(traceSuite, requirement, -1, d)
+    approach = OptimizationApproach(traceSuite, requirement, -1, 1, d)
     # print(traceSuite.traces[68].items[150].values)
 
     init_req = approach.init_requirement
@@ -178,13 +182,12 @@ def prep_best_plots(traceSuite, df_cor, folder_path, output_folder):
                 "Brake": (None, None)}
 
     requirement_line = {"Engine": [(4650, 'black', '--'), (4764.86, 'green', '-.')],
-                        "Throttle": [(100, 'black', '--'), (96.34, 'purple', '-.')],
+                        "Throttle": [(100, 'black', '--'), (96.34, 'purple', '-.')],#, (lambda x: -(x-5)**2+110, 'green', '-.')],# (lambda x: 99.8559 - 1.6612 * (x - 4.82151)**2, 'green', '-.')],
                         "Brake": [(325, 'black', '--')]}
 
     # Filter out all rows where delta_cor == 0
     df_cor = df_cor[df_cor["delta_cor"] != 0]
-    df_cor = df_cor.sort_values(by=["delta_cor", "perc_cor"], ascending=[False, True]).reset_index(drop=True)
-    # print(df_cor)
+    df_cor = df_cor.sort_values(by=["delta_cor", "perc_cor"], ascending=[True, False]).reset_index(drop=True)
     # Print the violating_times column for each violating trace
     for idx, row in df_cor.iterrows():
         violating_indices = row["violating_indices"]
@@ -208,7 +211,10 @@ def prep_best_plots(traceSuite, df_cor, folder_path, output_folder):
         selected_trace = traceSuite.traces[int(first_id)]
         trace_name = f"{os.path.basename(folder_path.rstrip(os.sep))}_most_violating"
         print_trace(selected_trace, first_id, True) # True is temporary
-        plot_trace([selected_trace], [violating_indices], output_folder, trace_name=trace_name, requirement_line=requirement_line, y_ranges=y_ranges)
+        plot_trace([selected_trace], [violating_indices], output_folder,
+                   trace_name=trace_name,
+                   requirement_line=requirement_line,
+                   y_ranges=y_ranges)
 
 
 def prep_other_plots(traceSuite, df_cor, more_traces_to_show, folder_path, output_folder):
@@ -276,7 +282,7 @@ if __name__ == "__main__":
     # traces_to_show = [[68]]    
     traces_to_show = [[68, 82, 27]]
 
-    folder = "data/case_studies/AT-AT2"
+    folder = "data/case_studies/AT"
     custom = {"Engine": [4650, 4764.86],
               "Throttle": [100, 96.34]}
     in_variable_names = INPUT_VARIABLES[folder]  # Define input variable names as needed
@@ -285,7 +291,7 @@ if __name__ == "__main__":
         "and("
             "and(ge(Throttle, 5.0), le(Throttle, 100.0)),"
             "and(ge(Brake, 0.0),    le(Brake, 325.0)))",
-        "dur(0, 10, lt(Engine, 4650.0))"
+        "lt(Engine, 4650.0)"
     )
     else:
         requirement = REQUIREMENTS[folder]

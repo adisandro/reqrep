@@ -35,11 +35,11 @@ def get_trace_correctness(precondition, postcondition, trace_suite):
             violating_times = []
             for i, item in enumerate(trace.items):
                 # ... does precondition hold? ...
-                pre_rob = max(0.0, eval_nodes(deque(all_nodes_pre), i, item))
+                pre_rob = min(0.0, eval_nodes(deque(all_nodes_pre), i, item))
                 if is_within_margin(pre_rob, 0.0):
                     # (pre holds)
                     # ... does postcondition hold?
-                    post_rob = max(0.0, eval_nodes(deque(all_nodes_post), i, item))
+                    post_rob = min(0.0, eval_nodes(deque(all_nodes_post), i, item))
                     delta_cor += post_rob
                     if is_within_margin(post_rob, 0.0):
                         # (post holds)
