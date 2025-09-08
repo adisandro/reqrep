@@ -36,7 +36,7 @@ REQUIREMENTS = {
         "CCX": (
             "and("
                 "ge(Time,     0.0),   and("
-                "le(Time,     50.0), and("
+                "le(Time,     50.0),  and("
                 "ge(Throttle, 0.0),   and("
                 "le(Throttle, 1.0),   and("
                 "ge(Brake,    0.0),"

@@ -39,7 +39,7 @@ def get_satisfaction_degrees(precondition, postcondition, trace_suite):
         all_nodes_post = deque(iter(postcondition))
         # For each trace, ...
         logger.info(f"    Trace checking:  {precondition}   =>   {postcondition}")
-        for trace in trace_suite.traces[:10]:
+        for trace in trace_suite.traces:
             item_count_total += len(trace.items)
 
             t_pre_sd = float("inf")

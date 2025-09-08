@@ -55,7 +55,7 @@ if __name__ == "__main__":
         semantic=SamplingAndVarTypeSanity(n_samples=10),
         syntactic=TreeEditDistance(),
         applicability=AvoidAbsoluteSatisfaction(),
-        weights=[100.0, 1.0, 1.0, 1.0]
+        weights=[100.0, 100.0, 1.0, 1.0]
     )
     # NOTE: ranges for desirability dimensions are (lower is better):
     #       satisfaction magnitude: [0, inf)
