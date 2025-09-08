@@ -8,8 +8,8 @@ from repair.approach.requirement import Requirement
 from repair.approach.trace import TraceSuite  # Reuse the Trace class
 from repair.fitness.correctness.utils import get_trace_correctness
 from repair.fitness.desirability.desirability import Desirability
-from repair.fitness.desirability.satisfactionmagnitude import TraceSuiteSatisfactionMagnitude
-from repair.fitness.desirability.semanticsanity import SamplingBasedSanity
+from repair.fitness.desirability.satisfactionextent import TraceSuiteSatisfactionMagnitude, VerticalAndHorizontalExtent
+from repair.fitness.desirability.semanticintegrity import SamplingAndVarTypeSanity, SamplingBasedTautologyCheck
 from repair.fitness.desirability.syntacticsimilarity import TreeEditDistance
 from utils import REQUIREMENTS, INPUT_VARIABLES
 
@@ -107,9 +107,9 @@ def process_traces(folder_path, requirement, in_variable_names, ids_to_include=N
 
     d = Desirability(
         trace_suite=traceSuite,
-        semantic=SamplingBasedSanity(n_samples=10),
+        semantic=SamplingAndVarTypeSanity(n_samples=10),
         syntactic=TreeEditDistance(),
-        satisfaction=TraceSuiteSatisfactionMagnitude(),
+        satisfaction=VerticalAndHorizontalExtent(),
         weights=[1.0, 1.0, 1.0]
     )
 

@@ -9,7 +9,7 @@ from repair.fitness.desirability.desirability import SemanticIntegrity
 from repair.fitness.correctness.correctness import eval_tree, is_within_margin
 
 
-class SamplingBasedSanity(SemanticIntegrity):
+class SamplingBasedTautologyCheck(SemanticIntegrity):
     def __init__(self, n_samples: int = 10):
         super().__init__()
         self.n_samples = n_samples
@@ -43,12 +43,12 @@ class SamplingBasedSanity(SemanticIntegrity):
         return 1.0 if all_same_merged else 0.0
 
 
-class SymbolicSanity(SemanticIntegrity):
+class SymbolicTautologyCheck(SemanticIntegrity):
     def evaluate(self, trace_suite, individual) -> float:
         pass  # to be implemented
 
 
-class VarTypeSanity(SemanticIntegrity):
+class VarTypeConsistencyCheck(SemanticIntegrity):
     def evaluate_nodes(self, trace_suite, remaining_nodes):
         node = remaining_nodes.popleft()
         if isinstance(node, gp.Terminal):
@@ -115,11 +115,14 @@ class VarTypeSanity(SemanticIntegrity):
 class SamplingAndVarTypeSanity(SemanticIntegrity):
     def __init__(self, n_samples: int = 10):
         super().__init__()
-        self.sampling = SamplingBasedSanity(n_samples)
-        self.var_type = VarTypeSanity()
+        self.sampling = SamplingBasedTautologyCheck(n_samples)
+        self.var_type = VarTypeConsistencyCheck()
 
     def evaluate(self, trace_suite, requirement):
-        result = self.sampling.evaluate(trace_suite, requirement)
-        if result < 1.0:  # 1.0 is already a tautology
-            result = max(result, self.var_type.evaluate(trace_suite, requirement))
-        return result
+        result_sampling = self.sampling.evaluate(trace_suite, requirement) # 0.0 or 1.0
+        result_var_type = self.var_type.evaluate(trace_suite, requirement) # 0.0 or 1.0 (may become continuous)
+
+        # Define fitness
+        result_combined = 0.5*result_sampling + 0.5*result_var_type
+        # result = max(result, self.var_type.evaluate(trace_suite, requirement))
+        return result_combined

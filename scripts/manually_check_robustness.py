@@ -1,6 +1,6 @@
 from repair.approach.optimization.optimization import OptimizationApproach
 from repair.fitness.desirability.desirability import Desirability
-from repair.fitness.desirability.semanticsanity import SamplingBasedSanity
+from repair.fitness.desirability.semanticintegrity import SamplingBasedTautologyCheck
 from repair.grammar import utils
 from repair.approach.trace import TraceSuite
 import repair.fitness.correctness.correctness as correctness
@@ -31,7 +31,7 @@ print(f"Repaired Requirement: {expr}")
 
 case = "des" # "des" | "cor"
 if case == "des":
-    sem = SamplingBasedSanity(n_samples=10)
+    sem = SamplingBasedTautologyCheck(n_samples=10)
     taut = sem.evaluate(ts, expr)
     print(f"Desirability (semantic): {taut}")
     exit()

@@ -24,7 +24,6 @@ class SyntacticSimilarity(ABC):
         pass
 
 
-
 class SatisfactionExtent(ABC):
     @abstractmethod
     def evaluate(self, trace_suite:TraceSuite, individual:gp.PrimitiveTree) -> float:

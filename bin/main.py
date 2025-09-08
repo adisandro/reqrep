@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 from argparse import ArgumentParser
 
-from repair.fitness.desirability.satisfactionmagnitude import TraceSuiteSatisfactionMagnitude
+from repair.fitness.desirability.satisfactionextent import TraceSuiteSatisfactionMagnitude, VerticalAndHorizontalExtent
 from utils import REQUIREMENTS, INPUT_VARIABLES
 from repair.fitness.desirability.desirability import Desirability
-from repair.fitness.desirability.semanticsanity import SamplingAndVarTypeSanity
+from repair.fitness.desirability.semanticintegrity import SamplingAndVarTypeSanity
 from repair.fitness.desirability.syntacticsimilarity import TreeEditDistance
 import repair.utils as utils
 from repair.approach.optimization.optimization import OptimizationApproach
@@ -51,8 +51,8 @@ if __name__ == "__main__":
         trace_suite=suite,
         semantic=SamplingAndVarTypeSanity(n_samples=10),
         syntactic=TreeEditDistance(),
-        satisfaction=TraceSuiteSatisfactionMagnitude(),
-        weights=[100.0, 100.0, 1.0]
+        satisfaction=VerticalAndHorizontalExtent(),
+        weights=[10.0, 10.0, 1.0]
     )
     # NOTE: ranges for desirability dimensions are (lower is better):
     #       satisfaction magnitude: [0, inf)
@@ -86,5 +86,6 @@ if __name__ == "__main__":
     output_name = f"output/repair_{args.trace_suite.split("/")[-1]}_{args.requirement}{args.suffix}.txt"
     with open(output_name, "w", encoding="utf-8") as f:
         f.write(f"Repair time: {elapsed:.2f} seconds\n\n")
+        f.write(a.init_requirement.to_str(suite) + "\n\n")
         for req in all_repaired_reqs:
             f.write(req.to_str(suite) + "\n\n")

@@ -61,11 +61,11 @@ class Requirement:
             f"{self.name}:\n"
             f"\t{merged_infix}\n"
             f"\t{self.merged}\n"
-            f"\tSAT DEG - Pre=>Post: Δ = {impl_sd:<8.3f}, %_it_suc = {impl_item_perc*100:<8.3f}, #_it_vio = {impl_item_viol:<5}, %_tr_suc = {impl_t_perc*100:<8.3f}, #_tr_vio = {impl_trace_viol:<5}\n"
-            f"\tSAT DEG - Pre:       Δ = {pre_sd:<8.3f}, %_it_suc = {pre_item_perc*100:<8.3f}, #_it_vio = {pre_item_viol:<5}, %_tr_suc = {pre_t_perc*100:<8.3f}, #_tr_vio = {pre_trace_viol:<5}\n"
-            f"\tSAT DEG - Post:      Δ = {post_sd:<8.3f}, %_it_suc = {post_item_perc*100:<8.3f}, #_it_vio = {post_item_viol:<5}, %_tr_suc = {post_t_perc*100:<8.3f}, #_tr_vio = {post_trace_viol:<5}\n"
-            f"\tFITNESS - Correctness:   {self.correctness:<8.3f}\n"
-            f"\tFITNESS - Desirability:  {[f'{i}={v:.3f}' for i, v in zip(DIMENSION_IDS, self.desirability['tuple'])]}\n"
-            f"\tFITNESS - Desirability:  {self.desirability['des']:.3f}\n"
+            f"\tSAT DEG - Pre=>Post:           Δ = {impl_sd:<8.3f}, %_it_suc = {impl_item_perc*100:<8.3f}, #_it_vio = {impl_item_viol:<5}, %_tr_suc = {impl_t_perc*100:<8.3f}, #_tr_vio = {impl_trace_viol:<5}\n"
+            f"\tSAT DEG - Pre:                 Δ = {pre_sd:<8.3f}, %_it_suc = {pre_item_perc*100:<8.3f}, #_it_vio = {pre_item_viol:<5}, %_tr_suc = {pre_t_perc*100:<8.3f}, #_tr_vio = {pre_trace_viol:<5}\n"
+            f"\tSAT DEG - Post:                Δ = {post_sd:<8.3f}, %_it_suc = {post_item_perc*100:<8.3f}, #_it_vio = {post_item_viol:<5}, %_tr_suc = {post_t_perc*100:<8.3f}, #_tr_vio = {post_trace_viol:<5}\n"
+            f"\tFITNESS - Correctness:         {self.correctness:<8.3f}\n"
+            f"\tFITNESS - Des (dimensions):    {[f'{i}={v:.3f}' for i, v in zip(DIMENSION_IDS, self.desirability['tuple'])]}\n"
+            f"\tFITNESS - Des (weighted sum):  {self.desirability['des']:.3f}\n"
         )
 
