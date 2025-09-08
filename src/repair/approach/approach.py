@@ -49,6 +49,7 @@ class Approach(ABC):
         toolbox.register("get_fitness_correctness", correctness.get_fitness_correctness)
         if self.desirability is not None:
             toolbox.register("get_fitness_desirability", self.desirability.evaluate)
+            toolbox.register("get_raw_desirability", self.desirability.get_raw_desirability_tuple)
         return toolbox
 
     @abstractmethod

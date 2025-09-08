@@ -51,6 +51,12 @@ class Desirability:
         assert all(w >= 0 for w in self.weights), "All weights must be positive."
         assert sum(self.weights) != 0, "Sum of weights must not be zero."
 
+    def get_raw_desirability_tuple(self, requirement) -> tuple[float, float, float]:
+        sem_val = self.semantic.evaluate(self.trace_suite, requirement)
+        syn_val = self.syntactic.evaluate(requirement, self.initial_requirement)
+        app_val = self.satisfaction.evaluate(requirement, self.initial_requirement)
+        return sem_val, syn_val, app_val
+    
     def get_desirability_tuple(self, requirement) -> tuple[float, float, float]:
         sem_val = 0.0 if self.weights[0] == 0 else self.semantic.evaluate(self.trace_suite, requirement)
         syn_val = 0.0 if self.weights[1] == 0 else self.syntactic.evaluate(requirement, self.initial_requirement)
@@ -59,13 +65,14 @@ class Desirability:
 
     def evaluate(self, requirement) -> float:
         des = self.get_desirability_tuple(requirement)
-        weighted_sum = (
-            self.weights[0] * des[0] +
-            self.weights[1] * des[1] +
+        weighted_des = (
+            self.weights[0] * des[0],
+            self.weights[1] * des[1],
             self.weights[2] * des[2]
         )
+        weighted_sum = sum(weighted_des)
         out = {
             "des": weighted_sum,
-            "tuple": des
+            "tuple": weighted_des
         }
         return out
