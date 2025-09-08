@@ -1,7 +1,7 @@
-from repair.fitness.desirability.desirability import SatisfactionMagnitude
+from repair.fitness.desirability.desirability import SatisfactionExtent
 
 
-class TraceSuiteSatisfactionMagnitude(SatisfactionMagnitude):
+class TraceSuiteSatisfactionMagnitude(SatisfactionExtent):
     def evaluate(self, trace_suite, current_req) -> float:
         # NOTE: this is temp. Worst case satisfaction
 

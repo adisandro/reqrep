@@ -4,12 +4,12 @@ from os.path import samefile
 
 from deap import gp
 
-from repair.fitness.desirability.desirability import SemanticSanity
+from repair.fitness.desirability.desirability import SemanticIntegrity
 
 from repair.fitness.correctness.correctness import eval_tree, is_within_margin
 
 
-class SamplingBasedSanity(SemanticSanity):
+class SamplingBasedSanity(SemanticIntegrity):
     def __init__(self, n_samples: int = 10):
         super().__init__()
         self.n_samples = n_samples
@@ -43,12 +43,12 @@ class SamplingBasedSanity(SemanticSanity):
         return 1.0 if all_same_merged else 0.0
 
 
-class SymbolicSanity(SemanticSanity):
+class SymbolicSanity(SemanticIntegrity):
     def evaluate(self, trace_suite, individual) -> float:
         pass  # to be implemented
 
 
-class VarTypeSanity(SemanticSanity):
+class VarTypeSanity(SemanticIntegrity):
     def evaluate_nodes(self, trace_suite, remaining_nodes):
         node = remaining_nodes.popleft()
         if isinstance(node, gp.Terminal):
@@ -112,7 +112,7 @@ class VarTypeSanity(SemanticSanity):
                    self.evaluate_nodes(trace_suite, deque(iter(requirement.post))))
 
 
-class SamplingAndVarTypeSanity(SemanticSanity):
+class SamplingAndVarTypeSanity(SemanticIntegrity):
     def __init__(self, n_samples: int = 10):
         super().__init__()
         self.sampling = SamplingBasedSanity(n_samples)

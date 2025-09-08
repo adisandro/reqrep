@@ -3,8 +3,6 @@ from argparse import ArgumentParser
 
 from repair.fitness.desirability.satisfactionmagnitude import TraceSuiteSatisfactionMagnitude
 from utils import REQUIREMENTS, INPUT_VARIABLES
-from repair.approach.transformation.transformation import TransformationApproach
-from repair.fitness.desirability.applicabilitypreservation import AvoidAbsoluteSatisfaction
 from repair.fitness.desirability.desirability import Desirability
 from repair.fitness.desirability.semanticsanity import SamplingAndVarTypeSanity
 from repair.fitness.desirability.syntacticsimilarity import TreeEditDistance
@@ -51,11 +49,10 @@ if __name__ == "__main__":
     # Define DESIRABILITY
     d = Desirability(
         trace_suite=suite,
-        magnitude=TraceSuiteSatisfactionMagnitude(),
         semantic=SamplingAndVarTypeSanity(n_samples=10),
         syntactic=TreeEditDistance(),
-        applicability=AvoidAbsoluteSatisfaction(),
-        weights=[100.0, 100.0, 1.0, 1.0]
+        satisfaction=TraceSuiteSatisfactionMagnitude(),
+        weights=[100.0, 100.0, 1.0]
     )
     # NOTE: ranges for desirability dimensions are (lower is better):
     #       satisfaction magnitude: [0, inf)

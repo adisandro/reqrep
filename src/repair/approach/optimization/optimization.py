@@ -34,7 +34,7 @@ class OptimizationApproach(Approach):
         if self.fitness_aggregation == "weighted_sum":
             creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0))
         elif self.fitness_aggregation == "no_aggregation":
-            creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0, -1.0, -1.0, -1.0))
+            creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0, -1.0, -1.0))
         creator.create("Individual", Requirement, fitness=creator.FitnessMin)
 
     def _add_to_toolbox(self):
