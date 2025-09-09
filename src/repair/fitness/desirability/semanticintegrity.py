@@ -117,10 +117,15 @@ class SamplingAndVarTypeSanity(SemanticIntegrity):
         super().__init__()
         self.sampling = SamplingBasedTautologyCheck(n_samples)
         self.var_type = VarTypeConsistencyCheck()
+        self.composed=True
+
+    def get_two_components(self, trace_suite, requirement):
+        result_sampling = self.sampling.evaluate(trace_suite, requirement) # {0.0, 1.0}
+        result_var_type = self.var_type.evaluate(trace_suite, requirement) # {0.0, 1.0} (may become continuous)
+        return result_sampling, result_var_type
 
     def evaluate(self, trace_suite, requirement):
-        result_sampling = self.sampling.evaluate(trace_suite, requirement) # 0.0 or 1.0
-        result_var_type = self.var_type.evaluate(trace_suite, requirement) # 0.0 or 1.0 (may become continuous)
+        result_sampling, result_var_type = self.get_two_components(trace_suite, requirement)
 
         # Define fitness
         result_combined = 0.5*result_sampling + 0.5*result_var_type

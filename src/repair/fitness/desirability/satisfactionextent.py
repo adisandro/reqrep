@@ -43,13 +43,17 @@ class VerticalAndHorizontalExtent(SatisfactionExtent):
         self.vertical = TraceSuiteSatisfactionMagnitude()
         self.horizontal = AvoidAbsoluteSatisfaction()
 
-    def evaluate(self, current_req, initial_req):
+    def get_two_components(self, current_req, initial_req):
         result_vertical = self.vertical.evaluate(current_req) # [0, inf)
-        result_horizontal = self.horizontal.evaluate(current_req, initial_req) # 0.0 or 1.0
-        # print(result_vertical, result_horizontal)
+        normalized_vertical = result_vertical/(1.0+result_vertical) # [0, 1)
 
-        # TODO maybe improve this combination
-        result_combined = result_vertical + result_horizontal
+        result_horizontal = self.horizontal.evaluate(current_req, initial_req) # {0.0, 1.0}
+        return normalized_vertical, result_horizontal
+
+    def evaluate(self, current_req, initial_req):
+        result_vertical, result_horizontal = self.get_two_components(current_req, initial_req)
+
+        result_combined = 0.5*result_vertical + 0.5*result_horizontal
         return result_combined
 
 

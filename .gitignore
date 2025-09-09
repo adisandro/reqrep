@@ -5,5 +5,5 @@ __pycache__/
 *.log
 
 case_studies/
-output/
+output*/
 .archive/

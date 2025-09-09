@@ -46,6 +46,7 @@ class Requirement:
             return {"des": None, "tuple": None}
         return self.toolbox.get_fitness_desirability(self)
     
+    @cached_property
     def raw_desirability(self):
         if not hasattr(self.toolbox, "get_raw_desirability"):
             return None
@@ -62,6 +63,9 @@ class Requirement:
         pre_sd,  pre_item_perc,  pre_item_viol,  pre_t_perc,  pre_trace_viol  = self.satisfaction_degrees["pre_sd"]
         post_sd, post_item_perc, post_item_viol, post_t_perc, post_trace_viol = self.satisfaction_degrees["post_sd"]
 
+        # if raw_desirability is None:
+        raw_desirability = self.raw_desirability
+
         return (
             f"{self.name}:\n"
             f"\t{merged_infix}\n"
@@ -71,7 +75,7 @@ class Requirement:
             f"\tSAT DEG - Post:                 Δ = {post_sd:<8.{digits}f}, %_it_suc = {post_item_perc*100:<8.{digits}f}, #_it_vio = {post_item_viol:<5}, %_tr_suc = {post_t_perc*100:<8.{digits}f}, #_tr_vio = {post_trace_viol:<5}\n"
             f"\tFITNESS - Correctness (value):  {self.correctness:<8.{digits}f}\n"
             f"\tFITNESS - Correctness (truth):  {self.correctness == 0}\n"
-            f"\tFITNESS - Des (raw dims):       {[f'{i}={v:.{digits}f}' for i, v in zip(DIMENSION_IDS, self.raw_desirability())]}\n"
+            f"\tFITNESS - Des (raw dims):       {[f'{i}={v:.{digits}f}' for i, v in zip(DIMENSION_IDS, raw_desirability)]}\n"
             f"\tFITNESS - Des (weighted dims):  {[f'{i}={v:.{digits}f}' for i, v in zip(DIMENSION_IDS, self.desirability['tuple'])]}\n"
             f"\tFITNESS - Des (weighted sum):   {self.desirability['des']:.{digits}f}\n"
         )

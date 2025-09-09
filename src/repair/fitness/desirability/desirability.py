@@ -59,6 +59,16 @@ class Desirability:
         app_val = self.satisfaction.evaluate(requirement, self.initial_requirement)
         return sem_val, syn_val, app_val
     
+    def get_semantic_desirability_components(self, requirement) -> tuple[float, float]:
+        if not hasattr(self.semantic, "get_two_components"):
+            raise ValueError("The semantic integrity measure does not support get_two_components.")
+        return self.semantic.get_two_components(self.trace_suite, requirement)
+    
+    def get_satisfaction_desirability_components(self, requirement) -> tuple[float, float]:
+        if not hasattr(self.satisfaction, "get_two_components"):
+            raise ValueError("The satisfaction extent measure does not support get_two_components.")
+        return self.satisfaction.get_two_components(requirement, self.initial_requirement)
+    
     def get_desirability_tuple(self, requirement) -> tuple[float, float, float]:
         sem_val = 0.0 if self.weights[0] == 0 else self.semantic.evaluate(self.trace_suite, requirement)
         syn_val = 0.0 if self.weights[1] == 0 else self.syntactic.evaluate(requirement, self.initial_requirement)
