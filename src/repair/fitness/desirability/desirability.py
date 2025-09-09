@@ -51,6 +51,8 @@ class Desirability:
         assert all(w >= 0 for w in self.weights), "All weights must be positive."
         assert sum(self.weights) != 0, "Sum of weights must not be zero."
 
+        self.num_active_dimensions = sum(1 for w in self.weights if w > 0)
+
     def get_raw_desirability_tuple(self, requirement) -> tuple[float, float, float]:
         sem_val = self.semantic.evaluate(self.trace_suite, requirement)
         syn_val = self.syntactic.evaluate(requirement, self.initial_requirement)

@@ -35,6 +35,8 @@ class OptimizationApproach(Approach):
             creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0))
         elif self.fitness_aggregation == "no_aggregation":
             creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0, -1.0, -1.0))
+            weights = tuple([-1.0] * (1 + self.desirability.num_active_dimensions))
+            creator.create("FitnessMin", base.Fitness, weights=weights)
         creator.create("Individual", Requirement, fitness=creator.FitnessMin)
 
     def _add_to_toolbox(self):
@@ -69,7 +71,10 @@ class OptimizationApproach(Approach):
             if self.fitness_aggregation == "weighted_sum":
                 ind.fitness.values = (ind.correctness, ind.desirability["des"])
             elif self.fitness_aggregation == "no_aggregation":
-                ind.fitness.values = (ind.correctness,) + ind.desirability["tuple"]
+                filtered_tuple = tuple(
+                    val for val, w in zip(ind.desirability["tuple"], self.desirability.weights) if w != 0
+                )
+                ind.fitness.values = (ind.correctness,) + filtered_tuple
 
         toolbox = self.toolbox
         pop = toolbox.population(n=9) # Random initial population # TODO adjust number
@@ -169,13 +174,13 @@ class OptimizationApproach(Approach):
 
     def repair(self):
         # Do we need to repair?
-        to_repair = self.init_requirement.satisfaction_degrees["sd"][1] < 1
-        if not to_repair:
-            return None
+        # to_repair = self.init_requirement.satisfaction_degrees["sd"][1] < 1
+        # if not to_repair:
+        #     return None
 
         # Run the repair: rank by correctness
         hof_repaired = self._repair()
-        sorted_hof_repaired = sorted(hof_repaired, key=lambda x: (x.fitness.values[0]))
+        sorted_hof_repaired = sorted(hof_repaired, key=lambda x: (x.fitness.values[0], sum(x.fitness.values[1:])))
 
         sorted_hof_requirements = []
         for i, ind in enumerate(sorted_hof_repaired):

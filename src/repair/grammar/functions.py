@@ -1,5 +1,6 @@
 from typing import Callable, List, Type
 import operator
+delta = 1e-5
 
 def logical_and(a, b): return a and b
 def logical_or(a, b): return a or b
@@ -7,11 +8,11 @@ def logical_impl(a, b): return (not a) or b
 
 def add_robustness(a, b): return a + b
 def sub_robustness(a, b): return a - b
-def lt_robustness(a, b): return b - a + 1e-5
-def le_robustness(a, b): return b - a
-def gt_robustness(a, b): return a - b + 1e-5
-def ge_robustness(a, b): return a - b
-def eq_robustness(a, b): return abs(a - b)
+def lt_robustness(a, b): return b - a - delta
+def le_robustness(a, b): return b - a + delta
+def gt_robustness(a, b): return a - b - delta
+def ge_robustness(a, b): return a - b + delta
+def eq_robustness(a, b): return delta if a==b else -abs(a - b)
 
 def and_robustness(a, b): return min(a, b)
 def or_robustness(a, b): return max(a, b)
