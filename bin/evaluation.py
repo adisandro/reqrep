@@ -10,7 +10,7 @@ if __name__ == "__main__":
     # Case study setup
     processes = None
     if len(sys.argv) > 1:
-        processes = sys.argv[1]
+        processes = int(sys.argv[1])
     samples = 10
     case_study_dir = "data/case_studies"
     case_studies = {"AFC": ["REQ"], "AT": ["AT1", "AT2"], "CC": ["CC1", "CCX"], "EU": ["EU3", "EU8"],
