@@ -30,14 +30,7 @@ import time
 # bin/main.py data/case_studies/NNP NNP2
 # bin/main.py data/case_studies/TUI REQ
 
-def perform_repair(approach):
-    start_time = time.time()
-    all_repaired_reqs = approach.repair()
-    elapsed = time.time() - start_time
-
-    return all_repaired_reqs, elapsed
-
-if __name__ == "__main__":
+def create_parser():
     parser = ArgumentParser(description="Repairs test requirements")
     parser.add_argument("trace_suite", help="Path to the directory containing the trace suite")
     parser.add_argument("requirement", help="The name of the requirement to check")
@@ -54,9 +47,12 @@ if __name__ == "__main__":
                         help="The desirability weights, defaults to 1.0,1.0,1.0")
     parser.add_argument("-s", "--suffix", default="", help="An optional output file suffix")
     parser.add_argument("-v", "--verbose", action="store_true", help="Activates logging")
-    args = parser.parse_args()
-    if args.verbose:
-        utils.setup_logger("repair.log")
+
+    return parser
+
+def run(args):
+    print(f"Running: {vars(args)}")
+    logger = utils.setup_logger(args.verbose)
 
     # Define TRACE SUITE and REQUIREMENT
     case_study = args.trace_suite.split("/")[-1]
@@ -75,41 +71,40 @@ if __name__ == "__main__":
 
     # Define APPROACH and run REPAIR
     a = OptimizationApproach(suite, req_text, args.iterations, args.numbers, des, args.aggregation)
-    all_repaired_reqs, elapsed = perform_repair(a)
+    start_time = time.time()
+    all_repaired_reqs = a.repair()
+    elapsed = time.time() - start_time
     # Rank requirements by (1) correctness, (2) semantic desirability, (3) syntactic desirability, (4) satisfaction desirability
     all_repaired_reqs.sort(
         key=lambda r: (r.correctness, r.raw_desirability[0], r.raw_desirability[1], r.raw_desirability[2]))
 
-    # Save results..
-    config_id = f"{case_study}_{args.requirement}_{args.aggregation.replace("_", "")}_{round(weights[0])}{round(weights[1])}{round(weights[2])}"
-    output_dir = f"output/{config_id}"
+    # Save results to file
+    run_id = f"{case_study}_{args.requirement}_{args.aggregation.replace("_", "")}_{round(weights[0])}{round(weights[1])}{round(weights[2])}"
+    output_dir = f"output/{run_id}"
     os.makedirs(output_dir, exist_ok=True)
-
-    # ..to file
-    #TODO add logger calls + set up without file
     output_path = f"{output_dir}/repair{args.suffix}.txt"
     with open(output_path, "w", encoding="utf-8") as f:
-        f.write(f"Repair time: {elapsed:.2f} seconds\n\n")
-        f.write(a.init_requirement.to_str(suite) + "\n\n")
-        if all_repaired_reqs is None:
-            f.write("No repair necessary")
+        out = f"Repair time: {elapsed:.2f} seconds\n\n"
+        out += f"{a.init_requirement.to_str(suite)}\n\n"
+        if not all_repaired_reqs:
+            out += "No repair necessary"
         else:
             for req in all_repaired_reqs:
-                f.write(req.to_str(suite) + "\n\n")
-        print(f"Results saved to {output_path}")
+                out += f"{req.to_str(suite)}\n\n"
+        f.write(out)
+        logger.info(out)
 
-    # ..to CSV
-    csv_path = f"{output_dir}/results.csv"
-    new_rows = []
+    # return STATS
+    stats = []
     for req in all_repaired_reqs:
         pre_infix = grammar_utils.to_infix(req.pre, suite)
         post_infix = grammar_utils.to_infix(req.post, suite)
         raw_desirability = req.raw_desirability
         sem_taut, sem_var_type = des.get_semantic_desirability_components(req)
         sat_vertical, sat_horizontal = des.get_satisfaction_desirability_components(req)
-        new_rows.append({
-            "config_id": config_id,
-            "run_id": args.suffix,
+        stats.append({
+            "config_id": run_id,
+            "sample_id": args.suffix,
             "time": elapsed,
             "aggregation_strategy": args.aggregation,
             "weights": str(weights),
@@ -125,5 +120,11 @@ if __name__ == "__main__":
             "f_sat_vertical": sat_vertical,
             "f_sat_horizontal": sat_horizontal,
         })
-    pd.DataFrame(new_rows).to_csv(csv_path, mode="w", index=False)
-    print(f"Results saved to {csv_path}")
+
+    return stats
+
+
+if __name__ == "__main__":
+    parser = create_parser()
+    args = parser.parse_args()
+    run(args)

@@ -1,18 +1,20 @@
-# !/usr/bin/env python3
-import subprocess
+#!/usr/bin/env python3
 import sys
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
+import pandas as pd
+
+from main import create_parser, run
 
 if __name__ == "__main__":
-
-    # Case Study Specs and runs setup
-    case_study_dir = "data/case_studies"
-    case_study = "CC"
-    requirement = "CC1"
-    samples = 10
-    processes = 32
+    # Case study setup
+    processes = None
     if len(sys.argv) > 1:
         processes = sys.argv[1]
-    # NOTE: the desirability dimension implementations are fixed for now
+    samples = 10
+    case_study_dir = "data/case_studies"
+    case_studies = {"AFC": ["REQ"], "AT": ["AT1", "AT2"], "CC": ["CC1", "CCX"], "EU": ["EU3", "EU8"],
+                    "NNP": ["NNP1", "NNP2"], "TUI": ["REQ"]}
     w_sem = 1.0
     w_syn = 1.0
     w_sat = 1.0
@@ -25,13 +27,21 @@ if __name__ == "__main__":
     ]
 
     # Run all configs
-    n = 0
-    for aggregation, weights in run_configurations:
-        for i in range(samples):
-            print(f"(Sample {i}) Running configuration: aggregation_strategy={aggregation}, weights={weights}")
-            cmd = ["python3", "bin/main.py", f"{case_study_dir}/{case_study}", requirement, "-a", aggregation, "-w",
-                   ",".join(str(w) for w in weights), "-s", f"{i}"]
-            subprocess.Popen(cmd)
-            n += 1
-            if n >= processes:
-                break #TODO wait for results instead
+    parser = create_parser()
+    futures = {}
+    stats = []
+    with ProcessPoolExecutor(max_workers=processes) as executor:
+        for case_study, requirements in case_studies.items():
+            for requirement in requirements:
+                for aggregation, weights in run_configurations:
+                    for i in range(samples):
+                        cmd = [f"{case_study_dir}/{case_study}", requirement, "-a", aggregation, "-w",
+                               ",".join(str(w) for w in weights), "-s", f"{i}", "-v"]
+                        args = parser.parse_args(cmd)
+                        futures[executor.submit(run, args)] = args
+        for future in as_completed(futures.keys()):
+            print(f"Completed: {vars(futures[future])}")
+            stats.extend(future.result())
+    csv_path = f"output/results.csv"
+    pd.DataFrame(stats).to_csv(csv_path, mode="w", index=False)
+

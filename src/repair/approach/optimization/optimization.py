@@ -1,6 +1,5 @@
 import time
 from repair.approach.approach import Approach
-from tqdm import tqdm
 import random
 import logging
 from deap import base, creator, gp, tools
@@ -34,7 +33,6 @@ class OptimizationApproach(Approach):
         if self.fitness_aggregation == "weighted_sum":
             creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0))
         elif self.fitness_aggregation == "no_aggregation":
-            creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0, -1.0, -1.0))
             weights = tuple([-1.0] * (1 + self.desirability.num_active_dimensions))
             creator.create("FitnessMin", base.Fitness, weights=weights)
         creator.create("Individual", Requirement, fitness=creator.FitnessMin)
@@ -90,7 +88,7 @@ class OptimizationApproach(Approach):
         pop = toolbox.select(pop, len(pop))
 
         # Evolutionary loop: run for a fixed number of generations
-        for gen in tqdm(range(self.iterations)):
+        for gen in range(self.iterations):
             start_time = time.time()
             logger.info(f"  Generation {gen}:")
 

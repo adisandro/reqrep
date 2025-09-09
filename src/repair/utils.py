@@ -1,16 +1,20 @@
 import logging
+from logging import StreamHandler
 
-def setup_logger(logfile="repair.log"):
-    logging.basicConfig(level=logging.INFO)
+
+def setup_logger(verbose=True, logfile=None):
     logger = logging.getLogger("gp_logger")
-    logger.setLevel(logging.INFO)
-
-    if not logger.handlers:  # Prevent duplicate handlers
-        fh = logging.FileHandler(logfile)
-        fh.setLevel(logging.INFO)
-        formatter = logging.Formatter('%(asctime)s - %(message)s')
-        fh.setFormatter(formatter)
-        logger.addHandler(fh)
+    if verbose:
+        logger.addHandler(StreamHandler())
+        logger.setLevel(logging.INFO)
+        if logfile:
+            fh = logging.FileHandler(logfile)
+            fh.setLevel(logging.INFO)
+            formatter = logging.Formatter('%(asctime)s - %(message)s')
+            fh.setFormatter(formatter)
+            logger.addHandler(fh)
+    else:
+        logger.addHandler(logging.NullHandler())
 
     return logger
 
