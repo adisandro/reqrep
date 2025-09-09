@@ -1,14 +1,14 @@
 REQUIREMENTS = {
-    "data/dummy": {"REQ": ("True", "lt(y, 1.0)")},
-    "data/traces": {"REQ": ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")},
+    "dummy": {"REQ": ("True", "lt(y, 1.0)")},
+    "traces": {"REQ": ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")},
     # "data/traces": ("True", "and(le(yout, TL), ge(yout, BL))"),
-    "data/case_studies/AFC": {"REQ": (
+    "AFC": {"REQ": (
         "and("
             "and(ge(Throttle, 0.0), lt(Throttle, 61.2)),"
             "and(ge(Engine, 900.0), le(Engine, 1100.0)))",
         "dur(11, 50, and(gt(Error, -0.007), lt(Error, 0.007)))"
     )},
-    "data/case_studies/AT": {
+    "AT": {
         "AT1": (
             "and("
                 "and(ge(Throttle, 5.0), le(Throttle, 100.0)),"
@@ -22,7 +22,7 @@ REQUIREMENTS = {
             "dur(0, 10, lt(Engine, 4750.0))"
         )
     },
-    "data/case_studies/CC": {
+    "CC": {
         "CC1": (
             "and("
                 "ge(Time,     0.0),   and("
@@ -48,7 +48,7 @@ REQUIREMENTS = {
                 "gt(sub(Position2, Position1), 7.5))))"
         )
     },
-    "data/case_studies/EU": {
+    "EU": {
         "EU3": (
             "and("
                 "and(ge(Phi, 0.0),    lt(Phi, 6.28318)), and("
@@ -74,7 +74,7 @@ REQUIREMENTS = {
                 "le(sub(det_R, 1.0),  0.01))"
         )
     },
-    "data/case_studies/NNP": {
+    "NNP": {
         "NNP1": (
             "and("
                 "and(ge(xIn, -0.5), le(xIn, 0.5)),"
@@ -88,7 +88,7 @@ REQUIREMENTS = {
             "ge(zOut, -0.2)"
         )
     },
-    "data/case_studies/TUI": {"REQ": (
+    "TUI": {"REQ": (
         "and("
             "and(ge(xin, 0.0), le(xin, 1.0)), and("
             "eq(reset, 0.0), and("
@@ -99,12 +99,13 @@ REQUIREMENTS = {
     )},
 }
 
-INPUT_VARIABLES = {"data/dummy": {"x"},
-                   "data/traces": {"xin", "reset", "TL", "BL", "dT", "ic"},
-                   "data/case_studies/AFC": {"Throttle", "Engine"},
-                   "data/case_studies/AT": {"Throttle", "Brake"},
-                   "data/case_studies/CC": {"Throttle", "Brake"},
-                   "data/case_studies/EU": {"Phi", "Theta", "Psi", "Vin_x", "Vin_y", "Vin_z"},
-                   "data/case_studies/NNP": {"xIn", "yIn"},
-                   "data/case_studies/TUI": {"xin", "reset", "TL", "BL", "dT", "ic"},
-                   }
+INPUT_VARIABLES = {
+    "dummy": {"x"},
+    "traces": {"xin", "reset", "TL", "BL", "dT", "ic"},
+    "AFC": {"Throttle", "Engine"},
+    "AT": {"Throttle", "Brake"},
+    "CC": {"Throttle", "Brake"},
+    "EU": {"Phi", "Theta", "Psi", "Vin_x", "Vin_y", "Vin_z"},
+    "NNP": {"xIn", "yIn"},
+    "TUI": {"xin", "reset", "TL", "BL", "dT", "ic"},
+}
