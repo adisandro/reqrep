@@ -36,7 +36,7 @@ if __name__ == "__main__":
                 for aggregation, weights in run_configurations:
                     for i in range(samples):
                         cmd = [f"{case_study_dir}/{case_study}", requirement, "-a", aggregation, "-w",
-                               ",".join(str(w) for w in weights), "-s", f"{i}", "-v"]
+                               ",".join(str(w) for w in weights), "-s", f"{i}"]
                         args = parser.parse_args(cmd)
                         futures[executor.submit(run, args)] = args
         for future in as_completed(futures.keys()):
