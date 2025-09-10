@@ -6,14 +6,14 @@ REQUIREMENTS = {
         "AFC29": (
             "and("
                 "and(ge(Throttle, 0.0), lt(Throttle, 61.2)), and("
-                "and(ge(Engine, 900.0), le(Engine, 1100.0))),"
+                "and(ge(Engine, 900.0), le(Engine, 1100.0)),"
                 "and(ge(Time, 11.0),    le(Time, 50.0))))",
             "and(gt(Error, -0.007), lt(Error, 0.007))"
         ),
         "AFC33": (
             "and("
                 "and(ge(Throttle, 61.2), lt(Throttle, 81.2)), and("
-                "and(ge(Engine, 900.0), le(Engine, 1100.0))),"
+                "and(ge(Engine, 900.0), le(Engine, 1100.0)),"
                 "and(ge(Time, 11.0),    le(Time, 50.0))))",
             "and(gt(Error, -0.007), lt(Error, 0.007))"
         )
@@ -22,14 +22,14 @@ REQUIREMENTS = {
         "AT1": (
             "and("
                 "and(ge(Throttle, 0.0), le(Throttle, 100.0)), and("
-                "and(ge(Brake, 0.0),    le(Brake, 325.0))),"
+                "and(ge(Brake, 0.0),    le(Brake, 325.0)),"
                 "and(ge(Time, 0.0),     le(Time, 20.0))))",
             "lt(Speed, 115.0)"
         ),
         "AT2": (
             "and("
                 "and(ge(Throttle, 0.0), le(Throttle, 100.0)), and("
-                "and(ge(Brake, 0.0),    le(Brake, 325.0))),"
+                "and(ge(Brake, 0.0),    le(Brake, 325.0)),"
                 "and(ge(Time, 0.0),     le(Time, 10.0))))",
             "lt(Engine, 4750.0)"
         )
@@ -37,22 +37,16 @@ REQUIREMENTS = {
     "CC": {
         "CC1": (
             "and("
-                "ge(Time,     0.0),   and("
-                "le(Time,     100.0), and("
-                "ge(Throttle, 0.0),   and("
-                "le(Throttle, 1.0),   and("
-                "ge(Brake,    0.0),"
-                "le(Brake,    1.0))))))",
+                "and(ge(Throttle, 0.0), le(Throttle, 1.0)), and("
+                "and(ge(Brake, 0.0),    le(Brake, 1.0)),"
+                "and(ge(Time, 0.0),     le(Time, 100.0))))",
             "le(sub(Position5, Position4), 40.0)"
         ),
         "CCX": (
             "and("
-                "ge(Time,     0.0),   and("
-                "le(Time,     50.0),  and("
-                "ge(Throttle, 0.0),   and("
-                "le(Throttle, 1.0),   and("
-                "ge(Brake,    0.0),"
-                "le(Brake,    1.0))))))",
+                "and(ge(Throttle, 0.0), le(Throttle, 1.0)), and("
+                "and(ge(Brake, 0.0),    le(Brake, 1.0)),"
+                "and(ge(Time, 0.0),     le(Time, 50.0))))",
             "and("
                 "gt(sub(Position5, Position4), 7.5), and("
                 "gt(sub(Position4, Position3), 7.5), and("
