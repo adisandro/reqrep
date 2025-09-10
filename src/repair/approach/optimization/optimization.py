@@ -54,7 +54,7 @@ class OptimizationApproach(Approach):
         self.toolbox.register("select", tools.selNSGA2)
         self.toolbox.register("mate", gp.cxOnePoint)
         # if min_=0, then this requires a False or true terminal. Not supported.
-        self.toolbox.register("expr_mut", expressiongenerator.generate_expr, min_=1, max_=3, condition_str="full")
+        self.toolbox.register("expr_mut", expressiongenerator.generate_expr, min_=1, max_=2, condition_str="full")
         self.toolbox.register("mutate_pre", gp.mutUniform, expr=self.toolbox.expr_mut, pset=self.pset_pre)
         self.toolbox.register("mutate_post", gp.mutUniform, expr=self.toolbox.expr_mut, pset=self.pset_post)
 
