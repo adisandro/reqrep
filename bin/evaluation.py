@@ -30,6 +30,7 @@ if __name__ == "__main__":
     parser = create_parser()
     futures = {}
     csv_path = f"output/results.csv"
+    csv_header = True
     with ProcessPoolExecutor(max_workers=processes) as executor:
         for case_study, requirements in case_studies.items():
             for requirement in requirements:
@@ -41,5 +42,7 @@ if __name__ == "__main__":
                         futures[executor.submit(run, args)] = args
         for future in as_completed(futures.keys()):
             print(f"Completed: {vars(futures[future])}")
-            pd.DataFrame(future.result()).to_csv(csv_path, mode="a", index=False, header=False)
+            pd.DataFrame(future.result()).to_csv(csv_path, mode="a", index=False, header=csv_header)
+            if csv_header:
+                csv_header = False
 
