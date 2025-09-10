@@ -36,8 +36,8 @@ class Approach(ABC):
 
         # (1) Generator for pre and post repairs
         # if min_=0, then this requires a False or true terminal. Not supported.
-        toolbox.register("expr_pre", expressiongenerator.generate_expr, pset=self.pset_pre, min_=2, max_=3)
-        toolbox.register("expr_post", expressiongenerator.generate_expr, pset=self.pset_post, min_=2, max_=3)
+        toolbox.register("expr_pre", expressiongenerator.generate_expr, pset=self.pset_pre, min_=2, max_=5)
+        toolbox.register("expr_post", expressiongenerator.generate_expr, pset=self.pset_post, min_=2, max_=6)
         # TODO does the expressiongenerator belong to the subclass?
 
         # (2) Compilation
