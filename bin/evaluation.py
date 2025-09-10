@@ -13,8 +13,8 @@ if __name__ == "__main__":
         processes = int(sys.argv[1])
     samples = 10
     case_study_dir = "data/case_studies"
-    case_studies = {"AFC": ["REQ"], "AT": ["AT1", "AT2"], "CC": ["CC1", "CCX"], "EU": ["EU3", "EU8"],
-                    "NNP": ["NNP1", "NNP2"], "TUI": ["REQ"]}
+    case_studies = {"AFC": ["AFC29", "AFC33"], "AT": ["AT1", "AT2"], "CC": ["CC1", "CCX"], "EU": ["EU3"],
+                    "NNP": ["NNP3a", "NNP3b", "NNP4"], "TUI": ["TU1", "TU2"]}
     w_sem = 1.0
     w_syn = 1.0
     w_sat = 1.0
