@@ -11,19 +11,21 @@ def rq2(case_studies, data):
     correct_data = (data[(data["f_correctness"].apply(is_zero)) & (data["f_des_semantic"].apply(is_zero))]
                     .sort_values(by=["f_des_syntactic", "f_des_satisfaction"]))
                     # .sort_values(by=["f_des_satisfaction", "f_des_syntactic"]))
-    repairs = "\\begin{enumerate}\n"
+    repairs = "\n"
     for case_study in case_studies:
         case_data = data[data["config_id"].str.startswith(case_study)]
         case_correct_data = correct_data[correct_data["config_id"].str.startswith(case_study)]
         ratio = round(len(case_correct_data)/len(case_data), 2)
-        best = case_correct_data.iloc[0]
-        req = best["config_id"].split("_")[1]
-        repairs += (f"\t\\item[{req}] "
-                 f"{best["precondition"].replace("_", "\\_")} => {best["postcondition"].replace("_", "\\_")}\n")
-        best_syn = round(best["f_des_syntactic"], 2)
-        best_sat = round(best["f_des_satisfaction"], 2)
-        print(f"{case_study} & {ratio} &  & {best_syn} & {best_sat} & \\\\")
-    repairs += "\\end{enumerate}\n"
+        print(f"{case_study} & {ratio} &  &  &  & \\\\")
+        for i in range(10):
+            repair = case_correct_data.iloc[i]
+            req = repair["config_id"].split("_")[1]
+            repairs += (f"\\item[{req}] "
+                     f"{repair["precondition"].replace("_", "\\_")} => {repair["postcondition"].replace("_", "\\_")}\n")
+            repair_syn = round(repair["f_des_syntactic"], 2)
+            repair_sat = round(repair["f_des_satisfaction"], 2)
+            repairs += f"{i+1} & {repair_syn} & {repair_sat}\n"
+        repairs += "\n"
     print(repairs)
 
 def rq3(data):
