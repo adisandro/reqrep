@@ -19,12 +19,12 @@ def rq2(case_studies, data):
         print(f"{case_study} & {ratio} &  &  &  & \\\\")
         for i in range(10):
             repair = case_correct_data.iloc[i]
-            req = repair["config_id"].split("_")[1]
-            repairs += (f"\\item[{req}] "
-                     f"{repair["precondition"].replace("_", "\\_")} => {repair["postcondition"].replace("_", "\\_")}\n")
+            repair_req = repair["config_id"].split("_")[1]
+            repair_pre = repair["precondition"].replace("_", "\\_")
+            repair_post = repair["postcondition"].replace("_", "\\_")
             repair_syn = round(repair["f_des_syntactic"], 2)
             repair_sat = round(repair["f_des_satisfaction"], 2)
-            repairs += f"{i+1} & {repair_syn} & {repair_sat}\n"
+            repairs += f"\\item[{repair_req}] {repair_pre} => {repair_post}\n{i+1} & {repair_syn} & {repair_sat}\n"
         repairs += "\n"
     print(repairs)
 
