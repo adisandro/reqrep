@@ -1,7 +1,6 @@
 REQUIREMENTS = {
     "dummy": {"REQ": ("True", "lt(y, 1.0)")},
     "traces": {"REQ": ("and(eq(reset, 1.0), and(le(BL, ic), le(ic, TL)))", "eq(yout, ic)")},
-    # "data/traces": ("True", "and(le(yout, TL), ge(yout, BL))"),
     "AFC": {
         "AFC29": (
             "and("

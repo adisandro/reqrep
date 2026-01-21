@@ -1,7 +1,7 @@
 from repair.grammar.grammar import DISPLAY_MAP
 from deap import gp
 
-def to_infix(individual, trace_suite):
+def to_infix(individual):
     def recurse(node, iterator):
         if isinstance(node, gp.Terminal):
             name = node.name

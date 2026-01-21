@@ -1,5 +1,3 @@
-from functools import cached_property
-
 from repair.fitness.desirability.desirability import DIMENSION_IDS
 import repair.grammar.utils as grammar_utils
 from deap import gp
@@ -56,7 +54,7 @@ class Requirement:
         return f"Requirement(name={self.name}, pre={self.pre}, post={self.post})"
 
     def to_str(self, trace_suite, digits=3):
-        merged_infix = grammar_utils.to_infix(self.merged, trace_suite)
+        merged_infix = grammar_utils.to_infix(self.merged)
 
         # correctness
         impl_sd, impl_item_perc, impl_item_viol, impl_t_perc, impl_trace_viol = self.satisfaction_degrees["sd"]
@@ -79,4 +77,3 @@ class Requirement:
             f"\tFITNESS - Des (weighted dims):  {[f'{i}={v:.{digits}f}' for i, v in zip(DIMENSION_IDS, self.desirability['tuple'])]}\n"
             f"\tFITNESS - Des (weighted sum):   {self.desirability['des']:.{digits}f}\n"
         )
-

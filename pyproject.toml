@@ -20,5 +20,6 @@ dependencies = [
     "tqdm",
     "pandas",
     "matplotlib",
-    "zss==1.2.0"
+    "zss==1.2.0",
+    "z3-solver"
 ]

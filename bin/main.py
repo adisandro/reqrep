@@ -2,12 +2,11 @@
 import os
 from argparse import ArgumentParser
 
-import pandas as pd
-
-from repair.fitness.desirability.satisfactionextent import TraceSuiteSatisfactionMagnitude, VerticalAndHorizontalExtent
+from repair.fitness.desirability.satisfactionextent import VerticalAndHorizontalExtent
 from utils import REQUIREMENTS, INPUT_VARIABLES
 from repair.fitness.desirability.desirability import Desirability
-from repair.fitness.desirability.semanticintegrity import SamplingAndVarTypeSanity
+from repair.fitness.desirability.semanticintegrity import \
+    TautologyAndVarTypeSanity, Z3TautologyCheckWithSamplingFallback
 from repair.fitness.desirability.syntacticsimilarity import TreeEditDistance
 import repair.utils as utils
 from repair.approach.optimization.optimization import OptimizationApproach
@@ -19,16 +18,18 @@ import time
 
 # bin/main.py data/dummy REQ
 # bin/main.py data/traces REQ
-# bin/main.py data/case_studies/AFC REQ
+# bin/main.py data/case_studies/AFC AFC29
+# bin/main.py data/case_studies/AFC AFC33
 # bin/main.py data/case_studies/AT AT1
 # bin/main.py data/case_studies/AT AT2
 # bin/main.py data/case_studies/CC CC1
 # bin/main.py data/case_studies/CC CCX
 # bin/main.py data/case_studies/EU EU3
-# bin/main.py data/case_studies/EU EU8
-# bin/main.py data/case_studies/NNP NNP1
-# bin/main.py data/case_studies/NNP NNP2
-# bin/main.py data/case_studies/TUI REQ
+# bin/main.py data/case_studies/NNP NNP3a
+# bin/main.py data/case_studies/NNP NNP3b
+# bin/main.py data/case_studies/NNP NNP4
+# bin/main.py data/case_studies/TUI TU1
+# bin/main.py data/case_studies/TUI TU2
 
 def create_parser():
     parser = ArgumentParser(description="Repairs test requirements")
@@ -63,7 +64,7 @@ def run(args):
     weights = [float(w) for w in args.weights.split(",")]
     des = Desirability(
         trace_suite=suite,
-        semantic=SamplingAndVarTypeSanity(n_samples=10),
+        semantic=TautologyAndVarTypeSanity(Z3TautologyCheckWithSamplingFallback(n_samples=10)),
         syntactic=TreeEditDistance(),
         satisfaction=VerticalAndHorizontalExtent(),
         weights=weights
@@ -97,8 +98,8 @@ def run(args):
     # return STATS
     stats = []
     for req in all_repaired_reqs:
-        pre_infix = grammar_utils.to_infix(req.pre, suite)
-        post_infix = grammar_utils.to_infix(req.post, suite)
+        pre_infix = grammar_utils.to_infix(req.pre)
+        post_infix = grammar_utils.to_infix(req.post)
         raw_desirability = req.raw_desirability
         sem_taut, sem_var_type = des.get_semantic_desirability_components(req)
         sat_vertical, sat_horizontal = des.get_satisfaction_desirability_components(req)

@@ -1,6 +1,5 @@
 import random
 from collections import deque
-from os.path import samefile
 
 from deap import gp
 
@@ -8,6 +7,7 @@ from repair.fitness.desirability.desirability import SemanticIntegrity
 
 from repair.fitness.correctness.correctness import eval_tree, is_within_margin
 
+from z3 import Solver
 
 class SamplingBasedTautologyCheck(SemanticIntegrity):
     def __init__(self, n_samples: int = 10):
@@ -43,9 +43,52 @@ class SamplingBasedTautologyCheck(SemanticIntegrity):
         return 1.0 if all_same_merged else 0.0
 
 
-class SymbolicTautologyCheck(SemanticIntegrity):
-    def evaluate(self, trace_suite, individual) -> float:
-        pass  # to be implemented
+class Z3TautologyCheck(SemanticIntegrity):
+    @staticmethod
+    def evaluate_sat(requirement) -> float:
+        consts = {node.value for node in requirement.merged # use set to filter duplicates
+                  if isinstance(node, gp.Terminal) and isinstance(node.value, str)}
+        smtlib = " ".join([f"(declare-const {const} Real)" for const in consts])
+        smtlib += "(assert (not "
+        smtlib += (requirement.merged.__str__()
+                   .replace(",", "")
+                   .replace("prev('", "")
+                   .replace("')", "")
+                   .replace("implies(", "(=> ")
+                   .replace("eq(", "(= ")
+                   .replace("ge(", "(>= ")
+                   .replace("gt(", "(> ")
+                   .replace("le(", "(<= ")
+                   .replace("lt(", "(< ")
+                   .replace("sub(", "(- ")
+                   .replace("add(", "(+ ")
+                   .replace("and(", "(and ")
+                   .replace("or(", "(or ")
+                   .replace("not(", "(not "))
+        smtlib += "))"
+        solver = Solver()
+        solver.from_string(smtlib)
+
+        return solver.check()
+
+    def evaluate(self, trace_suite, requirement) -> float:
+        return 1.0 if self.evaluate_sat(requirement) == "sat" else 0.0
+
+
+class Z3TautologyCheckWithSamplingFallback(SemanticIntegrity):
+    def __init__(self, n_samples: int = 10):
+        super().__init__()
+        self.z3 = Z3TautologyCheck()
+        self.sampling = SamplingBasedTautologyCheck(n_samples)
+
+    def evaluate(self, trace_suite, requirement) -> float:
+        result = self.z3.evaluate_sat(requirement)
+        if result == "unknown":
+            return self.sampling.evaluate(trace_suite, requirement)
+        elif result == "sat":
+            return 1.0
+        else:
+            return 0.0
 
 
 class VarTypeConsistencyCheck(SemanticIntegrity):
@@ -112,22 +155,21 @@ class VarTypeConsistencyCheck(SemanticIntegrity):
                    self.evaluate_nodes(trace_suite, deque(iter(requirement.post))))
 
 
-class SamplingAndVarTypeSanity(SemanticIntegrity):
-    def __init__(self, n_samples: int = 10):
+class TautologyAndVarTypeSanity(SemanticIntegrity):
+    def __init__(self, tautology_checker):
         super().__init__()
-        self.sampling = SamplingBasedTautologyCheck(n_samples)
+        self.tautology = tautology_checker
         self.var_type = VarTypeConsistencyCheck()
         self.composed=True
 
     def get_two_components(self, trace_suite, requirement):
-        result_sampling = self.sampling.evaluate(trace_suite, requirement) # {0.0, 1.0}
+        result_tautology = self.tautology.evaluate(trace_suite, requirement) # {0.0, 1.0}
         result_var_type = self.var_type.evaluate(trace_suite, requirement) # {0.0, 1.0} (may become continuous)
-        return result_sampling, result_var_type
+        return result_tautology, result_var_type
 
     def evaluate(self, trace_suite, requirement):
-        result_sampling, result_var_type = self.get_two_components(trace_suite, requirement)
-
+        result_tautology, result_var_type = self.get_two_components(trace_suite, requirement)
         # Define fitness
-        result_combined = 0.5*result_sampling + 0.5*result_var_type
+        result_combined = 0.5*result_tautology + 0.5*result_var_type
         # result = max(result, self.var_type.evaluate(trace_suite, requirement))
         return result_combined
