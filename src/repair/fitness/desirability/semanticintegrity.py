@@ -1,13 +1,13 @@
+import logging
 import random
 from collections import deque
-
 from deap import gp
-
 from repair.fitness.desirability.desirability import SemanticIntegrity
-
 from repair.fitness.correctness.correctness import eval_tree, is_within_margin
-
 from z3 import Solver
+
+logger = logging.getLogger("gp_logger")
+
 
 class SamplingBasedTautologyCheck(SemanticIntegrity):
     def __init__(self, n_samples: int = 10):
@@ -40,6 +40,8 @@ class SamplingBasedTautologyCheck(SemanticIntegrity):
         # If all robustness values are the same,
         # it's (likely) trivial, i.e. a constant function (tautology/contradiction)
         # return 1.0 if all_same_pre or all_same_post else 0.0
+        if all_same_merged:
+            logger.info(f"      Tautology found (Sampling): {requirement.merged}")
         return 1.0 if all_same_merged else 0.0
 
 
@@ -48,31 +50,33 @@ class Z3TautologyCheck(SemanticIntegrity):
     def evaluate_sat(requirement) -> float:
         consts = {node.value for node in requirement.merged # use set to filter duplicates
                   if isinstance(node, gp.Terminal) and isinstance(node.value, str)}
-        smtlib = " ".join([f"(declare-const {const} Real)" for const in consts])
-        smtlib += "(assert (not "
-        smtlib += (requirement.merged.__str__()
-                   .replace(",", "")
-                   .replace("prev('", "")
-                   .replace("')", "")
-                   .replace("implies(", "(=> ")
-                   .replace("eq(", "(= ")
-                   .replace("ge(", "(>= ")
-                   .replace("gt(", "(> ")
-                   .replace("le(", "(<= ")
-                   .replace("lt(", "(< ")
-                   .replace("sub(", "(- ")
-                   .replace("add(", "(+ ")
-                   .replace("and(", "(and ")
-                   .replace("or(", "(or ")
-                   .replace("not(", "(not "))
-        smtlib += "))"
+        smtlib_decl = " ".join([f"(declare-const {const} Real)" for const in consts])
+        smtlib_req = (requirement.merged.__str__()
+                      .replace(",", "")
+                      .replace("prev('", "")
+                      .replace("')", "")
+                      .replace("implies(", "(=> ")
+                      .replace("eq(", "(= ")
+                      .replace("ge(", "(>= ")
+                      .replace("gt(", "(> ")
+                      .replace("le(", "(<= ")
+                      .replace("lt(", "(< ")
+                      .replace("sub(", "(- ")
+                      .replace("add(", "(+ ")
+                      .replace("and(", "(and ")
+                      .replace("or(", "(or ")
+                      .replace("not(", "(not "))
+        smtlib = f"{smtlib_decl} (assert (not {smtlib_req}))"
         solver = Solver()
         solver.from_string(smtlib)
+        result = solver.check()
+        if result != "sat":
+            logger.info(f"      Tautology found (Z3): {smtlib_req}")
 
-        return solver.check()
+        return result
 
     def evaluate(self, trace_suite, requirement) -> float:
-        return 1.0 if self.evaluate_sat(requirement) == "sat" else 0.0
+        return 1.0 if self.evaluate_sat(requirement) != "sat" else 0.0
 
 
 class Z3TautologyCheckWithSamplingFallback(SemanticIntegrity):
@@ -85,7 +89,7 @@ class Z3TautologyCheckWithSamplingFallback(SemanticIntegrity):
         result = self.z3.evaluate_sat(requirement)
         if result == "unknown":
             return self.sampling.evaluate(trace_suite, requirement)
-        elif result == "sat":
+        elif result == "unsat":
             return 1.0
         else:
             return 0.0
@@ -151,8 +155,11 @@ class VarTypeConsistencyCheck(SemanticIntegrity):
             raise TypeError(f"Unexpected node type: {node}")
 
     def evaluate(self, trace_suite, requirement):
-        return max(self.evaluate_nodes(trace_suite, deque(iter(requirement.pre))),
-                   self.evaluate_nodes(trace_suite, deque(iter(requirement.post))))
+        result = max(self.evaluate_nodes(trace_suite, deque(iter(requirement.pre))),
+                     self.evaluate_nodes(trace_suite, deque(iter(requirement.post))))
+        if result == 1.0:
+            logger.info(f"      Var type inconsistency found: {requirement.merged}")
+        return result
 
 
 class TautologyAndVarTypeSanity(SemanticIntegrity):
