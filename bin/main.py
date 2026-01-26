@@ -6,7 +6,7 @@ from repair.fitness.desirability.satisfactionextent import VerticalAndHorizontal
 from utils import REQUIREMENTS, INPUT_VARIABLES
 from repair.fitness.desirability.desirability import Desirability
 from repair.fitness.desirability.semanticintegrity import \
-    TautologyAndVarTypeSanity, Z3TautologyCheckWithSamplingFallback
+    TautologyAndVarTypeSanity, Z3TautologyCheckWithSamplingFallback, SamplingBasedTautologyCheck
 from repair.fitness.desirability.syntacticsimilarity import TreeEditDistance
 import repair.utils as utils
 from repair.approach.optimization.optimization import OptimizationApproach

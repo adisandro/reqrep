@@ -4,7 +4,7 @@ from collections import deque
 from deap import gp
 from repair.fitness.desirability.desirability import SemanticIntegrity
 from repair.fitness.correctness.correctness import eval_tree, is_within_margin
-from z3 import Solver
+from z3 import Solver, sat, unsat, unknown
 
 logger = logging.getLogger("gp_logger")
 
@@ -70,13 +70,13 @@ class Z3TautologyCheck(SemanticIntegrity):
         solver = Solver()
         solver.from_string(smtlib)
         result = solver.check()
-        if result != "sat":
+        if result != sat:
             logger.info(f"      Tautology found (Z3): {smtlib_req}")
 
         return result
 
     def evaluate(self, trace_suite, requirement) -> float:
-        return 1.0 if self.evaluate_sat(requirement) != "sat" else 0.0
+        return 1.0 if self.evaluate_sat(requirement) != sat else 0.0
 
 
 class Z3TautologyCheckWithSamplingFallback(SemanticIntegrity):
@@ -87,9 +87,9 @@ class Z3TautologyCheckWithSamplingFallback(SemanticIntegrity):
 
     def evaluate(self, trace_suite, requirement) -> float:
         result = self.z3.evaluate_sat(requirement)
-        if result == "unknown":
+        if result == unknown:
             return self.sampling.evaluate(trace_suite, requirement)
-        elif result == "unsat":
+        elif result == unsat:
             return 1.0
         else:
             return 0.0
