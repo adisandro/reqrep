@@ -53,12 +53,6 @@ class Desirability:
 
         self.num_active_dimensions = sum(1 for w in self.weights if w > 0)
 
-    def get_raw_desirability_tuple(self, requirement) -> tuple[float, float, float]:
-        sem_val = self.semantic.evaluate(self.trace_suite, requirement)
-        syn_val = self.syntactic.evaluate(requirement, self.initial_requirement)
-        app_val = self.satisfaction.evaluate(requirement, self.initial_requirement)
-        return sem_val, syn_val, app_val
-    
     def get_semantic_desirability_components(self, requirement) -> tuple[float, float]:
         if not hasattr(self.semantic, "get_two_components"):
             raise ValueError("The semantic integrity measure does not support get_two_components.")
@@ -68,15 +62,18 @@ class Desirability:
         if not hasattr(self.satisfaction, "get_two_components"):
             raise ValueError("The satisfaction extent measure does not support get_two_components.")
         return self.satisfaction.get_two_components(requirement, self.initial_requirement)
-    
-    def get_desirability_tuple(self, requirement) -> tuple[float, float, float]:
-        sem_val = 0.0 if self.weights[0] == 0 else self.semantic.evaluate(self.trace_suite, requirement)
-        syn_val = 0.0 if self.weights[1] == 0 else self.syntactic.evaluate(requirement, self.initial_requirement)
-        app_val = 0.0 if self.weights[2] == 0 else self.satisfaction.evaluate(requirement, self.initial_requirement)
-        return sem_val, syn_val, app_val
+
+    def get_desirability_tuple(self, requirement, sem_enabled, syn_enabled, sat_enabled) -> tuple[float, float, float]:
+        sem_val = self.semantic.evaluate(self.trace_suite, requirement) if sem_enabled else 0.0
+        syn_val = self.syntactic.evaluate(requirement, self.initial_requirement) if syn_enabled else 0.0
+        sat_val = self.satisfaction.evaluate(requirement, self.initial_requirement) if sat_enabled else 0.0
+        return sem_val, syn_val, sat_val
+
+    def get_raw_desirability_tuple(self, requirement) -> tuple[float, float, float]:
+        return self.get_desirability_tuple(requirement, True, True, True)
 
     def evaluate(self, requirement) -> float:
-        des = self.get_desirability_tuple(requirement)
+        des = self.get_desirability_tuple(requirement, self.weights[0] > 0, self.weights[1] > 0, self.weights[2] > 0)
         weighted_des = (
             self.weights[0] * des[0],
             self.weights[1] * des[1],
