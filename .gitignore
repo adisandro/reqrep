@@ -7,3 +7,4 @@ __pycache__/
 case_studies/
 output*/
 .archive/
+.vscode/

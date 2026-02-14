@@ -12,9 +12,9 @@ logger = logging.getLogger("gp_logger")
 
 class OptimizationApproach(Approach):
 
-    def __init__(self, trace_suite, requirement_text, iterations, numbers_factor, desirability,
+    def __init__(self, trace_suite, requirement_text, iterations, numbers_factor, desirability, config,
                  fitness_aggregation="weighted_sum"):
-        super().__init__(trace_suite, requirement_text, iterations, numbers_factor, desirability)
+        super().__init__(trace_suite, requirement_text, iterations, numbers_factor, desirability, config)
 
         self.set_fitness_aggregation(fitness_aggregation)
         self._init_creator()
@@ -73,9 +73,14 @@ class OptimizationApproach(Approach):
                     val for val, w in zip(ind.desirability["tuple"], self.desirability.weights) if w != 0
                 )
                 ind.fitness.values = (ind.correctness,) + filtered_tuple
+        
+        # PLACEHOLDER - for quick testing
+        # def _set_ind_fitness(ind):
+        #     num_objectives = 2 if self.fitness_aggregation == "weighted_sum" else 1 + self.desirability.num_active_dimensions
+        #     ind.fitness.values = tuple(random.uniform(0, 10) for _ in range(num_objectives))
 
         toolbox = self.toolbox
-        pop = toolbox.population(n=9) # Random initial population # TODO adjust number
+        pop = toolbox.population(n=self.config.pop_size-1) # Random initial population (-1 is for the addition of the original requirement, which is not generated randomly)
         orig = creator.Individual(name="Candidate", toolbox=self.toolbox, pset_pre=self.pset_pre,
                                   pset_post=self.pset_post, precond=toolbox.clone(self.init_requirement.pre),
                                   postcond=toolbox.clone(self.init_requirement.post))
@@ -96,7 +101,16 @@ class OptimizationApproach(Approach):
             # offspring = toolbox.select(pop, len(pop)) # Selection
             # offspring = list(map(toolbox.clone, offspring))  # Deep copy the individuals
             offspring = []
-            for ind in pop:
+
+            for i in range(self.config.num_offsprings):
+                # SELECT the individual to be copied
+                if self.config.random_offsprings:
+                    # Randomly choose from the current population
+                    ind = random.choice(pop)
+                else:
+                    # iterate through the population
+                    ind = pop[i % len(pop)]
+                # COPY the individual (deep copy)
                 ind_copy = creator.Individual(name="Candidate", toolbox=self.toolbox, pset_pre=self.pset_pre,
                                               pset_post=self.pset_post, precond=toolbox.clone(ind.pre),
                                               postcond=toolbox.clone(ind.post))
@@ -106,12 +120,13 @@ class OptimizationApproach(Approach):
             start_time = time.time()
 
             logger.info("  CROSSOVER application ...")
+            p_crossover = self.config.crossover_probability
             for child1, child2 in zip(offspring[::2], offspring[1::2]):
                 mated = False
-                if random.random() < 0.5:
+                if random.random() < p_crossover:
                     mated = True
                     toolbox.mate(child1.pre, child2.pre)
-                if random.random() < 0.5:
+                if random.random() < p_crossover:
                     mated = True
                     toolbox.mate(child1.post, child2.post)
                 if mated:
@@ -121,12 +136,13 @@ class OptimizationApproach(Approach):
             start_time = time.time()
 
             logger.info("  MUTATION application ...")
+            p_mutation = self.config.mutation_probability
             for mutant in offspring:
                 mutated = False
-                if random.random() < 0.3:
+                if random.random() < p_mutation:
                     mutated = True
                     toolbox.mutate_pre(mutant.pre)
-                if random.random() < 0.3:
+                if random.random() < p_mutation:
                     mutated = True
                     toolbox.mutate_post(mutant.post)
                 if mutated:

@@ -2,6 +2,7 @@
 import os
 from argparse import ArgumentParser
 
+import repair.approach.approachConfig as approachConfig
 from repair.fitness.desirability.satisfactionextent import VerticalAndHorizontalExtent
 from utils import REQUIREMENTS, INPUT_VARIABLES
 from repair.fitness.desirability.desirability import Desirability
@@ -46,8 +47,10 @@ def create_parser():
                         help="The aggregation strategy in {no_aggregation, weighted_sum}, defaults to no_aggregation")
     parser.add_argument("-w", "--weights", default="1.0,1.0,1.0",
                         help="The desirability weights, defaults to 1.0,1.0,1.0")
+    parser.add_argument("-ac", "--approach-config", default="default", help="Category of hyperparameters to use")
     parser.add_argument("-s", "--suffix", default="", help="An optional output file suffix")
     parser.add_argument("-v", "--verbose", action="store_true", help="Activates logging")
+    parser.add_argument("-o", "--output_dir", default="output", help="Directory to save outputs, defaults to 'output'")
 
     return parser
 
@@ -70,8 +73,13 @@ def run(args):
         weights=weights
     )
 
+    # get hyperparameter configuration
+    config = approachConfig.CONFIG_MAP.get(args.approach_config)
+    if config is None:
+        raise ValueError(f"Invalid hyperparameter configuration: {args.approach_config}")
+
     # Define APPROACH and run REPAIR
-    a = OptimizationApproach(suite, req_text, args.iterations, args.numbers, des, args.aggregation)
+    a = OptimizationApproach(suite, req_text, args.iterations, args.numbers, des, config, args.aggregation)
     start_time = time.time()
     all_repaired_reqs = a.repair()
     elapsed = time.time() - start_time
@@ -80,8 +88,8 @@ def run(args):
         key=lambda r: (r.correctness, r.raw_desirability[0], r.raw_desirability[1], r.raw_desirability[2]))
 
     # Save results to file
-    run_id = f"{case_study}_{args.requirement}_{args.aggregation.replace("_", "")}_{round(weights[0])}{round(weights[1])}{round(weights[2])}"
-    output_dir = f"output/{run_id}"
+    run_id = f"{case_study}_{args.requirement}_{args.aggregation.replace("_", "")}_{round(weights[0])}{round(weights[1])}{round(weights[2])}_{args.approach_config}"
+    output_dir = f"{args.output_dir}/{run_id}"
     os.makedirs(output_dir, exist_ok=True)
     output_path = f"{output_dir}/repair{args.suffix}.txt"
     with open(output_path, "w", encoding="utf-8") as f:
@@ -109,6 +117,7 @@ def run(args):
             "time": elapsed,
             "aggregation_strategy": args.aggregation,
             "weights": str(weights),
+            "config": args.approach_config,
             "precondition": pre_infix,
             "postcondition": post_infix,
             "f_correctness": req.correctness,

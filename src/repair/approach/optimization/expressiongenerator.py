@@ -11,7 +11,13 @@ def get_condition_from_string(condition: str):
     if condition == "full":
         return lambda height, depth: depth == height
     elif condition == "grow":
-        return lambda height, depth: depth == height or (depth >= 2 and random.random() < 0.5)
+        # tbh, this grow may be unnecessary
+        return lambda height, depth: depth == height or (depth == height-1 and random.random() < 0.5)
+
+        # this is the previous implementation.
+        # return lambda height, depth: depth == height or (depth >= 2 and random.random() < 0.5)
+        # for height =2 and height=3, it is equivalent to the current implementation
+        # however, it now works for larger heights too
     else:
         raise ValueError(f"Unknown condition: {condition}")
 
@@ -38,6 +44,9 @@ def generate_expr(pset, min_, max_, type_=None, condition_str:str=None):
             # we can only use primitives that do not take bool arguments
             # to avoid False or True terminals, which mess everything up
             remaining_layers = height - depth
+
+            # simplified, equivalent if condition is:
+            # remaining_layers > 2 or (remaining_layers <= 2 and not(any(arg == Bool for arg in prim.args)))
             expr_candidates.extend([
                 prim for prim in pset.primitives[type_]
                 if not (remaining_layers <= 2 and any(arg == Bool for arg in prim.args))])

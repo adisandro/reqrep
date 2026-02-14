@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from repair.approach.approachConfig import ApproachConfig
 from repair.approach.requirement import Requirement
 from repair.grammar import grammar
 from repair.fitness.desirability.desirability import Desirability
@@ -16,11 +17,12 @@ class Approach(ABC):
     """
 
     def __init__(self, trace_suite: TraceSuite, requirement_text: tuple[str, str], iterations: int,
-                 numbers_factor: float, desirability: Desirability=None):
+                 numbers_factor: float, desirability: Desirability=None, config:ApproachConfig=None):
     
         self.trace_suite = trace_suite
         self.iterations = iterations
         self.desirability = desirability
+        self.config = config
 
         self.pset_pre, self.pset_post= grammar.get_gp_primitive_sets(self.trace_suite, numbers_factor)
         self.toolbox = self.init_toolbox()
@@ -36,8 +38,14 @@ class Approach(ABC):
 
         # (1) Generator for pre and post repairs
         # if min_=0, then this requires a False or true terminal. Not supported.
-        toolbox.register("expr_pre", expressiongenerator.generate_expr, pset=self.pset_pre, min_=2, max_=3)
-        toolbox.register("expr_post", expressiongenerator.generate_expr, pset=self.pset_post, min_=2, max_=3)
+        toolbox.register("expr_pre", expressiongenerator.generate_expr,
+                         pset=self.pset_pre,
+                         min_=self.config.pre_tree_min_depth,
+                         max_=self.config.pre_tree_max_depth)
+        toolbox.register("expr_post", expressiongenerator.generate_expr,
+                         pset=self.pset_post, 
+                         min_=self.config.post_tree_min_depth,
+                         max_=self.config.post_tree_max_depth)
         # TODO does the expressiongenerator belong to the subclass?
 
         # (2) Compilation

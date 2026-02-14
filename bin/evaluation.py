@@ -19,25 +19,43 @@ if __name__ == "__main__":
     w_syn = 1.0
     w_sat = 1.0
     run_configurations = [
-        ("no_aggregation", [w_sem, w_syn, w_sat]),
-        ("no_aggregation", [0.0, w_syn, w_sat]),
-        ("no_aggregation", [w_sem, 0.0, w_sat]),
-        ("no_aggregation", [w_sem, w_syn, 0.0]),
-        ("weighted_sum",   [w_sem, w_syn, w_sat])
+        # original configs
+        ("no_aggregation", [w_sem, w_syn, w_sat], "default"),
+
+        # VARIANT: weighted sum
+        ("weighted_sum",   [w_sem, w_syn, w_sat], "default"),
+
+        # [NEWLY ADDED]
+        # VARIANT: hyperparameters
+        ("no_aggregation", [w_sem, w_syn, w_sat], "alt_3"),
+        ("no_aggregation", [w_sem, w_syn, w_sat], "alt_8"),
+        ("no_aggregation", [w_sem, w_syn, w_sat], "alt_5"),
+
+        # Ablation study
+        ("no_aggregation", [0.0, w_syn, w_sat], "default"),
+        ("no_aggregation", [w_sem, 0.0, w_sat], "default"),
+        ("no_aggregation", [w_sem, w_syn, 0.0], "default"),
     ]
 
     # Run all configs
     parser = create_parser()
     futures = {}
-    csv_path = f"output/results.csv"
+    output_dir = "output"
+    csv_filename = "results.csv"
+    csv_path = f"{output_dir}/{csv_filename}"
     csv_header = True
     with ProcessPoolExecutor(max_workers=processes) as executor:
         for case_study, requirements in case_studies.items():
             for requirement in requirements:
-                for aggregation, weights in run_configurations:
+                for aggregation, weights, approach_config in run_configurations:
                     for i in range(samples):
-                        cmd = [f"{case_study_dir}/{case_study}", requirement, "-a", aggregation, "-w",
-                               ",".join(str(w) for w in weights), "-s", f"{i}"]
+                        cmd = [f"{case_study_dir}/{case_study}",
+                               requirement,
+                               "-o", output_dir,
+                               "-a", aggregation,
+                               "-w", ",".join(str(w) for w in weights),
+                               "-ac", approach_config,
+                               "-s", f"{i}"]
                         args = parser.parse_args(cmd)
                         futures[executor.submit(run, args)] = args
         for future in as_completed(futures.keys()):

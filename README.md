@@ -85,6 +85,14 @@ This will process all trace files in the `data/traces/` directory using the spec
 Each CSV file in the trace suite should have columns like:
  TODO -->
 
+## Evaluation
+
+To run the evaluation, run the following command
+
+```
+python bin/evaluation.py
+```
+
 ## Project Structure
 
 ```
