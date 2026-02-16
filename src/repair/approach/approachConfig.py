@@ -26,4 +26,6 @@ CONFIG_MAP = {
     "alt_6": ApproachConfig(pre_tree_max_depth=3, post_tree_max_depth=9),
     "alt_7": ApproachConfig(pre_tree_max_depth=6, post_tree_max_depth=3),
     "alt_8": ApproachConfig(pre_tree_max_depth=9, post_tree_max_depth=3),
+    "hp_increase_num_offsprings": ApproachConfig(pop_size=10, num_offsprings=20),
+    "hp_increase_tree_depth": ApproachConfig(pre_tree_max_depth=6, post_tree_max_depth=6),
 }

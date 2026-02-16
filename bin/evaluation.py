@@ -27,9 +27,8 @@ if __name__ == "__main__":
 
         # [NEWLY ADDED]
         # VARIANT: hyperparameters
-        ("no_aggregation", [w_sem, w_syn, w_sat], "alt_3"),
-        ("no_aggregation", [w_sem, w_syn, w_sat], "alt_8"),
-        ("no_aggregation", [w_sem, w_syn, w_sat], "alt_5"),
+        ("no_aggregation", [w_sem, w_syn, w_sat], "hp_increase_num_offsprings"),
+        ("no_aggregation", [w_sem, w_syn, w_sat], "hp_increase_tree_depth"),
 
         # Ablation study
         ("no_aggregation", [0.0, w_syn, w_sat], "default"),
