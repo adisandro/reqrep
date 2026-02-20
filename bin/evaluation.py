@@ -59,7 +59,11 @@ if __name__ == "__main__":
                         futures[executor.submit(run, args)] = args
         for future in as_completed(futures.keys()):
             print(f"Completed: {vars(futures[future])}")
-            pd.DataFrame(future.result()).to_csv(csv_path, mode="a", index=False, header=csv_header)
-            if csv_header:
-                csv_header = False
+            try:
+                res = future.result()
+                pd.DataFrame(res).to_csv(csv_path, mode="a", index=False, header=csv_header)
+                if csv_header:
+                    csv_header = False
+            except Exception as e:
+                print(f"Error: {e}")
 
