@@ -50,7 +50,7 @@ def rq2(case_studies, data):
     print(results)
 
 def rq3(data):
-    data = data[data["aggregation_strategy"] == "no_aggregation"]
+    data = data[(data["aggregation_strategy"] == "no_aggregation") & (data["config"] == "default")]
     for dimension in ["111", "011", "101", "110"]:
         dim_data = data[data["config_id"].str.contains(dimension)]
         runs_data = dim_data.groupby(["config_id", "sample_id"]).agg(min=("f_correctness", "min"))
