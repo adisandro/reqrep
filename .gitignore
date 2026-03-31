@@ -8,3 +8,6 @@ case_studies/
 output*/
 .archive/
 .vscode/
+
+.DS_Store
+*/.DS_Store
