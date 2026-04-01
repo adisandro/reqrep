@@ -7,12 +7,14 @@ A Python tool for repairing test requirements based on trace suites and repair d
 ReqRep repairs requirements for Cyber-Physical Systems (CPS) to restore compliance between system behavior (as captured by trace suites) and formalized requirements.
 
 **Inputs:**
+
 - **Trace suite directory:** A folder containing `.csv` files, each representing signal values over time for the CPS-under-test.
 - **Requirement:** A Simulink Requirements Table logic expression that may not be satisfied by the traces.
 - **Desirable property:** A property to optimize during repair.
 
 **Output:**  
 A repaired requirement that:
+
 - (1) Satisfies all traces in the suite,
 - (2) Optimizes for the desirable property.
 
