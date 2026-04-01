@@ -1,0 +1,8 @@
+label,aggregation,model,weight,config,tautologyZ3,total,correct,sound,correct_sound
+V1,no_aggregation,All,"[1.0, 1.0, 1.0]",default,1,874,503,388,189
+V2,no_aggregation,All,"[1.0, 1.0, 1.0]",default,0,933,557,440,233
+V3,weighted_sum,All,"[1.0, 1.0, 1.0]",default,1,375,126,241,80
+V4,weighted_sum,All,"[1.0, 1.0, 1.0]",default,0,388,128,250,81
+V5,no_aggregation,All,"[1.0, 3.0, 5.0]",default,1,927,560,410,212
+V6,no_aggregation,All,"[1.0, 1.0, 1.0]",hp_increase_tree_depth,1,886,525,385,189
+V7,no_aggregation,All,"[1.0, 1.0, 1.0]",hp_increase_num_offsprings,1,972,557,516,267
