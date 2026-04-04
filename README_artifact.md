@@ -11,9 +11,12 @@ This Artifact is **available**: it is contained on a persistent repository (Zeno
 
 This Artifact is **functional**: it contains detailed instructions on how to install the tool (see `INSTALL.txt`) and how to replicate all the results presented in the Evaluation section of the associated paper (see the "*Experiments replication*" section in `README.md`).
 
-The complete replication of all the results in the paper is very time-consuming and requires approx. 12 hours to generate all the results. We suggest the reviewers to replicate only the results for the tool configuration V1.
+The complete replication of all the results in the paper is very time-consuming and requires approx. 12 hours to generate all the results. We suggest the reviewers to replicate only the results for the tool configuration V1.  
+This can be achieved by using the following command after installing the tool:
 
-[*Note: Should we add an option to `evaluation.py` to run only the experiments for V1?*]
+```bash
+python bin/evaluation.py V1
+```
 
 ## Statement on Artifact Reusability [move to `STATUS.txt`]
 
@@ -115,14 +118,36 @@ This sections explains how to replicate the experiments described in Section 6 (
 
 ### RQ1
 
-To reproduce all the results in the Evaluation, for all six models (*AFC, AT, CC, EU, NN, TUI*) and all the seven tool configurations (*V1 to V7*), run the following command.
+For a **complete** replication of the Evaluation, for all six models (*AFC, AT, CC, EU, NN, TUI*) and all the seven tool configurations (*V1 to V7*), run the command below.  
 This script will automatically save the results in the `output` folder.
+Please note that you can specify the number of parallel processes you wish to execute using the `-p` or `--process` flag.
 
-```
+[*Note: Currently `evaluation.py` does not execute V2 and V4 (the configurations without z3).*]
+
+```bash
 python bin/evaluation.py
+python bin/evaluation.py -p 4 # Will open 4 parallel processes
 ```
 
-[*ToDo: Add details on how to interpret the results.*]
+For a **partial** replication of the Evaluation, the user can specify which configurations they are interested in as an additional argument.
+The configurations code are `V1` to `V7` for the seven tool configurations, and `Abl1`, `Abl2`, and `Abl3` for the three special configurations used in RQ3 (the ablation study).
+
+```bash
+python bin/evaluation.py V2 V4 Abl1 # Will replicate only V2, V4, and Abl1.
+python bin/evaluation.py V1 -p 2    # Will replicate only V1 using 2 parallel processes.
+```
+
+For each requirement and tool configuration, the tool will create a dedicated folder inside the folder `output`. These folders have the following naming scheme:  
+[Model Name]\_[Requirement Name]\_[Aggregation Strategy]\_[Weights]\_[Additional specifiers]  
+For example, `NNP_NNP3a_noaggregation_111_hp_increase_num_offsprings` indicates that this folder contains the results for the requirement NNP3a of the model NNP, when analyzed by the tool with aggregation strategy "No Aggregation", desirability weights of 1, 1, and 1, and doubling the number of offspring (i.e., tool configuration V7). 
+Note that the weights are rounded to the nearest integer when creating the name of the folder.  
+This folder contains a .csv file for each run of the experiment (10 by default). The .csv file contains all the repaired requirements generated in that run and their correctness and desirability scores.
+
+In addition to this, the `evaluation.py` script creates also a `results.csv` file in `output`, which summarises the results for all the models and tool configurations analysed.
+
+To help with the analysis of the results, we share a Matlab script: `plotBoxplot.m`.
+This script generates a set of summary tables that contain all the numbers mentioned in Section 6.3, as well as the boxplots in Figure 7.
+Please make sure to specify the name and location of the `results.csv` files 
 
 ### RQ2
 
