@@ -9,11 +9,11 @@ Install it with the following steps:
 TODO
 ```
 
-## Native
+## From Source
 
 The Installation process requires 3 steps:
 
-1. Download the Artifact from [Zenodo](TODO) and unzip it:
+1. Download the paper replicability package from [Zenodo](TODO) and unzip it:
  
    ```bash
    cd [path/to/downloaded/folder]
@@ -33,3 +33,10 @@ The Installation process requires 3 steps:
    ```bash
    python3 -m pip install -e .
    ```
+
+If you just want to try the tool rather than the replicability package, you can replace step 1 with the following:
+
+```bash
+git clone <repository-url>
+cd reqrep
+```

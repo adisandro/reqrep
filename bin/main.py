@@ -41,7 +41,7 @@ def create_parser():
     parser.add_argument("-i", "--iterations", type=int, default=10,
                         help="The number of iterations the approach tries when repairing, defaults to 10")
     parser.add_argument("-n", "--numbers", type=float, default=1.2,
-                        help="When generating numbers, each variable has a window [min, max] based on the values"
+                        help="When generating numbers, each variable has a window [min, max] based on the values "
                              "seen in the traces; this widens/shrinks the window by a factor, defaults to 1.2")
     parser.add_argument("-a", "--aggregation", default="no_aggregation",
                         help="The aggregation strategy in {no_aggregation, weighted_sum}, defaults to no_aggregation")

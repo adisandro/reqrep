@@ -1,63 +1,71 @@
 # ReqRep - A framework for CPS requirements repair
 
 This repository contains the Artifact associated to the paper "*Automated Repair of Requirements for Cyber-Physical Systems in Simulink Requirements Tables*" by Aren A. Babikian, Alessio Di Sandro, Federico Formica, Claudio Menghi, and Marsha Chechik, presented at FSE 2026.  
-This document provides instructions on how to replicate the results presented in the paper and reuse the tool for additional experiments.
+This document provides instructions on how to use the tool and replicate the results presented in the paper.
 
-## Installation guide
+For information on the software requirements to run the tool, see [REQUIREMENTS.md](REQUIREMENTS.md).  
+For a step-by-step guide on how to install the tool, see [INSTALL.md](INSTALL.md).  
+For licensing information, see [LICENSE.txt](LICENSE.txt).
 
-For information on the software and hardware requirements to run the tool, see `REQUIREMENTS.txt`.  
-For a step-by-step guide on how to install the tool, see `INSTALL.txt`.
+## Overview
 
-To verify the correct installation, try to run the following command within the virtual environment created in Step 2 of the installation process.
+ReqRep is a Python tool to repair test requirements for Cyber-Physical Systems (CPS).
+It restores compliance between system behavior (as captured by trace suites) and formalized requirements, based on repair desirability metrics.
+
+To verify the correct installation, run the following from the command line:
 
 ```bash
-python bin/main.py data/traces REQ
+bin/main.py data/traces REQ
 ```
 
-This should require less than a minute to complete, and it should create a folder called `traces_REQ_noaggregation_111_default` inside `output`, containing the results for a single iteration of the tool.
+This should require less than a minute to complete, and will create a folder called `output/traces_REQ_noaggregation_111_default`, containing the results of a single iteration of the tool.
  
 ## General Usage
 
-After installing the package, you can run the repair tool from the command line. The script requires you to specify the trace suite directory and one or more input variable names. Optional arguments allow you to customize the repair process.
-
-[*Note from Federico: Why do we need to specify the name of the input vars? Is it not enough to give the trace suite?*]
-
-#### Usage
+Running the repair tool from the command line requires you to specify the trace suite directory and the requirement name. Optional arguments allow you to customize the repair process.
 
 ```bash
-python bin/main.py [-h] [-p PREV0] [-t THRESHOLD] [-i ITERATIONS] trace_suite input_vars [input_vars ...]
+bin/main.py [-h] [-p PREV0] [-i ITERATIONS] [-n NUMBERS] [-a AGGREGATION] [-w WEIGHTS] [-ac APPROACH_CONFIG] [-s SUFFIX] [-v] [-o OUTPUT_DIR] trace_suite requirement
 ```
+
+### Mandatory arguments
 
 - `trace_suite`: Path to the directory containing the trace suite (CSV files)
-- `input_vars`: One or more input variable names (space-separated)
+- `requirement`: The name of the requirement to check
 
-#### Optional arguments:
+### Optional arguments:
 
-[*Note from Federico: I think this part should be updated. There are many more optional arguments that we can use.*]
+- `-h`, `--help`: Show this help message and exit
+- `-p`, `--prev0` `PREV0`: Initial value for the prev() operator at time 0 (defaults to 0.0)
+- `-i`, `--iterations` `ITERATIONS`: The number of iterations the approach tries when repairing, defaults to 10
+- `-n`, `--numbers` `NUMBERS`: When generating numbers, each variable has a window [min, max] based on the values seen in the traces; this widens/shrinks the window by a factor, defaults to 1.2
+- `-a`, `--aggregation` `AGGREGATION`: The aggregation strategy in {no_aggregation, weighted_sum}, defaults to no_aggregation
+- `-w`, `--weights` `WEIGHTS`: The desirability weights, defaults to 1.0,1.0,1.0
+- `-ac`, `--approach-config` `APPROACH_CONFIG`: Category of hyperparameters to use
+- `-s`, `--suffix` `SUFFIX`: An optional output file suffix
+- `-v`, `--verbose`: Activates logging
+- `-o`, `--output_dir` `OUTPUT_DIR`: Directory to save outputs, defaults to 'output'
 
-- `-h`, `--help`: Show help message and exit
-- `-p PREV0`, `--prev0 PREV0`: Value to use for the previous time step when evaluated at time step 0 (default: 0)
-- `-t THRESHOLD`, `--threshold THRESHOLD`: Threshold value for repair (default: 100.0)
-- `-i ITERATIONS`, `--iterations ITERATIONS`: Number of repair iterations (default: 10)
+### Pre-encoded trace suites and requirements
 
-#### Example
+Trace suites and requirements are pre-encoded and can be found in the file [bin/utils.py](bin/utils.py). The tool can be invoked with the following variants:
 
 ```bash
-python bin/main.py data/traces xin reset TL BL dT ic yout
+bin/main.py data/dummy REQ
+bin/main.py data/traces REQ
+bin/main.py data/case_studies/AFC AFC29
+bin/main.py data/case_studies/AFC AFC33
+bin/main.py data/case_studies/AT AT1
+bin/main.py data/case_studies/AT AT2
+bin/main.py data/case_studies/CC CC1
+bin/main.py data/case_studies/CC CCX
+bin/main.py data/case_studies/EU EU3
+bin/main.py data/case_studies/NNP NNP3a
+bin/main.py data/case_studies/NNP NNP3b
+bin/main.py data/case_studies/NNP NNP4
+bin/main.py data/case_studies/TUI TU1
+bin/main.py data/case_studies/TUI TU2
 ```
-
-This will process all trace files in the `data/traces/` directory using the specified input variables.
-
-#### Notes
-
-- All arguments after the trace suite directory are treated as input variable names.
-- Use the `-h` flag to see all available options and their descriptions.
-- Make sure your Python environment has all dependencies installed (see Installation section).
-
-<!-- ### Input Format
-
-Each CSV file in the trace suite should have columns like:
- TODO -->
 
 ## Experiments replication
 
@@ -72,16 +80,16 @@ Please note that you can specify the number of parallel processes you wish to ex
 [*Note: Currently `evaluation.py` does not execute V2 and V4 (the configurations without z3).*]
 
 ```bash
-python bin/evaluation.py
-python bin/evaluation.py -p 4 # Will open 4 parallel processes
+python3 bin/evaluation.py
+python3 bin/evaluation.py -p 4 # Will open 4 parallel processes
 ```
 
 For a **partial** replication of the Evaluation, the user can specify which configurations they are interested in as an additional argument.
 The configuration codes are `V1` to `V7` for the seven tool configurations, and `Abl1`, `Abl2`, and `Abl3` for the three special configurations used in RQ3 (the ablation study).
 
 ```bash
-python bin/evaluation.py V2 V4 Abl1 # Will replicate only V2, V4, and Abl1.
-python bin/evaluation.py V1 -p 2    # Will replicate only V1 using 2 parallel processes.
+python3 bin/evaluation.py V2 V4 Abl1 # Will replicate only V2, V4, and Abl1.
+python3 bin/evaluation.py V1 -p 2    # Will replicate only V1 using 2 parallel processes.
 ```
 
 For each requirement and tool configuration, the tool will create a dedicated folder inside the folder `output`. These folders have the following naming scheme:  
@@ -158,7 +166,7 @@ By using the additional arguments of `main.py`, it is possible to test combinati
 For example, the following tool configuration has not been previously considered:
 
 ```bash
-python bin/main.py --aggregation weighted_sum --weights 3.0,2.0,5.0 data/traces xin reset TL BL dT ic yout
+python3 bin/main.py --aggregation weighted_sum --weights 3.0,2.0,5.0 data/traces xin reset TL BL dT ic yout
 ```
 
 In addition, it is also possible to define new values for the tool configuration parameters:
