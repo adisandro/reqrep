@@ -2,18 +2,23 @@
 
 ## Docker
 
-A Docker image pre-loaded with our tool is available [here](TODO).
-Install it with the following steps:
+1. Download the paper replicability package from [Zenodo](https://doi.org/10.5281/zenodo.19488528) and unzip it:
+ 
+   ```bash
+   cd [path/to/downloaded/folder]
+   unzip ReplicabilityPackage.zip
+   cd ReplicabilityPackage
+   ```
 
-```bash
-TODO
-```
+2. Load the Docker image:
+
+   ```bash
+   TODO
+   ```
 
 ## From Source
 
-The Installation process requires 3 steps:
-
-1. Download the paper replicability package from [Zenodo](TODO) and unzip it:
+1. Download the paper replicability package from [Zenodo](https://doi.org/10.5281/zenodo.19488528) and unzip it:
  
    ```bash
    cd [path/to/downloaded/folder]
@@ -37,6 +42,6 @@ The Installation process requires 3 steps:
 If you just want to try the tool rather than the replicability package, you can replace step 1 with the following:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/adisandro/reqrep
 cd reqrep
 ```

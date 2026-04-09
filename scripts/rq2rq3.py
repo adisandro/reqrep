@@ -19,7 +19,7 @@ def rq2_useful(sorted_data):
         repair_syn = round(repair["f_des_syntactic"], 2)
         repair_sat = round(repair["f_des_satisfaction"], 2)
         print(f"\n{repair_req}: {repair_pre} => {repair_post}\n")
-        useful = input("Useful? ")
+        useful = input("Useful (y/n)? ")
         if useful == "y":
             num_useful += 1
             if first_useful is None:

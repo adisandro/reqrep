@@ -8,9 +8,11 @@ import pandas as pd
 from main import create_parser, run
 
 def create_parser_eval():
-    parser = ArgumentParser(description="List of configurations to execute")
-    parser.add_argument("configList", nargs="*", help="List of configurations to execute (e.g., V1)")
-    parser.add_argument("-p", "--process", default=None, help="Number of processes for parallel computation")
+    parser = ArgumentParser(description="Runs experimental evaluation of ReqRep")
+    parser.add_argument("config_list", nargs="*", help="List of configurations to execute (e.g., V1)")
+    parser.add_argument("-p", "--processes", default=None,
+                        help="Number of processes for parallel computation, "
+                             "defaults to the number of processors on the running computer")
 
     return parser
 
@@ -46,22 +48,22 @@ if __name__ == "__main__":
     }
 
     # Get list of configuration to run from parser
-    parserConfig = create_parser_eval()
-    argsConfig = parserConfig.parse_args()
-    if not argsConfig.configList:
+    parser_eval = create_parser_eval()
+    args_eval = parser_eval.parse_args()
+    if not args_eval.config_list:
         # Run complete evaluation on all the possible configurations.
         run_configurations = list(all_configurations.values())
     else:
         # Run only the specified configurations
-        run_configurations = [all_configurations[k] for k in argsConfig.configList]
+        run_configurations = [all_configurations[k] for k in args_eval.config_list]
         
     # Get number of processes from parser
     processes = None
-    if argsConfig.process:
-        processes = int(argsConfig.process)
+    if args_eval.processes:
+        processes = int(args_eval.processes)
     
     # Run all configs
-    parserRun = create_parser()
+    parser_main = create_parser()
     futures = {}
     output_dir = "output"
     csv_filename = "results.csv"
@@ -80,8 +82,8 @@ if __name__ == "__main__":
                                "-w", ",".join(str(w) for w in weights),
                                "-ac", approach_config,
                                "-s", f"{i}"]
-                        argsRun = parserRun.parse_args(cmd)
-                        futures[executor.submit(run, argsRun)] = argsRun
+                        args_main = parser_main.parse_args(cmd)
+                        futures[executor.submit(run, args_main)] = args_main
         for future in as_completed(futures.keys()):
             print(f"Completed: {vars(futures[future])}")
             try:

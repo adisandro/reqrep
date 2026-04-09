@@ -1,6 +1,6 @@
 # ReqRep - A framework for CPS requirements repair
 
-This repository contains the Artifact associated to the paper "*Automated Repair of Requirements for Cyber-Physical Systems in Simulink Requirements Tables*" by Aren A. Babikian, Alessio Di Sandro, Federico Formica, Claudio Menghi, and Marsha Chechik, presented at FSE 2026.  
+This repository contains the software and artifacts associated to the paper "*Automated Repair of Requirements for Cyber-Physical Systems in Simulink Requirements Tables*" by Aren A. Babikian, Alessio Di Sandro, Federico Formica, Claudio Menghi, and Marsha Chechik, presented at FSE 2026.  
 This document provides instructions on how to use the tool and replicate the results presented in the paper.
 
 For information on the software requirements to run the tool, see [REQUIREMENTS.md](REQUIREMENTS.md).  
@@ -33,7 +33,7 @@ bin/main.py [-h] [-p PREV0] [-i ITERATIONS] [-n NUMBERS] [-a AGGREGATION] [-w WE
 - `trace_suite`: Path to the directory containing the trace suite (CSV files)
 - `requirement`: The name of the requirement to check
 
-### Optional arguments:
+### Optional arguments
 
 - `-h`, `--help`: Show this help message and exit
 - `-p`, `--prev0` `PREV0`: Initial value for the prev() operator at time 0 (defaults to 0.0)
@@ -48,7 +48,7 @@ bin/main.py [-h] [-p PREV0] [-i ITERATIONS] [-n NUMBERS] [-a AGGREGATION] [-w WE
 
 ### Pre-encoded trace suites and requirements
 
-Trace suites and requirements are pre-encoded and can be found in the file [bin/utils.py](bin/utils.py). The tool can be invoked with the following variants:
+Trace suites and requirements are pre-encoded in the file [bin/utils.py](bin/utils.py). The tool can be invoked with the following variants:
 
 ```bash
 bin/main.py data/dummy REQ
@@ -67,38 +67,37 @@ bin/main.py data/case_studies/TUI TU1
 bin/main.py data/case_studies/TUI TU2
 ```
 
-## Experiments replication
+## Evaluation replication
 
 This section explains how to replicate the experiments described in Section 6 (Evaluation) of the corresponding paper.
 
 ### RQ1
 
-For a **complete** replication of the Evaluation, for all six models (*AFC, AT, CC, EU, NN, TUI*) and all the seven tool configurations (*V1 to V7*), run the command below.  
+For a **complete** replication of the evaluation, for all six models (*AFC, AT, CC, EU, NN, TUI*) and all the seven tool configurations (*V1 to V7*), run the command below.  
 This script will automatically save the results in the `output` folder.
-Please note that you can specify the number of parallel processes you wish to execute using the `-p` or `--process` flag.
+Please note that you can specify the number of parallel processes you wish to run using the `-p` or `--process` flag, or otherwise default to the number of processors on your computer.
 
-[*Note: Currently `evaluation.py` does not execute V2 and V4 (the configurations without z3).*]
+[*Note: Currently V2 and V4 (the configurations without z3) are not executed.*]
 
 ```bash
-python3 bin/evaluation.py
-python3 bin/evaluation.py -p 4 # Will open 4 parallel processes
+bin/evaluation.py
+bin/evaluation.py -p 4 # Will use 4 parallel processes
 ```
 
 For a **partial** replication of the Evaluation, the user can specify which configurations they are interested in as an additional argument.
 The configuration codes are `V1` to `V7` for the seven tool configurations, and `Abl1`, `Abl2`, and `Abl3` for the three special configurations used in RQ3 (the ablation study).
 
 ```bash
-python3 bin/evaluation.py V2 V4 Abl1 # Will replicate only V2, V4, and Abl1.
-python3 bin/evaluation.py V1 -p 2    # Will replicate only V1 using 2 parallel processes.
+bin/evaluation.py V6 V7 Abl1 # Will replicate only V6, V7, and Abl1.
+bin/evaluation.py V1 -p 2    # Will replicate only V1 using 2 parallel processes.
 ```
 
 For each requirement and tool configuration, the tool will create a dedicated folder inside the folder `output`. These folders have the following naming scheme:  
 [Model Name]\_[Requirement Name]\_[Aggregation Strategy]\_[Weights]\_[Additional specifiers]  
-For example, `NNP_NNP3a_noaggregation_111_hp_increase_num_offsprings` indicates that this folder contains the results for the requirement NNP3a of the model NNP, when analyzed by the tool with aggregation strategy "No Aggregation", desirability weights of 1, 1, and 1, and doubling the number of offspring (i.e., tool configuration V7). 
-Note that the weights are rounded to the nearest integer when creating the name of the folder.  
+For example, `NNP_NNP3a_noaggregation_111_hp_increase_num_offsprings` indicates that this folder contains the results for the requirement NNP3a of the model NNP, when analyzed by the tool with aggregation strategy "No Aggregation", desirability weights of 1, 1, and 1, and doubling the number of offspring (i.e., tool configuration V7).
 This folder contains a .txt file for each run of the experiment (10 by default). The .txt file contains all the repaired requirements generated in that run and their correctness and desirability scores.
 
-In addition to this, the `evaluation.py` script also creates a `results.csv` file in `output`, which summarises the results for all the models and tool configurations analysed.
+In addition to this, the evaluation script also creates a `results.csv` file in `output`, which summarises the results for all the models and tool configurations analysed.
 Here is an example of the expected folder structure:
 
 ```
@@ -153,9 +152,7 @@ root/
 * `Aggregation`, `Config`, `Weights`, `TautologyZ3`: Properties of the chosen tool configuration. They will be used to filter the results file.
 * `Label`: Label assigned to the tool configuration. It will be used in the generated figures and tables.
 
-### RQ2
-
-### RQ3
+### RQ2/RQ3
 
 ## Extending the evaluation
 
@@ -238,7 +235,7 @@ This Artifact can be cited as follows:
  year = {2026},
  month = {April},
  publisher = {Zenodo},
- doi = {XXX},
- url = {https://doi.org/XXX},
+ doi = {10.5281/zenodo.19488528},
+ url = {https://doi.org/10.5281/zenodo.19488528},
 }
 ```
