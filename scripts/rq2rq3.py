@@ -60,7 +60,7 @@ def rq3(data):
         sem = (round(rate_data["f_des_semantic"].mean(), 2), round(rate_data["f_des_semantic"].median(), 2))
         syn = (round(rate_data["f_des_syntactic"].mean(), 2), round(rate_data["f_des_syntactic"].median(), 2))
         sat = (round(rate_data["f_des_satisfaction"].mean(), 2), round(rate_data["f_des_satisfaction"].median(), 2))
-        print(f"{dimension} & {rate} & {sem[0]},{sem[1]} & {syn[0]},{syn[1]} & {sat[0]},{sat[1]} \\\\")
+        print(f"{dimension} & {rate} & {sem[0]} & {syn[0]} & {sat[0]} \\\\")
 
 if __name__ == "__main__":
     data = pd.read_csv("output/results.csv")

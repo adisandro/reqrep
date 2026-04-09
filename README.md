@@ -1,6 +1,6 @@
 # ReqRep - A framework for CPS requirements repair
 
-This repository contains the software and artifacts associated to the paper "*Automated Repair of Requirements for Cyber-Physical Systems in Simulink Requirements Tables*" by Aren A. Babikian, Alessio Di Sandro, Federico Formica, Claudio Menghi, and Marsha Chechik, presented at FSE 2026.  
+This [repository](https://doi.org/10.5281/zenodo.19488528) contains the software and artifacts associated to the paper "*Automated Repair of Requirements for Cyber-Physical Systems in Simulink Requirements Tables*" by Aren A. Babikian, Alessio Di Sandro, Federico Formica, Claudio Menghi, and Marsha Chechik, presented at FSE 2026.  
 This document provides instructions on how to use the tool and replicate the results presented in the paper.
 
 For information on the software requirements to run the tool, see [REQUIREMENTS.md](REQUIREMENTS.md).  
@@ -15,7 +15,7 @@ It restores compliance between system behavior (as captured by trace suites) and
 To verify the correct installation, run the following from the command line:
 
 ```bash
-bin/main.py data/traces REQ
+python3 bin/main.py data/traces REQ
 ```
 
 This should require less than a minute to complete, and will create a folder called `output/traces_REQ_noaggregation_111_default`, containing the results of a single iteration of the tool.
@@ -25,7 +25,7 @@ This should require less than a minute to complete, and will create a folder cal
 Running the repair tool from the command line requires you to specify the trace suite directory and the requirement name. Optional arguments allow you to customize the repair process.
 
 ```bash
-bin/main.py [-h] [-p PREV0] [-i ITERATIONS] [-n NUMBERS] [-a AGGREGATION] [-w WEIGHTS] [-ac APPROACH_CONFIG] [-s SUFFIX] [-v] [-o OUTPUT_DIR] trace_suite requirement
+python3 bin/main.py [-h] [-p PREV0] [-i ITERATIONS] [-n NUMBERS] [-a AGGREGATION] [-w WEIGHTS] [-ac APPROACH_CONFIG] [-s SUFFIX] [-v] [-o OUTPUT_DIR] trace_suite requirement
 ```
 
 ### Mandatory arguments
@@ -51,20 +51,20 @@ bin/main.py [-h] [-p PREV0] [-i ITERATIONS] [-n NUMBERS] [-a AGGREGATION] [-w WE
 Trace suites and requirements are pre-encoded in the file [bin/utils.py](bin/utils.py). The tool can be invoked with the following variants:
 
 ```bash
-bin/main.py data/dummy REQ
-bin/main.py data/traces REQ
-bin/main.py data/case_studies/AFC AFC29
-bin/main.py data/case_studies/AFC AFC33
-bin/main.py data/case_studies/AT AT1
-bin/main.py data/case_studies/AT AT2
-bin/main.py data/case_studies/CC CC1
-bin/main.py data/case_studies/CC CCX
-bin/main.py data/case_studies/EU EU3
-bin/main.py data/case_studies/NNP NNP3a
-bin/main.py data/case_studies/NNP NNP3b
-bin/main.py data/case_studies/NNP NNP4
-bin/main.py data/case_studies/TUI TU1
-bin/main.py data/case_studies/TUI TU2
+python3 bin/main.py data/dummy REQ
+python3 bin/main.py data/traces REQ
+python3 bin/main.py data/case_studies/AFC AFC29
+python3 bin/main.py data/case_studies/AFC AFC33
+python3 bin/main.py data/case_studies/AT AT1
+python3 bin/main.py data/case_studies/AT AT2
+python3 bin/main.py data/case_studies/CC CC1
+python3 bin/main.py data/case_studies/CC CCX
+python3 bin/main.py data/case_studies/EU EU3
+python3 bin/main.py data/case_studies/NNP NNP3a
+python3 bin/main.py data/case_studies/NNP NNP3b
+python3 bin/main.py data/case_studies/NNP NNP4
+python3 bin/main.py data/case_studies/TUI TU1
+python3 bin/main.py data/case_studies/TUI TU2
 ```
 
 ## Evaluation replication
@@ -73,23 +73,25 @@ This section explains how to replicate the experiments described in Section 6 (E
 
 ### RQ1
 
-For a **complete** replication of the evaluation, for all six models (*AFC, AT, CC, EU, NN, TUI*) and all the seven tool configurations (*V1 to V7*), run the command below.  
-This script will automatically save the results in the `output` folder.
-Please note that you can specify the number of parallel processes you wish to run using the `-p` or `--process` flag, or otherwise default to the number of processors on your computer.
-
-[*Note: Currently V2 and V4 (the configurations without z3) are not executed.*]
+For a **complete** replication of the evaluation, for all six models (*AFC, AT, CC, EU, NN, TUI*) and all the seven tool configurations (*V1 to V7*), run the command below.
 
 ```bash
-bin/evaluation.py
-bin/evaluation.py -p 4 # Will use 4 parallel processes
+python3 bin/evaluation.py
+python3 bin/evaluation.py -p 4 # Will use 4 parallel processes
 ```
+
+Results are saved in the `output` folder (the original paper results are in the `output_paper` folder).
+Please note that you can specify the number of parallel processes you wish to run using the `-p` or `--process` flag, or otherwise default to the number of processors on your computer.  
+The complete evaluation will take a few hours to execute, depending on the hardware.
+
+[*Note: Currently V2 and V4 (the configurations without z3) are not executed.*]
 
 For a **partial** replication of the Evaluation, the user can specify which configurations they are interested in as an additional argument.
 The configuration codes are `V1` to `V7` for the seven tool configurations, and `Abl1`, `Abl2`, and `Abl3` for the three special configurations used in RQ3 (the ablation study).
 
 ```bash
-bin/evaluation.py V6 V7 Abl1 # Will replicate only V6, V7, and Abl1.
-bin/evaluation.py V1 -p 2    # Will replicate only V1 using 2 parallel processes.
+python3 bin/evaluation.py V6 V7 Abl1 # Will replicate only V6, V7, and Abl1.
+python3 bin/evaluation.py V1 -p 2    # Will replicate only V1 using 2 parallel processes.
 ```
 
 For each requirement and tool configuration, the tool will create a dedicated folder inside the folder `output`. These folders have the following naming scheme:  
@@ -154,16 +156,25 @@ root/
 
 ### RQ2/RQ3
 
+This requires the **complete** execution of RQ1. Alternatively, you can reuse the paper results by renaming the folder `output_paper` to `output`.
+
+Run the following command to generate Tables 4 and 5.
+
+```bash
+python3 scripts/rq2rq3.py
+yes | python3 scripts/rq2rq3.py # answers y to all prompts
+```
+
 ## Extending the evaluation
 
 ### Change tool configuration
 
-Several elements of the tool can be modified and personalised.
+Several elements of the tool can be modified and personalized.
 By using the additional arguments of `main.py`, it is possible to test combinations of tool configuration options that were not explored in the original paper (see the [General Usage](##general-usage) section).
 For example, the following tool configuration has not been previously considered:
 
 ```bash
-python3 bin/main.py --aggregation weighted_sum --weights 3.0,2.0,5.0 data/traces xin reset TL BL dT ic yout
+python3 bin/main.py data/traces REQ --aggregation weighted_sum --weights 3.0,2.0,5.0
 ```
 
 In addition, it is also possible to define new values for the tool configuration parameters:

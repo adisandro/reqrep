@@ -39,7 +39,9 @@
    python3 -m pip install -e .
    ```
 
-If you just want to try the tool rather than the replicability package, you can replace step 1 with the following:
+### Tool-only
+
+If you just want to try the tool rather than the paper replicability package, replace step 1 with the following:
 
 ```bash
 git clone https://github.com/adisandro/reqrep
