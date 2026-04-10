@@ -5,7 +5,7 @@
 1. Download the paper replicability package from [Zenodo](https://doi.org/10.5281/zenodo.19488528) and unzip it:
  
    ```bash
-   cd [path/to/downloaded/folder]
+   cd path/to/downloaded/folder
    unzip ReplicabilityPackage.zip
    cd ReplicabilityPackage
    ```
@@ -27,7 +27,7 @@
 1. Download the paper replicability package from [Zenodo](https://doi.org/10.5281/zenodo.19488528) and unzip it:
  
    ```bash
-   cd [path/to/downloaded/folder]
+   cd path/to/downloaded/folder
    unzip ReplicabilityPackage.zip
    cd ReplicabilityPackage
    ```

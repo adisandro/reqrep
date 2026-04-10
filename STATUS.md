@@ -2,20 +2,18 @@
 
 ## Statement on Artifact Availability
 
-This Artifact is **available**: it is contained on a persistent repository (Zenodo), it is publicly available, and it has been assigned a DOI.
+This Artifact is **available**: it is available in a persistent repository on Zenodo, it is publicly available, and it has been assigned a DOI (https://doi.org/10.5281/zenodo.19488528).
 
 ## Statement on Artifact Functionality
 
-This Artifact is **functional**: it contains detailed instructions on how to install the tool (see `INSTALL.txt`) and how to replicate all the results presented in the Evaluation section of the associated paper (see the "*Experiments replication*" section in `README.md`).
+This Artifact is **functional**: it contains detailed instructions on how to install the tool (see `REQUIREMENTS.md` and `INSTALL.md`) and how to replicate all the results presented in the Evaluation section of the associated paper (see the "*Evaluation replication*" section in `README.md`).
 
-The complete replication of all the results in the paper is very time-consuming and requires approx 12 hours to generate all the results. We suggest that the reviewers replicate only the results for the tool configuration V1. This would require only 2 hours (with no parallelization).  
+The complete replication of all the results in the paper is time-consuming and requires hours to generate all the results, depending on the hardware. We suggest that the reviewers replicate only the results for the tool configuration V1. This would require only 2 hours.  
 This can be achieved by using the following command after installing the tool:
 
 ```bash
-python bin/evaluation.py V1
+python3 bin/evaluation.py V1
 ```
-
-[*Note from Federico: Should we provide the reviewers an even faster partial replication of the results? Maybe only V1 and only for AT (approx. time: 5 mins).*]
 
 ## Statement on Artifact Reusability
 
