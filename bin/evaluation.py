@@ -81,7 +81,6 @@ if __name__ == "__main__":
         for case_study, requirements in case_studies.items():
             for requirement in requirements:
                 for aggregation, weights, tautology_check, approach_config in run_configurations:
-                    print(f"Approach Configuration: {weights}")
                     for i in range(samples):
                         cmd = [f"{case_study_dir}/{case_study}",
                                requirement,

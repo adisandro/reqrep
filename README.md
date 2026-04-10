@@ -59,7 +59,7 @@ python3 bin/main.py [-h] [-p PREV0] [-i ITERATIONS] [-n NUMBERS] [-a AGGREGATION
 - `-a`, `--aggregation` `AGGREGATION`: The aggregation strategy in {no_aggregation, weighted_sum}, defaults to no_aggregation
 - `-w`, `--weights` `WEIGHTS`: The desirability weights, defaults to 1.0,1.0,1.0
 - `-tc`, `--tautology-check` `TAUTOLOGY_CHECK`: Method used for tautology checking
-- `-ac`, `--approach-config` `APPROACH_CONFIG`: Category of hyperparameters to use
+- `-ac`, `--approach-config` `APPROACH_CONFIG`: Category of hyperparameters to use (see [src/repair/approach/approachConfig.py](src/repair/approach/approachConfig.py))
 - `-s`, `--suffix` `SUFFIX`: An optional output file suffix
 - `-v`, `--verbose`: Activates logging
 - `-o`, `--output_dir` `OUTPUT_DIR`: Directory to save outputs, defaults to 'output'
@@ -100,7 +100,7 @@ python3 bin/evaluation.py -p 4 # Will use 4 parallel processes
 
 Results are saved in the `output` folder (the original paper results are in the `output_paper` folder).
 Please note that you can specify the number of parallel processes you wish to run using the `-p` or `--process` flag, or otherwise default to the number of processors on your computer.  
-The complete evaluation will take a few hours to execute, depending on the hardware.
+The complete evaluation is time-consuming and takes hours to execute, depending on the hardware.
 
 [*Note: Currently V2 and V4 (the configurations without z3) are not executed.*]
 
@@ -109,7 +109,7 @@ The configuration codes are `V1` to `V7` for the seven tool configurations, and 
 
 ```bash
 python3 bin/evaluation.py V6 V7 Abl1 # Will replicate only V6, V7, and Abl1.
-python3 bin/evaluation.py V1 -p 2    # Will replicate only V1 using 2 parallel processes.
+python3 bin/evaluation.py V1         # Will replicate only V1.
 ```
 
 For each requirement and tool configuration, the tool will create a dedicated folder inside the folder `output`. These folders have the following naming scheme:  
@@ -159,7 +159,7 @@ root/
 
 ```matlab
 31: fileList(1).Folder = "output";
-32: fileList(1).FileName = "results_V1_V3.csv";
+32: fileList(1).FileName = "results.csv";
 33: fileList(1).Aggregation = "no_aggregation";
 34: fileList(1).Config = "default";
 35: fileList(1).Weights = "[1.0, 1.0, 1.0]";
@@ -188,20 +188,18 @@ yes | python3 scripts/rq2rq3.py # answers y to all prompts
 ### Change tool configuration
 
 Several elements of the tool can be modified and personalized.
-By using the additional arguments of `main.py`, it is possible to test combinations of tool configuration options that were not explored in the original paper (see the [General Usage](##general-usage) section).
+By using the additional arguments of `main.py`, it is possible to test combinations of tool configuration options that were not explored in the original paper (see the [General Usage](#general-usage) section).
 For example, the following tool configuration has not been previously considered:
 
 ```bash
-python3 bin/main.py data/traces REQ --aggregation weighted_sum --weights 3.0,2.0,5.0
+python3 bin/main.py data/traces REQ --aggregation weighted_sum --weights 3.0,2.0,5.0 --numbers 1.4
 ```
 
-In addition, it is also possible to define new values for the tool configuration parameters:
+In addition, it is also possible to define new desirability metrics by modifying `main.py` and choosing among the different implementations (or creating new implementations) for:
 
-- *Create a new Aggregation Strategy*:
-- *Create a new set of Weights*: A new set of weights can be defined simply using the optional arguments of `main.py`. The field `-w` or `--weights` allow to define a list of any three floats separated by a comma (no spaces in the middle) as the weights of the desirability metric. Please note that the weights refer in order to Semantic Integrity, Syntactic Similarity, and Satisfaction Extent.
-- *Create a new Search-Approach*:
-- *Create a new Semantic Integrity checker*:
-- *Create a new Desirability metric*:
+- *Semantic Integrity*: [src/repair/fitness/desirability/semanticintegrity.py](src/repair/fitness/desirability/semanticintegrity.py)
+- *Syntactic Similarity*: [src/repair/fitness/desirability/syntacticsimilarity.py](src/repair/fitness/desirability/syntacticsimilarity.py)
+- *Satisfaction Extent*: [src/repair/fitness/desirability/satisfactionextent.py](src/repair/fitness/desirability/satisfactionextent.py)
 
 ### Define a new requirement under analysis
 
