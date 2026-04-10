@@ -15,6 +15,11 @@ from repair.approach.trace import TraceSuite
 import repair.grammar.utils as grammar_utils
 import time
 
+TAUTOLOGY_CHECK_MAP = {
+    "smt": Z3TautologyCheckWithSamplingFallback(n_samples=10),
+    "sampling": SamplingBasedTautologyCheck(n_samples=10)
+}
+
 # How to run:
 
 # bin/main.py data/dummy REQ
@@ -47,6 +52,7 @@ def create_parser():
                         help="The aggregation strategy in {no_aggregation, weighted_sum}, defaults to no_aggregation")
     parser.add_argument("-w", "--weights", default="1.0,1.0,1.0",
                         help="The desirability weights, defaults to 1.0,1.0,1.0")
+    parser.add_argument("-tc", "--tautology-check", default="smt", help="Method used for tautology checking")
     parser.add_argument("-ac", "--approach-config", default="default", help="Category of hyperparameters to use")
     parser.add_argument("-s", "--suffix", default="", help="An optional output file suffix")
     parser.add_argument("-v", "--verbose", action="store_true", help="Activates logging")
@@ -65,9 +71,12 @@ def run(args):
 
     # Define DESIRABILITY
     weights = [float(w) for w in args.weights.split(",")]
+    tautology_check_method = TAUTOLOGY_CHECK_MAP.get(args.tautology_check)
+    if tautology_check_method is None:
+        raise ValueError(f"Invalid tautology check method: {args.tautology_check}")
     des = Desirability(
         trace_suite=suite,
-        semantic=TautologyAndVarTypeSanity(Z3TautologyCheckWithSamplingFallback(n_samples=10)),
+        semantic=TautologyAndVarTypeSanity(tautology_check_method),
         syntactic=TreeEditDistance(),
         satisfaction=VerticalAndHorizontalExtent(),
         weights=weights
@@ -88,7 +97,7 @@ def run(args):
         key=lambda r: (r.correctness, r.raw_desirability[0], r.raw_desirability[1], r.raw_desirability[2]))
 
     # Save results to file
-    run_id = f"{case_study}_{args.requirement}_{args.aggregation.replace("_", "")}_{round(weights[0])}{round(weights[1])}{round(weights[2])}_{args.approach_config}"
+    run_id = f"{case_study}_{args.requirement}_{args.aggregation.replace("_", "")}_{round(weights[0])}{round(weights[1])}{round(weights[2])}_{args.tautology_check}_{args.approach_config}"
     output_dir = f"{args.output_dir}/{run_id}"
     os.makedirs(output_dir, exist_ok=True)
     output_path = f"{output_dir}/repair{args.suffix}.txt"

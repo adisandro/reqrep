@@ -13,6 +13,8 @@ def create_parser_eval():
     parser.add_argument("-p", "--processes", default=None,
                         help="Number of processes for parallel computation, "
                              "defaults to the number of processors on the running computer")
+    parser.add_argument("-st", "--smoke-test", action="store_true",
+                        help="Run a smoke test with minimal configurations")
 
     return parser
 
@@ -26,30 +28,36 @@ if __name__ == "__main__":
     w_syn = 1.0
     w_sat = 1.0
     all_configurations = {
-        # ToDo: Missing configurations V2 and V4.
         # original configs
-        "V1": ("no_aggregation", [w_sem, w_syn, w_sat], "default"),
+        "V1": ("no_aggregation", [w_sem, w_syn, w_sat], "smt", "default"),
+        "V2": ("no_aggregation", [w_sem, w_syn, w_sat], "sampling", "default"),
 
         # VARIANT: weighted sum
-        "V3": ("weighted_sum",   [w_sem, w_syn, w_sat], "default"),
+        "V3": ("weighted_sum",   [w_sem, w_syn, w_sat], "smt", "default"),
+        "V4": ("weighted_sum",   [w_sem, w_syn, w_sat], "sampling", "default"),
 
         # [NEWLY ADDED]
         # VARIANT: weighted sum
-        "V5": ("no_aggregation", [1.0, 3.0, 5.0], "default"),
+        "V5": ("no_aggregation", [1.0, 3.0, 5.0], "smt", "default"),
 
         # VARIANT: hyperparameters
-        "V6": ("no_aggregation", [w_sem, w_syn, w_sat], "hp_increase_tree_depth"),
-        "V7": ("no_aggregation", [w_sem, w_syn, w_sat], "hp_increase_num_offsprings"),
+        "V6": ("no_aggregation", [w_sem, w_syn, w_sat], "smt", "hp_increase_tree_depth"),
+        "V7": ("no_aggregation", [w_sem, w_syn, w_sat], "smt", "hp_increase_num_offsprings"),
 
         # Ablation study
-        "Abl1": ("no_aggregation", [0.0, w_syn, w_sat], "default"),
-        "Abl2": ("no_aggregation", [w_sem, 0.0, w_sat], "default"),
-        "Abl3": ("no_aggregation", [w_sem, w_syn, 0.0], "default"),
+        "Abl1": ("no_aggregation", [0.0, w_syn, w_sat], "smt", "default"),
+        "Abl2": ("no_aggregation", [w_sem, 0.0, w_sat], "smt", "default"),
+        "Abl3": ("no_aggregation", [w_sem, w_syn, 0.0], "smt", "default"),
     }
 
     # Get list of configuration to run from parser
     parser_eval = create_parser_eval()
     args_eval = parser_eval.parse_args()
+    
+    if args_eval.smoke_test:
+        samples = 2
+        case_studies = {"TUI": ["TU1", "TU2"]}
+
     if not args_eval.config_list:
         # Run complete evaluation on all the possible configurations.
         run_configurations = list(all_configurations.values())
@@ -72,7 +80,7 @@ if __name__ == "__main__":
     with ProcessPoolExecutor(max_workers=processes) as executor:
         for case_study, requirements in case_studies.items():
             for requirement in requirements:
-                for aggregation, weights, approach_config in run_configurations:
+                for aggregation, weights, tautology_check, approach_config in run_configurations:
                     print(f"Approach Configuration: {weights}")
                     for i in range(samples):
                         cmd = [f"{case_study_dir}/{case_study}",
@@ -80,6 +88,7 @@ if __name__ == "__main__":
                                "-o", output_dir,
                                "-a", aggregation,
                                "-w", ",".join(str(w) for w in weights),
+                               "-tc", tautology_check,
                                "-ac", approach_config,
                                "-s", f"{i}"]
                         args_main = parser_main.parse_args(cmd)

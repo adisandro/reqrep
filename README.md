@@ -12,13 +12,30 @@ For licensing information, see [LICENSE.txt](LICENSE.txt).
 ReqRep is a Python tool to repair test requirements for Cyber-Physical Systems (CPS).
 It restores compliance between system behavior (as captured by trace suites) and formalized requirements, based on repair desirability metrics.
 
+## Smoke tests
+
+ReqRep includes smoke tests to verify correct installation without running the full evaluation.
+
+### Basic smoke test
+
 To verify the correct installation, run the following from the command line:
 
 ```bash
 python3 bin/main.py data/traces REQ
 ```
 
-This should require less than a minute to complete, and will create a folder called `output/traces_REQ_noaggregation_111_default`, containing the results of a single iteration of the tool.
+This should require less than a minute to complete, and will create a folder called `output/traces_REQ_noaggregation_111_smt_default`, containing the results of a single iteration of the tool.
+
+### Full evaluation smoke test
+
+To verify the complete evaluation pipeline, run:
+
+```bash
+python3 bin/evaluation.py --smoke-test
+```
+
+This runs all configurations on a single case study (TUI) with fewer samples. It should complete in under 5 minutes and will create 20 subdirectories in the `output` folder with names starting with `TUI_TU1_` or `TUI_TU2_`, each containing the results for a different configuration.
+
  
 ## General Usage
 
@@ -41,6 +58,7 @@ python3 bin/main.py [-h] [-p PREV0] [-i ITERATIONS] [-n NUMBERS] [-a AGGREGATION
 - `-n`, `--numbers` `NUMBERS`: When generating numbers, each variable has a window [min, max] based on the values seen in the traces; this widens/shrinks the window by a factor, defaults to 1.2
 - `-a`, `--aggregation` `AGGREGATION`: The aggregation strategy in {no_aggregation, weighted_sum}, defaults to no_aggregation
 - `-w`, `--weights` `WEIGHTS`: The desirability weights, defaults to 1.0,1.0,1.0
+- `-tc`, `--tautology-check` `TAUTOLOGY_CHECK`: Method used for tautology checking
 - `-ac`, `--approach-config` `APPROACH_CONFIG`: Category of hyperparameters to use
 - `-s`, `--suffix` `SUFFIX`: An optional output file suffix
 - `-v`, `--verbose`: Activates logging
@@ -95,8 +113,8 @@ python3 bin/evaluation.py V1 -p 2    # Will replicate only V1 using 2 parallel p
 ```
 
 For each requirement and tool configuration, the tool will create a dedicated folder inside the folder `output`. These folders have the following naming scheme:  
-[Model Name]\_[Requirement Name]\_[Aggregation Strategy]\_[Weights]\_[Additional specifiers]  
-For example, `NNP_NNP3a_noaggregation_111_hp_increase_num_offsprings` indicates that this folder contains the results for the requirement NNP3a of the model NNP, when analyzed by the tool with aggregation strategy "No Aggregation", desirability weights of 1, 1, and 1, and doubling the number of offspring (i.e., tool configuration V7).
+[Model Name]\_[Requirement Name]\_[Aggregation Strategy]\_[Weights]\_[Tautology Check]\_[Additional specifiers]  
+For example, `NNP_NNP3a_noaggregation_111_smt_hp_increase_num_offsprings` indicates that this folder contains the results for the requirement NNP3a of the model NNP, when analyzed by the tool with aggregation strategy "No Aggregation", desirability weights of 1, 1, and 1, tautology checking method "smt", and doubling the number of offspring (i.e., tool configuration V7).
 This folder contains a .txt file for each run of the experiment (10 by default). The .txt file contains all the repaired requirements generated in that run and their correctness and desirability scores.
 
 In addition to this, the evaluation script also creates a `results.csv` file in `output`, which summarises the results for all the models and tool configurations analysed.
@@ -105,7 +123,7 @@ Here is an example of the expected folder structure:
 ```
 root/
 ├── output/
-│   ├── NNP_NNP3a_noaggregation_111_hp_increase_num_offsprings/
+│   ├── NNP_NNP3a_noaggregation_111_smt_hp_increase_num_offsprings/
 │   │   ├── repair0.txt
 │   │   ├── repair1.txt
 │   │   ├── ...            # Results for all the iterations between 0 and 9
