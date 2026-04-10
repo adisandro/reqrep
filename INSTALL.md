@@ -13,7 +13,13 @@
 2. Load the Docker image:
 
    ```bash
-   TODO
+   docker build -t reqrep:latest .
+   ```
+
+3. Start a shell in the container with the project directory mounted:
+
+   ```bash
+   MSYS_NO_PATHCONV=1 docker run --rm -it -v "${PWD}:/workspace" reqrep:latest
    ```
 
 ## From Source
