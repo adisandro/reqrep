@@ -30,8 +30,7 @@ def rq2_useful(sorted_data):
 
 
 def rq2(case_studies, data):
-    data = data[(data["aggregation_strategy"] == "no_aggregation") & (data["config"] == "hp_increase_num_offsprings") &
-                data["config_id"].str.contains("111")]
+    data = data[data["config_id"].str.endswith("noaggregation_111_smt_hp_increase_num_offsprings")]
     correct_data = data[(data["f_correctness"].apply(is_zero)) & (data["f_des_semantic"].apply(is_zero))]
     results = ""
     for case_study in case_studies:
@@ -50,7 +49,7 @@ def rq2(case_studies, data):
     print(results)
 
 def rq3(data):
-    data = data[(data["aggregation_strategy"] == "no_aggregation") & (data["config"] == "default")]
+    data = data[data["config_id"].str.contains("noaggregation") & data["config_id"].str.endswith("smt_default")]
     for dimension in ["111", "011", "101", "110"]:
         dim_data = data[data["config_id"].str.contains(dimension)]
         runs_data = dim_data.groupby(["config_id", "sample_id"]).agg(min=("f_correctness", "min"))

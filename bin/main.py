@@ -52,7 +52,8 @@ def create_parser():
                         help="The aggregation strategy in {no_aggregation, weighted_sum}, defaults to no_aggregation")
     parser.add_argument("-w", "--weights", default="1.0,1.0,1.0",
                         help="The desirability weights, defaults to 1.0,1.0,1.0")
-    parser.add_argument("-tc", "--tautology-check", default="smt", help="Method used for tautology checking")
+    parser.add_argument("-tc", "--tautology-check", default="smt", help="Method used for tautology checking in "
+                                                                        "{smt, sampling}, defaults to smt")
     parser.add_argument("-ac", "--approach-config", default="default", help="Category of hyperparameters to use")
     parser.add_argument("-s", "--suffix", default="", help="An optional output file suffix")
     parser.add_argument("-v", "--verbose", action="store_true", help="Activates logging")

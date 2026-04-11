@@ -19,11 +19,19 @@ def create_parser_eval():
     return parser
 
 if __name__ == "__main__":
+    # Get list of configuration to run from parser
+    parser_eval = create_parser_eval()
+    args_eval = parser_eval.parse_args()
+
     # Case study setup
-    samples = 10
+    if args_eval.smoke_test:
+        samples = 2
+        case_studies = {"TUI": ["TU1", "TU2"]}
+    else:
+        samples = 10
+        case_studies = {"AFC": ["AFC29", "AFC33"], "AT": ["AT1", "AT2"], "CC": ["CC1", "CCX"], "EU": ["EU3"],
+                        "NNP": ["NNP3a", "NNP3b", "NNP4"], "TUI": ["TU1", "TU2"]}
     case_study_dir = "data/case_studies"
-    case_studies = {"AFC": ["AFC29", "AFC33"], "AT": ["AT1", "AT2"], "CC": ["CC1", "CCX"], "EU": ["EU3"],
-                    "NNP": ["NNP3a", "NNP3b", "NNP4"], "TUI": ["TU1", "TU2"]}
     w_sem = 1.0
     w_syn = 1.0
     w_sat = 1.0
@@ -49,14 +57,6 @@ if __name__ == "__main__":
         "Abl2": ("no_aggregation", [w_sem, 0.0, w_sat], "smt", "default"),
         "Abl3": ("no_aggregation", [w_sem, w_syn, 0.0], "smt", "default"),
     }
-
-    # Get list of configuration to run from parser
-    parser_eval = create_parser_eval()
-    args_eval = parser_eval.parse_args()
-    
-    if args_eval.smoke_test:
-        samples = 2
-        case_studies = {"TUI": ["TU1", "TU2"]}
 
     if not args_eval.config_list:
         # Run complete evaluation on all the possible configurations.

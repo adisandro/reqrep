@@ -12,11 +12,7 @@ For licensing information, see [LICENSE.txt](LICENSE.txt).
 ReqRep is a Python tool to repair test requirements for Cyber-Physical Systems (CPS).
 It restores compliance between system behavior (as captured by trace suites) and formalized requirements, based on repair desirability metrics.
 
-## Smoke tests
-
-ReqRep includes smoke tests to verify correct installation without running the full evaluation.
-
-### Basic smoke test
+### Smoke test
 
 To verify the correct installation, run the following from the command line:
 
@@ -26,17 +22,6 @@ python3 bin/main.py data/traces REQ
 
 This should require less than a minute to complete, and will create a folder called `output/traces_REQ_noaggregation_111_smt_default`, containing the results of a single iteration of the tool.
 
-### Full evaluation smoke test
-
-To verify the complete evaluation pipeline, run:
-
-```bash
-python3 bin/evaluation.py --smoke-test
-```
-
-This runs all configurations on a single case study (TUI) with fewer samples. It should complete in under 5 minutes and will create 20 subdirectories in the `output` folder with names starting with `TUI_TU1_` or `TUI_TU2_`, each containing the results for a different configuration.
-
- 
 ## General Usage
 
 Running the repair tool from the command line requires you to specify the trace suite directory and the requirement name. Optional arguments allow you to customize the repair process.
@@ -58,7 +43,7 @@ python3 bin/main.py [-h] [-p PREV0] [-i ITERATIONS] [-n NUMBERS] [-a AGGREGATION
 - `-n`, `--numbers` `NUMBERS`: When generating numbers, each variable has a window [min, max] based on the values seen in the traces; this widens/shrinks the window by a factor, defaults to 1.2
 - `-a`, `--aggregation` `AGGREGATION`: The aggregation strategy in {no_aggregation, weighted_sum}, defaults to no_aggregation
 - `-w`, `--weights` `WEIGHTS`: The desirability weights, defaults to 1.0,1.0,1.0
-- `-tc`, `--tautology-check` `TAUTOLOGY_CHECK`: Method used for tautology checking
+- `-tc`, `--tautology-check` `TAUTOLOGY_CHECK`: Method used for tautology checking in {smt, sampling}, defaults to smt
 - `-ac`, `--approach-config` `APPROACH_CONFIG`: Category of hyperparameters to use (see [src/repair/approach/approachConfig.py](src/repair/approach/approachConfig.py))
 - `-s`, `--suffix` `SUFFIX`: An optional output file suffix
 - `-v`, `--verbose`: Activates logging
@@ -89,9 +74,19 @@ python3 bin/main.py data/case_studies/TUI TU2
 
 This section explains how to replicate the experiments described in Section 6 (Evaluation) of the corresponding paper.
 
+### Evaluation smoke test
+
+To verify the complete evaluation pipeline, run:
+
+```bash
+python3 bin/evaluation.py --smoke-test
+```
+
+This runs all configurations on a single case study (TUI) with fewer samples. It should complete in under 10 minutes and will create 20 subdirectories in the `output` folder with names starting with `TUI_TU1_` and `TUI_TU2_`, each containing the results for a different configuration.
+ 
 ### RQ1
 
-For a **complete** replication of the evaluation, for all six models (*AFC, AT, CC, EU, NN, TUI*) and all the seven tool configurations (*V1 to V7*), run the command below.
+For a **complete** replication of the evaluation, for all six models (*AFC, AT, CC, EU, NN, TUI*), all seven tool configurations (*V1 to V7*), and all three configurations for the ablation study (*Abl1 to Abl3*), run the command below.
 
 ```bash
 python3 bin/evaluation.py
@@ -101,8 +96,6 @@ python3 bin/evaluation.py -p 4 # Will use 4 parallel processes
 Results are saved in the `output` folder (the original paper results are in the `output_paper` folder).
 Please note that you can specify the number of parallel processes you wish to run using the `-p` or `--process` flag, or otherwise default to the number of processors on your computer.  
 The complete evaluation is time-consuming and takes hours to execute, depending on the hardware.
-
-[*Note: Currently V2 and V4 (the configurations without z3) are not executed.*]
 
 For a **partial** replication of the Evaluation, the user can specify which configurations they are interested in as an additional argument.
 The configuration codes are `V1` to `V7` for the seven tool configurations, and `Abl1`, `Abl2`, and `Abl3` for the three special configurations used in RQ3 (the ablation study).
@@ -134,7 +127,7 @@ root/
 ```
 
 To help with the analysis of the results, we share a Matlab script: `plotBoxplot.m`.
-This script generates a set of summary tables that contain all the numbers mentioned in Section 6.3, as well as the boxplots in Figure 7. Please note that if you replicate the experiments (using `bin/main.py` or `bin/evaluation.py`), **the results may be slightly different from the ones presented in the paper, due to stochastic fluctuations**.  
+This script generates a set of summary tables that contain all the numbers mentioned in Section 6.3, as well as the boxplots in Figure 7. Please note that if you replicate the experiments, **the results may be slightly different from the ones presented in the paper, due to stochastic fluctuations**.  
 This script can be run from the Matlab IDE using any directory as the current active directory, as long as the script `scripts/ScriptsRQ1/plotBoxplot.m` is on the active path.  
 The script will produce the two boxplot figures inside the folder `Figures` and three .csv files summarizing for each model and each configuration, respectively, the Satisfaction Extent score (`Table_Satis.csv`), the Syntactic Similarity score (`Table_Synt.csv`), and the number of repaired requirements (`repairNumber.csv`).
 The `ScriptsRQ1` folder will have the following structure:
@@ -159,7 +152,7 @@ root/
 
 ```matlab
 31: fileList(1).Folder = "output";
-32: fileList(1).FileName = "results.csv";
+32: fileList(1).FileName = "results_V1_V3.csv";
 33: fileList(1).Aggregation = "no_aggregation";
 34: fileList(1).Config = "default";
 35: fileList(1).Weights = "[1.0, 1.0, 1.0]";
@@ -195,7 +188,7 @@ For example, the following tool configuration has not been previously considered
 python3 bin/main.py data/traces REQ --aggregation weighted_sum --weights 3.0,2.0,5.0 --numbers 1.4
 ```
 
-In addition, it is also possible to define new desirability metrics by modifying `main.py` and choosing among the different implementations (or creating new implementations) for:
+In addition, it is also possible to define new desirability metrics by modifying [bin/main.py](bin/main.py) and choosing among the different implementations (or creating new implementations) for:
 
 - *Semantic Integrity*: [src/repair/fitness/desirability/semanticintegrity.py](src/repair/fitness/desirability/semanticintegrity.py)
 - *Syntactic Similarity*: [src/repair/fitness/desirability/syntacticsimilarity.py](src/repair/fitness/desirability/syntacticsimilarity.py)
@@ -203,7 +196,7 @@ In addition, it is also possible to define new desirability metrics by modifying
 
 ### Define a new requirement under analysis
 
-If you want to add a new requirement to one of the existing models, you need to modify `bin/utils.py`.
+If you want to add a new requirement to one of the existing models, you need to modify [bin/utils.py](bin/utils.py).
 This file contains the set of variables and the original requirement formulation for all models.
 Make sure that the variable names match the ones used in the trace files.  
 The file currently contains several examples, showing the correct syntax to:
@@ -219,7 +212,7 @@ Applying the tool on a new model requires (i) the definition of the new set of r
 To define a new trace suite, you need to save each trace as an individual .csv file using the model label as part of the name.
 Within the model, the data must be organized considering each row to be a timestep and each column to be a signal.
 No distinction is made between input and output signals at this stage.  
-The first row of the file is reserved for the header, which defines the signal names and specifies the units of measurement using the following syntax: `[Signal name]|[Units of measurement]`.
+The first row of the file is reserved for the header, which defines the signal names and specifies the units of measurement using the following syntax: `Signal name|Units of measurement`.
 The unit of measurement can be any 1 word string and will be used to compute the Semantic Integrity score, to check that the signals being compared have the same unit of measurement.
 Here is an example of the required structure for a trace file:
 
@@ -258,7 +251,7 @@ This Artifact can be cited as follows:
 ```latex
 @misc{Artifact_Babikian_2026_Automated,
  author = {Babikian, Aren A. and Di Sandro, Alessio and Formica, Federico and Menghi, Claudio and Chechik, Marsha},
- title = {Replication package for Automated Repair of Requirements for Cyber-Physical Systems in Simulink Requirements Tables},
+ title = {Automated Repair of Requirements for Cyber-Physical Systems in Simulink Requirements Tables: Replication Package},
  year = {2026},
  month = {April},
  publisher = {Zenodo},
